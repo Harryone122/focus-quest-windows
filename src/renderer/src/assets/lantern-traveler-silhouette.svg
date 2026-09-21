@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 560">
+  <defs>
+    <filter id="bristle" x="-12%" y="-12%" width="124%" height="124%">
+      <feTurbulence type="fractalNoise" baseFrequency=".025" numOctaves="2" seed="21" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8"/>
+    </filter>
+    <linearGradient id="darkCoat" x1="0" y1="0" x2=".8" y2="1">
+      <stop offset="0" stop-color="#192839"/>
+      <stop offset=".55" stop-color="#0a1421"/>
+      <stop offset="1" stop-color="#25302f"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#bristle)" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M83 94c4-42 28-69 60-66 28 2 48 27 45 63-1 19-7 38-18 51l-67-2C91 128 82 112 83 94z" fill="#0a0e15"/>
+    <path d="M92 83c14-28 38-40 67-32 18 5 31 20 34 41-20-6-35-17-47-31-15 18-32 27-54 29z" fill="#18181c"/>
+    <path d="M79 143c37-21 77-20 106 6l24 184-40 89-93-4-48-89z" fill="url(#darkCoat)" stroke="#070d14" stroke-width="10"/>
+    <path d="M107 146l28 57 27-59 25 13-25 83 44 173-58 15-18-139-9 140-60-14 33-178-29-75z" fill="#111c2b" stroke="#3f4c4b" stroke-width="5"/>
+    <path d="M158 149l42 26-15 73-35-31z" fill="#9b8d72" fill-opacity=".7" stroke="#4e4638" stroke-width="4"/>
+    <path d="M111 201l31 25 34-62M65 327l99 2" fill="none" stroke="#8c6c3d" stroke-width="5" opacity=".8"/>
+    <path d="M53 172L8 287l26 12 62-93z" fill="#111b28" stroke="#070d14" stroke-width="11"/>
+    <path d="M18 288l-2 88" fill="none" stroke="#67533b" stroke-width="13"/>
+    <path d="M17 372c-10 4-15 15-10 24 6 10 19 12 27 4l1-18z" fill="#6f4d3d" stroke="#111015" stroke-width="5"/>
+    <path d="M181 176l33 109-22 9-52-95z" fill="#121e2c" stroke="#070d14" stroke-width="10"/>
+    <path d="M202 281c11-2 19 7 17 17-3 10-14 15-23 9l-5-15z" fill="#6f4d3d" stroke="#111015" stroke-width="5"/>
+    <path d="M79 412l49 2-4 111-50 1zM128 414l47-3 19 112-50 4z" fill="#191a20" stroke="#070b10" stroke-width="9"/>
+    <path d="M72 516l56-1-5 32-70 1 4-16zM141 516l51-2 20 23-5 11-70-1z" fill="#0b0e12" stroke="#05070a" stroke-width="8"/>
+    <path d="M17 392v24" stroke="#795c31" stroke-width="5"/>
+    <path d="M-2 425l12-18h43l15 18-10 65H8z" fill="#0b161c" stroke="#806238" stroke-width="6"/>
+    <path d="M31 419l10 26-10 25-11-25z" fill="#a77a3e" fill-opacity=".62" stroke="#89734c" stroke-width="4"/>
+    <path d="M9 413l47 73M55 413L9 486M2 450h63" fill="none" stroke="#6f5735" stroke-width="3"/>
+  </g>
+</svg>

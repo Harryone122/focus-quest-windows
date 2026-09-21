@@ -1,0 +1,73 @@
+{
+  "name": "focus-quest-windows",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Focus Quest - a local-first Windows focus RPG",
+  "main": "./out/main/index.js",
+  "author": "Focus Quest",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && npm run test && electron-vite build",
+    "dist": "npm run build && electron-builder --win nsis --x64",
+    "dist:portable": "npm run build && electron-builder --win portable --x64 --config.directories.output=release-portable",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "better-sqlite3": "latest",
+    "get-windows": "latest",
+    "phaser": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "^5.1.4",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "electron-vite": "^5.0.0",
+    "typescript": "latest",
+    "vite": "^7.3.6",
+    "vitest": "latest"
+  },
+  "overrides": {
+    "tar": "7.5.22"
+  },
+  "build": {
+    "appId": "com.focusquest.desktop",
+    "productName": "Focus Quest",
+    "asar": true,
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*",
+      "node_modules/get-windows/**/*"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Focus Quest"
+    },
+    "directories": {
+      "output": "release-v4"
+    }
+  }
+}
