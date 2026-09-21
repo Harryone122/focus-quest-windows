@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArchiveGame } from './ArchiveGame'
 import travelerGraphicUrl from './assets/lantern-traveler-silhouette.svg'
-import { suggestSteps } from '../../shared/decomposition'
+import { suggestStartingActions } from '../../shared/decomposition'
 import type {
   AppSettings,
   AppSnapshot,
@@ -106,21 +106,20 @@ function ReminderGlyph({ mode }: { mode: ReminderPolicy }): React.JSX.Element {
 }
 
 function QuestPath({ task, onCreate }: { task?: QuestTask; onCreate?: () => void }): React.JSX.Element {
-  const points = [[54, 104], [190, 52], [342, 101], [500, 46]]
-  const steps = task?.steps.slice(0, 4) ?? []
-  const visible = steps.length || 3
-  return <div className="quest-path" role="img" aria-label={task ? `${task.title}，${steps.filter((step) => step.status === 'done').length} 個步驟已完成` : '尚未選擇今日主線'}>
+  return <div className="quest-path" role="img" aria-label={task ? `${task.title}，今日目標：${task.progressDefinition}` : '尚未選擇今日主線'}>
     <svg viewBox="0 0 560 150" aria-hidden="true">
       <path className="route-sketch" d="M36 111C95 111 120 65 188 55s97 57 154 49 97-53 178-61" />
       <path className="route-echo" d="M38 116c62-3 85-44 151-55 70-11 91 52 153 47 67-5 102-57 176-60" />
-      {points.slice(0, visible).map(([x, y], index) => {
-        const status = steps[index]?.status ?? 'pending'
-        const current = index === steps.findIndex((step) => step.status === 'pending')
-        return <g key={`${x}-${y}`} className={status === 'done' ? 'route-node done' : current ? 'route-node current' : 'route-node'} transform={`translate(${x} ${y})`}>
+      {task && <>
+        <g className="route-node current" transform="translate(190 55)">
           <path d="M0-13 8-7 13 2 7 11-3 14-12 7-13-4-7-11Z" />
           <circle r="4" />
         </g>
-      })}
+        <g className="route-node destination" transform="translate(500 46)">
+          <path d="M0-13 8-7 13 2 7 11-3 14-12 7-13-4-7-11Z" />
+          <circle r="4" />
+        </g>
+      </>}
     </svg>
     {!task && <button className="map-add" aria-label="建立今日主線" title="建立今日主線" onClick={onCreate}><span>＋</span></button>}
   </div>
@@ -141,9 +140,7 @@ function TaskCard({ task, onStart, onMove, onArchive }: {
   onMove: (taskId: string, role: TaskRole) => void
   onArchive: (taskId: string) => void
 }): React.JSX.Element {
-  const completed = task.steps.filter((step) => step.status === 'done').length
   const next = task.steps.find((step) => step.status === 'pending')
-  const progress = task.steps.length ? Math.round((completed / task.steps.length) * 100) : 0
   return (
     <article className={`task-card role-${task.role}`}>
       <header>
@@ -151,10 +148,10 @@ function TaskCard({ task, onStart, onMove, onArchive }: {
         <span className="kind-label">{KIND_LABELS[task.kind]}</span>
       </header>
       <h3>{task.title}</h3>
-      <p className="next-step"><span>下一步</span>{next?.text ?? '這項任務已完成'}</p>
-      <div className="progress-track"><span style={{ width: `${progress}%` }} /></div>
+      <p className="next-step"><span>今日目標</span>{task.progressDefinition}</p>
+      {task.starterAction && <p className="starter-note"><span>↳</span>{task.starterAction}</p>}
       <div className="task-meta">
-        <span>{completed}/{task.steps.length} 個步驟</span>
+        <span>{task.starterAction ? '已選擇起跑方式' : '直接開始'}</span>
         {task.startCue.type !== 'manual' && <span>{task.startCue.type === 'time' ? `今天 ${task.startCue.value}` : `當 ${task.startCue.value}`}</span>}
         {task.deadline && <span>期限 {task.deadline}</span>}
       </div>
@@ -188,7 +185,8 @@ function TaskWizard({ snapshot, onClose, onSaved }: {
   const [deadline, setDeadline] = useState('')
   const [cueType, setCueType] = useState<'time' | 'event' | 'manual'>('manual')
   const [cueValue, setCueValue] = useState('')
-  const [steps, setSteps] = useState<string[]>([])
+  const [starterOptions, setStarterOptions] = useState<string[]>([])
+  const [starterAction, setStarterAction] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -196,20 +194,21 @@ function TaskWizard({ snapshot, onClose, onSaved }: {
     setError('')
     if (stage === 1 && !title.trim()) return setError('先替這次冒險取一個清楚的任務名稱。')
     if (stage === 2 && !progressDefinition.trim()) return setError('請寫下今天看到什麼就算有進展。')
-    if (stage === 3) setSteps(suggestSteps(kind, obstacle, title, progressDefinition))
+    if (stage === 3) {
+      setStarterOptions(suggestStartingActions(kind, obstacle, title, progressDefinition))
+      setStarterAction(null)
+    }
     setStage((value) => Math.min(4, value + 1))
   }
 
   const save = async (): Promise<void> => {
-    const cleanSteps = steps.map((step) => step.trim()).filter(Boolean)
-    if (!cleanSteps.length) return setError('至少保留一個可以立即開始的小步驟。')
     setSaving(true)
     setError('')
     const input: CreateTaskInput = {
       title, role, kind, progressDefinition, obstacle,
+      starterAction: starterAction?.trim() || null,
       deadline: deadline || null,
-      startCue: { type: cueType, value: cueType === 'manual' ? '' : cueValue },
-      steps: cleanSteps
+      startCue: { type: cueType, value: cueType === 'manual' ? '' : cueValue }
     }
     try {
       onSaved(await window.focusQuest.createTask(input))
@@ -253,9 +252,11 @@ function TaskWizard({ snapshot, onClose, onSaved }: {
         </div>}
 
         {stage === 4 && <div className="wizard-page">
-          <p className="question">這是本機規則提出的起步路線，你可以直接改寫。</p>
-          <div className="step-editor">{steps.map((step, index) => <div className="editable-step" key={index}><span>{index + 1}</span><input value={step} onChange={(event) => setSteps((current) => current.map((item, position) => position === index ? event.target.value : item))} /><button aria-label="移除步驟" onClick={() => setSteps((current) => current.filter((_, position) => position !== index))}>×</button></div>)}</div>
-          {steps.length < 4 && <button className="ghost-button small" onClick={() => setSteps((current) => [...current, ''])}>＋ 新增一步</button>}
+          <p className="question">如果需要，選一個起跑方式。</p>
+          <p className="starter-explainer">這不是待辦清單，也不需要全部完成；它只負責幫你跨出第一步。</p>
+          <div className="starter-choice-list">{starterOptions.map((action, index) => <button key={action} className={starterAction === action ? 'starter-choice active' : 'starter-choice'} onClick={() => setStarterAction(action)}><span>0{index + 1}</span><strong>{action}</strong></button>)}</div>
+          <button className={starterAction === null ? 'skip-choice active' : 'skip-choice'} onClick={() => setStarterAction(null)}><strong>SKIP</strong><span>我知道怎麼開始，直接加入冒險</span></button>
+          {starterAction && <label className="field starter-edit"><span>想換成自己的說法，也可以直接修改</span><input value={starterAction} onChange={(event) => setStarterAction(event.target.value)} /></label>}
         </div>}
 
         {error && <p className="form-error">{error}</p>}
@@ -315,7 +316,8 @@ function FocusSetup({ task, snapshot, onClose, onStarted }: {
   return <div className="modal-backdrop"><section className="modal focus-setup departure-sheet">
     <div className="departure-stamp" aria-hidden="true">READY<br />TO BEGIN</div>
     <div className="modal-header"><div><p className="eyebrow">準備啟程</p><h2>{task.title}</h2></div><button className="icon-button" onClick={onClose}>×</button></div>
-    <div className="focus-intention"><span>現在只做</span><strong>{step.text}</strong></div>
+    <div className="focus-intention"><span>這次想留下的進展</span><strong>{task.progressDefinition}</strong></div>
+    {task.starterAction && <div className="starter-prompt"><span>如果一時卡住，可以先從這裡開始</span><strong>↳ {task.starterAction}</strong><small>這只是起跑提示，不是必須完成的關卡。</small></div>}
     <div className="field"><span>最低承諾</span><div className="option-grid three">{([5, 10, 15] as const).map((value) => <button key={value} className={minimum === value ? 'option active' : 'option'} onClick={() => setMinimum(value)}><strong>{value} 分鐘</strong><small>{value === 5 ? '先跨出去' : value === 10 ? '建議' : '已經熱身'}</small></button>)}</div></div>
     {snapshot.settings.phoneRitual && <label className="phone-ritual"><input type="checkbox" checked={phoneParked} onChange={(event) => setPhoneParked(event.target.checked)} /><span><strong>手機已經離開伸手範圍</strong><small>Windows 版無法替你封鎖 iPhone，先用環境替自己減少一次選擇。</small></span></label>}
     <div className="field"><span>這次要攔下的桌面程式</span>{loadingApps ? <p className="muted">正在讀取目前執行的程式…</p> : apps.length ? <div className="app-picker">{apps.map((app) => <label key={app.processName}><input type="checkbox" checked={selected.has(app.processName)} onChange={() => toggleApp(app.processName)} /><span>{app.displayName}</span></label>)}</div> : <p className="muted">目前沒有其他可選的桌面程式，仍可直接開始。</p>}</div>
@@ -326,6 +328,7 @@ function FocusSetup({ task, snapshot, onClose, onStarted }: {
 
 function FocusActive({ snapshot, onEnded }: { snapshot: AppSnapshot; onEnded: (result: FocusResult) => void }): React.JSX.Element {
   const session = snapshot.activeSession!
+  const activeTask = snapshot.tasks.find((task) => task.id === session.taskId)
   const [now, setNow] = useState(Date.now())
   const [choosing, setChoosing] = useState(false)
   const [ending, setEnding] = useState(false)
@@ -346,15 +349,16 @@ function FocusActive({ snapshot, onEnded }: { snapshot: AppSnapshot; onEnded: (r
       <div className="focus-lantern" aria-hidden="true"><span /><i /></div>
       <p className="eyebrow">星燈已點亮</p>
       <h1>{session.taskTitle}</h1>
-      <p className="focus-step">{session.stepText}</p>
+      <p className="focus-step">{activeTask?.progressDefinition ?? session.stepText}</p>
+      {activeTask?.starterAction && <p className="focus-starter">起跑提示　↳ {activeTask.starterAction}</p>}
       <div className={reached ? 'focus-timer reached' : 'focus-timer'}>{formatClock(reached ? elapsed : minimum - elapsed)}</div>
       <p className="timer-caption">{reached ? `已越過 ${session.minimumMinutes} 分鐘最低承諾，現在可以自由繼續。` : `再 ${formatClock(minimum - elapsed)} 就完成最低承諾。`}</p>
       <div className="minimum-track"><span style={{ width: `${Math.min(100, (elapsed / minimum) * 100)}%` }} /></div>
       {!choosing ? <button className="ghost-button end-button" onClick={() => setChoosing(true)}>結束這次專注</button> : <div className="outcome-panel">
         <p>這次留下了什麼？</p>
-        <button disabled={ending} onClick={() => void end('completed')}><strong>已完成微步驟</strong><span>記錄星頁並推進任務</span></button>
-        <button disabled={ending} onClick={() => void end('progress')}><strong>有進展，還沒完成</strong><span>保留時間與真實進度</span></button>
-        <button disabled={ending} onClick={() => void end('blocked')}><strong>卡住了</strong><span>不處罰，回去把下一步縮小</span></button>
+        <button disabled={ending} onClick={() => void end('completed')}><strong>完成今天的目標</strong><span>記錄星頁並完成這次任務</span></button>
+        <button disabled={ending} onClick={() => void end('progress')}><strong>有推進，還沒完成</strong><span>保留時間與真實進度</span></button>
+        <button disabled={ending} onClick={() => void end('blocked')}><strong>仍然卡住</strong><span>不處罰，下次可以換一個起跑方式</span></button>
         <button className="text-button" onClick={() => setChoosing(false)}>繼續專注</button>
       </div>}
       {error && <p className="form-error">{error}</p>}
@@ -386,8 +390,6 @@ function TodayView({ snapshot, onCreate, onStart, onMove, onArchive }: {
   const main = today.find((task) => task.role === 'main')
   const sides = today.filter((task) => task.role === 'side')
   const next = main?.steps.find((step) => step.status === 'pending')
-  const completed = main?.steps.filter((step) => step.status === 'done').length ?? 0
-  const progress = main?.steps.length ? Math.round((completed / main.steps.length) * 100) : 0
   const dateLabel = new Intl.DateTimeFormat('zh-TW', { month: 'long', day: 'numeric', weekday: 'long' }).format(new Date())
 
   return <div className="view-content today-view">
@@ -411,8 +413,9 @@ function TodayView({ snapshot, onCreate, onStart, onMove, onArchive }: {
         <span className="paper-pin" aria-hidden="true" />
         <div className="focus-card-top"><span className="quest-seal" aria-label="主線任務">✦</span><small>{main ? KIND_LABELS[main.kind] : '未選擇'}</small></div>
         <h2>{main?.title ?? '今天的主線'}</h2>
-        <div className="next-mark"><span aria-hidden="true">↳</span><strong>{next?.text ?? '選一件值得前進的事'}</strong></div>
-        <div className="step-marks" aria-label={main ? `${completed} / ${main.steps.length} 個步驟` : '尚無步驟'}>{(main?.steps ?? []).map((step) => <i key={step.id} className={step.status === 'done' ? 'done' : step.id === next?.id ? 'current' : ''} />)}</div>
+        <small className="goal-label">今日想看見的進展</small>
+        <div className="next-mark"><span aria-hidden="true">↳</span><strong>{main?.progressDefinition ?? '選一件值得前進的事'}</strong></div>
+        {main?.starterAction && <p className="hero-starter"><span>起跑提示</span>{main.starterAction}</p>}
       </aside>
 
       <div className="hero-resources" aria-label="檔案館資源">
@@ -474,7 +477,7 @@ function InsightsView({ snapshot }: { snapshot: AppSnapshot }): React.JSX.Elemen
   const completed = snapshot.recentSessions.filter((session) => session.outcome === 'completed').length
   const maxMinutes = Math.max(1, ...days.map((day) => day.minutes))
   return <div className="view-content insights-view"><header className="page-heading"><div><p className="eyebrow">進展觀測</p><h1>只看行動，不評價你這個人。</h1><p>這些數字用來幫你調整下一步，不用來製造罪惡感。</p></div><span className="ledger-seal">14<br /><small>DAYS</small></span></header>
-    <section className="progress-ledger"><div className="ledger-index"><span>OBSERVATION LOG</span><b>01—04</b></div><div className="stat-grid"><div className="stat-card"><span>近 14 天專注</span><strong>{totalMinutes}</strong><small>分鐘</small></div><div className="stat-card"><span>啟程次數</span><strong>{snapshot.recentSessions.length}</strong><small>次</small></div><div className="stat-card"><span>完成微步驟</span><strong>{completed}</strong><small>次</small></div><div className="stat-card"><span>被攔下的分心</span><strong>{snapshot.recentSessions.reduce((sum, session) => sum + session.blockedAttempts, 0)}</strong><small>次</small></div></div></section>
+    <section className="progress-ledger"><div className="ledger-index"><span>OBSERVATION LOG</span><b>01—04</b></div><div className="stat-grid"><div className="stat-card"><span>近 14 天專注</span><strong>{totalMinutes}</strong><small>分鐘</small></div><div className="stat-card"><span>啟程次數</span><strong>{snapshot.recentSessions.length}</strong><small>次</small></div><div className="stat-card"><span>完成今日目標</span><strong>{completed}</strong><small>次</small></div><div className="stat-card"><span>被攔下的分心</span><strong>{snapshot.recentSessions.reduce((sum, session) => sum + session.blockedAttempts, 0)}</strong><small>次</small></div></div></section>
     <section className="panel chart-panel"><div className="chart-annotation">FOCUS TRACE / LOCAL ONLY</div><div className="section-title"><h2>十四天專注時間</h2><span>本機紀錄</span></div><div className="bar-chart">{days.map((day) => <div key={day.key} title={`${day.label} · ${day.minutes} 分鐘`}><span style={{ height: `${Math.max(3, (day.minutes / maxMinutes) * 100)}%` }} /><small>{day.label}</small></div>)}</div></section>
   </div>
 }

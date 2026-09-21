@@ -27,6 +27,7 @@ export interface QuestTask {
   role: TaskRole
   kind: TaskKind
   progressDefinition: string
+  starterAction: string | null
   obstacle: Obstacle
   deadline: string | null
   startCue: StartCue
@@ -106,10 +107,10 @@ export interface CreateTaskInput {
   role: TaskRole
   kind: TaskKind
   progressDefinition: string
+  starterAction: string | null
   obstacle: Obstacle
   deadline: string | null
   startCue: StartCue
-  steps: string[]
 }
 
 export interface StartFocusInput {

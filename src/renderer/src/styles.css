@@ -1272,6 +1272,29 @@ select:focus { border-bottom-color: var(--amber-light); transform: translateY(-1
 .data-seals .setting-glyph { width: 42px; height: 42px; }
 .data-seals span { font-size: 9px; }
 
+.starter-explainer { max-width: 610px; margin: -8px 0 17px; color: #7e8988; font-size: 11px; line-height: 1.65; }
+.starter-choice-list { display: grid; gap: 8px; }
+.starter-choice { display: grid; grid-template-columns: 34px 1fr; align-items: center; min-height: 52px; padding: 9px 15px; border: 0; border-left: 1px solid rgba(224,214,195,.18); color: #9da7a5; background: linear-gradient(90deg, rgba(14,21,27,.78), transparent); cursor: pointer; text-align: left; transition: transform 120ms ease, color 120ms ease, border-color 120ms ease, background 120ms ease; }
+.starter-choice > span { color: #65706f; font-size: 8px; letter-spacing: .15em; }
+.starter-choice > strong { font: 400 14px/1.5 Georgia, "Noto Serif TC", serif; }
+.starter-choice:hover { color: var(--paper); transform: translateX(4px); border-left-color: rgba(121,211,206,.45); }
+.starter-choice.active { color: var(--paper); border-left: 3px solid var(--amber-light); background: linear-gradient(90deg, rgba(138,94,42,.24), transparent); transform: translateX(7px); }
+.skip-choice { display: flex; align-items: center; gap: 15px; width: 100%; margin-top: 12px; padding: 10px 15px; border: 0; color: #7b8583; background: transparent; cursor: pointer; text-align: left; }
+.skip-choice strong { color: #a8895b; font: 600 9px sans-serif; letter-spacing: .2em; }
+.skip-choice span { font-size: 12px; }
+.skip-choice:hover, .skip-choice.active { color: var(--paper); background: rgba(224,214,195,.035); }
+.starter-edit { margin-top: 13px; margin-bottom: 0; }
+.starter-note { display: flex; gap: 8px; margin: -4px 0 11px; color: #7f8d8a; font-size: 11px; line-height: 1.5; }
+.starter-note span { color: var(--amber-light); }
+.starter-prompt { display: grid; gap: 5px; margin: -13px 0 24px 18px; padding-left: 14px; border-left: 1px solid rgba(228,174,90,.28); }
+.starter-prompt span, .starter-prompt small { color: #747f7d; font-size: 10px; }
+.starter-prompt strong { color: #b8b09f; font: 400 13px/1.55 Georgia, "Noto Serif TC", serif; }
+.focus-starter { margin: -18px auto 25px; color: #7f8d89; font-size: 11px; }
+.goal-label { display: block; margin: 15px 0 7px; color: #756f65; font-size: 8px; letter-spacing: .15em; }
+.hero-starter { margin: 13px 0 0; padding-top: 10px; border-top: 1px solid rgba(224,214,195,.10); color: #8b918d; font-size: 10px; line-height: 1.5; }
+.hero-starter span { display: block; margin-bottom: 3px; color: #a7895a; font-size: 7px; letter-spacing: .16em; }
+.route-node.destination { color: rgba(228,174,90,.5); }
+
 @keyframes routeNodeBreathe { 0%, 100% { transform: scale(.95) rotate(-2deg); } 50% { transform: scale(1.08) rotate(2deg); } }
 @keyframes noteHover { 0%, 100% { transform: translateY(0) rotate(1deg); } 50% { transform: translateY(-3px) rotate(.6deg); } }
 

@@ -1,13 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { suggestSteps } from '../src/shared/decomposition'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { FocusQuestDatabase } from '../src/main/database'
+import { suggestStartingActions } from '../src/shared/decomposition'
 import { calculateLight, effectiveSeconds } from '../src/shared/rewards'
 
-describe('local task decomposition', () => {
-  it('returns two to four immediately usable steps', () => {
-    const result = suggestSteps('report', 'too_big', '期末報告', '完成研究背景')
-    expect(result.length).toBeGreaterThanOrEqual(2)
-    expect(result.length).toBeLessThanOrEqual(4)
-    expect(result.some((step) => step.includes('十五分鐘'))).toBe(true)
+describe('local starting action suggestions', () => {
+  it('returns three alternative ways to begin', () => {
+    const result = suggestStartingActions('report', 'too_big', '期末報告', '完成研究背景')
+    expect(result).toHaveLength(3)
+    expect(new Set(result).size).toBe(3)
+    expect(result.some((action) => action.includes('十五分鐘'))).toBe(true)
+  })
+})
+
+describe('optional starting action flow', () => {
+  it('creates a focusable task when the user chooses SKIP', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'focus-quest-test-'))
+    const database = new FocusQuestDatabase(join(directory, 'focus-quest.db'))
+    try {
+      const snapshot = database.createTask({
+        title: '整理介面流程',
+        role: 'main',
+        kind: 'creative',
+        progressDefinition: '完成新版任務建立流程',
+        starterAction: null,
+        obstacle: 'unclear',
+        deadline: null,
+        startCue: { type: 'manual', value: '' }
+      })
+      const task = snapshot.tasks[0]
+      expect(task.starterAction).toBeNull()
+      expect(task.steps).toHaveLength(1)
+      expect(task.steps[0].text).toBe('完成新版任務建立流程')
+    } finally {
+      database.close()
+      rmSync(directory, { recursive: true, force: true })
+    }
   })
 })
 

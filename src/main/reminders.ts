@@ -27,7 +27,7 @@ export class ReminderScheduler {
       const cueKey = `${day}:${task.id}:cue`
       if (hhmm === task.startCue.value && !this.sent.has(cueKey)) {
         this.sent.add(cueKey)
-        new Notification({ title: '準備啟程', body: `${task.title}：只要先完成第一個小步驟。` }).show()
+        new Notification({ title: '準備啟程', body: `${task.title}：先留下今天想看見的進展。` }).show()
       }
       if (snapshot.settings.reminderPolicy === 'structured') {
         const [hour, minute] = task.startCue.value.split(':').map(Number)

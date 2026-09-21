@@ -64,6 +64,7 @@ export class FocusQuestDatabase {
         role TEXT NOT NULL,
         kind TEXT NOT NULL,
         progress_definition TEXT NOT NULL,
+        starter_action TEXT,
         obstacle TEXT NOT NULL,
         deadline TEXT,
         cue_type TEXT NOT NULL,
@@ -130,6 +131,11 @@ export class FocusQuestDatabase {
       CREATE INDEX IF NOT EXISTS idx_sessions_day ON sessions(local_day, ended_at);
     `)
 
+    const taskColumns = this.db.prepare('PRAGMA table_info(tasks)').all() as Row[]
+    if (!taskColumns.some((column) => String(column.name) === 'starter_action')) {
+      this.db.exec('ALTER TABLE tasks ADD COLUMN starter_action TEXT')
+    }
+
     this.db.prepare(`
       INSERT OR IGNORE INTO rpg_state
       (id, chapter, node, light, star_pages, materials, ability, last_loot)
@@ -166,6 +172,7 @@ export class FocusQuestDatabase {
       role: row.role as QuestTask['role'],
       kind: row.kind as QuestTask['kind'],
       progressDefinition: String(row.progress_definition),
+      starterAction: row.starter_action ? String(row.starter_action) : null,
       obstacle: row.obstacle as QuestTask['obstacle'],
       deadline: row.deadline ? String(row.deadline) : null,
       startCue: { type: row.cue_type as QuestTask['startCue']['type'], value: String(row.cue_value) },
@@ -261,8 +268,9 @@ export class FocusQuestDatabase {
   createTask(input: CreateTaskInput): AppSnapshot {
     const title = input.title.trim()
     if (!title) throw new Error('請輸入任務名稱。')
-    const steps = input.steps.map((step) => step.trim()).filter(Boolean).slice(0, 4)
-    if (steps.length === 0) throw new Error('至少需要一個能立即開始的步驟。')
+    const progressDefinition = input.progressDefinition.trim()
+    if (!progressDefinition) throw new Error('請寫下今天做到什麼，就算真的有進展。')
+    const starterAction = input.starterAction?.trim() || null
     this.assertRoleCapacity(input.role)
 
     const id = randomUUID()
@@ -271,14 +279,15 @@ export class FocusQuestDatabase {
     const transaction = this.db.transaction(() => {
       this.db.prepare(`
         INSERT INTO tasks
-        (id, title, role, kind, progress_definition, obstacle, deadline, cue_type, cue_value, scheduled_date, status, created_at, updated_at)
-        VALUES (@id, @title, @role, @kind, @progressDefinition, @obstacle, @deadline, @cueType, @cueValue, @scheduledDate, 'active', @createdAt, @updatedAt)
+        (id, title, role, kind, progress_definition, starter_action, obstacle, deadline, cue_type, cue_value, scheduled_date, status, created_at, updated_at)
+        VALUES (@id, @title, @role, @kind, @progressDefinition, @starterAction, @obstacle, @deadline, @cueType, @cueValue, @scheduledDate, 'active', @createdAt, @updatedAt)
       `).run({
         id,
         title,
         role: input.role,
         kind: input.kind,
-        progressDefinition: input.progressDefinition.trim(),
+        progressDefinition,
+        starterAction,
         obstacle: input.obstacle,
         deadline: input.deadline || null,
         cueType: input.startCue.type,
@@ -288,8 +297,8 @@ export class FocusQuestDatabase {
         updatedAt: timestamp
       })
       const statement = this.db.prepare('INSERT INTO steps (id, task_id, text, position, status) VALUES (?, ?, ?, ?, ?)')
-      steps.forEach((step, index) => statement.run(randomUUID(), id, step, index, 'pending'))
-      this.recordEvent('task_created', { roleMain: input.role === 'main', stepCount: steps.length })
+      statement.run(randomUUID(), id, progressDefinition, 0, 'pending')
+      this.recordEvent('task_created', { roleMain: input.role === 'main', starterSelected: Boolean(starterAction) })
     })
     transaction()
     return this.getSnapshot()
@@ -382,13 +391,8 @@ export class FocusQuestDatabase {
       `).run(endedAt, input.outcome, earnedLight, input.sessionId)
 
       if (completed) {
-        this.db.prepare("UPDATE steps SET status = 'done' WHERE id = ?").run(row.step_id)
-        const pending = this.db.prepare("SELECT COUNT(*) AS count FROM steps WHERE task_id = ? AND status = 'pending'").get(row.task_id) as Row
-        if (Number(pending.count) === 0) {
-          this.db.prepare("UPDATE tasks SET status = 'done', updated_at = ? WHERE id = ?").run(endedAt, row.task_id)
-        } else {
-          this.db.prepare('UPDATE tasks SET updated_at = ? WHERE id = ?').run(endedAt, row.task_id)
-        }
+        this.db.prepare("UPDATE steps SET status = 'done' WHERE task_id = ?").run(row.task_id)
+        this.db.prepare("UPDATE tasks SET status = 'done', updated_at = ? WHERE id = ?").run(endedAt, row.task_id)
       }
 
       const current = this.db.prepare('SELECT * FROM rpg_state WHERE id = 1').get() as Row
@@ -486,7 +490,7 @@ export class FocusQuestDatabase {
       throw new Error('這不是有效的 Focus Quest 備份。')
     }
     const tableColumns: Record<string, string[]> = {
-      tasks: ['id', 'title', 'role', 'kind', 'progress_definition', 'obstacle', 'deadline', 'cue_type', 'cue_value', 'scheduled_date', 'status', 'created_at', 'updated_at'],
+      tasks: ['id', 'title', 'role', 'kind', 'progress_definition', 'starter_action', 'obstacle', 'deadline', 'cue_type', 'cue_value', 'scheduled_date', 'status', 'created_at', 'updated_at'],
       steps: ['id', 'task_id', 'text', 'position', 'status'],
       sessions: ['id', 'task_id', 'step_id', 'started_at', 'ended_at', 'minimum_minutes', 'paused_seconds', 'suspended_at', 'outcome', 'blocked_attempts', 'earned_light', 'local_day'],
       block_rules: ['id', 'process_name', 'display_name', 'enabled', 'created_at'],
@@ -501,7 +505,10 @@ export class FocusQuestDatabase {
         if (!Array.isArray(rows)) throw new Error(`備份缺少 ${table} 資料。`)
         const placeholders = columns.map((column) => `@${column}`).join(', ')
         const insert = this.db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`)
-        for (const row of rows) insert.run(row as Row)
+        for (const row of rows) {
+          const values = table === 'tasks' ? { starter_action: null, ...(row as Row) } : row as Row
+          insert.run(values)
+        }
       }
     })
     transaction()

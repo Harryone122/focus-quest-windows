@@ -227,8 +227,8 @@ async function boot(): Promise<void> {
   app.setAppUserModelId('com.focusquest.desktop')
   database = new FocusQuestDatabase(join(app.getPath('userData'), 'focusquest.db'))
   if (!app.isPackaged && process.env.FOCUSQUEST_QA_SEED === '1' && database.getSnapshot().tasks.length === 0) {
-    database.createTask({ title: '完成 Focus Quest 的手繪介面', role: 'main', kind: 'creative', progressDefinition: '完成第一輪動態 UI 系統', obstacle: 'perfection', deadline: null, startCue: { type: 'manual', value: '' }, steps: ['調整手繪面板與主要按鈕', '測試墨刷轉場與按壓回饋', '檢查所有文字的可讀性'] })
-    database.createTask({ title: '整理明天的會議筆記', role: 'side', kind: 'admin', progressDefinition: '列出三個需要確認的問題', obstacle: 'too_big', deadline: null, startCue: { type: 'manual', value: '' }, steps: ['打開會議記錄', '圈出三個待確認項目'] })
+    database.createTask({ title: '完成 Focus Quest 的手繪介面', role: 'main', kind: 'creative', progressDefinition: '完成第一輪動態 UI 系統', starterAction: '先打開主要介面，圈出最需要調整的一個區塊', obstacle: 'perfection', deadline: null, startCue: { type: 'manual', value: '' } })
+    database.createTask({ title: '整理明天的會議筆記', role: 'side', kind: 'admin', progressDefinition: '列出三個需要確認的問題', starterAction: null, obstacle: 'too_big', deadline: null, startCue: { type: 'manual', value: '' } })
   }
   if (!app.isPackaged && process.env.FOCUSQUEST_QA_VIEW === 'focus' && !database.getSnapshot().activeSession) {
     const task = database.getSnapshot().tasks.find((item) => item.role === 'main')
