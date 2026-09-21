@@ -330,6 +330,22 @@ export class FocusQuestDatabase {
     return this.getSnapshot()
   }
 
+  deleteTask(taskId: string): AppSnapshot {
+    const task = this.db.prepare('SELECT id FROM tasks WHERE id = ?').get(taskId)
+    if (!task) throw new Error('找不到這個任務。')
+    const active = this.db.prepare('SELECT id FROM sessions WHERE task_id = ? AND ended_at IS NULL').get(taskId)
+    if (active) throw new Error('這個任務正在專注中，請先結束本次專注再刪除。')
+    const sessionRow = this.db.prepare('SELECT COUNT(*) AS count FROM sessions WHERE task_id = ?').get(taskId) as Row
+    const sessionCount = Number(sessionRow.count)
+    const transaction = this.db.transaction(() => {
+      this.db.prepare('DELETE FROM sessions WHERE task_id = ?').run(taskId)
+      this.db.prepare('DELETE FROM tasks WHERE id = ?').run(taskId)
+      this.recordEvent('task_deleted', { hadSessions: sessionCount > 0, sessionCount })
+    })
+    transaction()
+    return this.getSnapshot()
+  }
+
   startFocus(input: StartFocusInput): AppSnapshot {
     const existing = this.db.prepare('SELECT id FROM sessions WHERE ended_at IS NULL').get()
     if (existing) throw new Error('目前已有進行中的專注。')

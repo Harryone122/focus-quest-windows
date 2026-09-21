@@ -153,6 +153,7 @@ export interface FocusQuestApi {
   createTask: (input: CreateTaskInput) => Promise<AppSnapshot>
   setTaskRole: (taskId: string, role: TaskRole) => Promise<AppSnapshot>
   archiveTask: (taskId: string) => Promise<AppSnapshot>
+  deleteTask: (taskId: string) => Promise<AppSnapshot>
   startFocus: (input: StartFocusInput) => Promise<AppSnapshot>
   endFocus: (input: EndFocusInput) => Promise<FocusResult>
   listRunningApplications: () => Promise<RunningApplication[]>

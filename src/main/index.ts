@@ -155,6 +155,7 @@ function registerIpc(): void {
   ipcMain.handle('task:create', (_event, input: CreateTaskInput) => { const result = database.createTask(input); broadcastSnapshot(); return result })
   ipcMain.handle('task:set-role', (_event, taskId: string, role: TaskRole) => { const result = database.setTaskRole(taskId, role); broadcastSnapshot(); return result })
   ipcMain.handle('task:archive', (_event, taskId: string) => { const result = database.archiveTask(taskId); broadcastSnapshot(); return result })
+  ipcMain.handle('task:delete', (_event, taskId: string) => { const result = database.deleteTask(taskId); broadcastSnapshot(); return result })
   ipcMain.handle('focus:start', (_event, input: StartFocusInput) => {
     const result = database.startFocus(input)
     monitor.start()

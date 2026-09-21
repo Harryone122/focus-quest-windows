@@ -6,6 +6,7 @@ const api: FocusQuestApi = {
   createTask: (input) => ipcRenderer.invoke('task:create', input),
   setTaskRole: (taskId, role) => ipcRenderer.invoke('task:set-role', taskId, role),
   archiveTask: (taskId) => ipcRenderer.invoke('task:archive', taskId),
+  deleteTask: (taskId) => ipcRenderer.invoke('task:delete', taskId),
   startFocus: (input) => ipcRenderer.invoke('focus:start', input),
   endFocus: (input) => ipcRenderer.invoke('focus:end', input),
   listRunningApplications: () => ipcRenderer.invoke('apps:list'),

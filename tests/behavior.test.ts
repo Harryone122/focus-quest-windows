@@ -34,6 +34,12 @@ describe('optional starting action flow', () => {
       expect(task.starterAction).toBeNull()
       expect(task.steps).toHaveLength(1)
       expect(task.steps[0].text).toBe('完成新版任務建立流程')
+      const parked = database.setTaskRole(task.id, 'backlog').tasks.find((entry) => entry.id === task.id)
+      expect(parked?.role).toBe('backlog')
+      expect(parked?.progressDefinition).toBe('完成新版任務建立流程')
+      expect(parked?.steps[0].id).toBe(task.steps[0].id)
+      const afterDelete = database.deleteTask(task.id)
+      expect(afterDelete.tasks.some((entry) => entry.id === task.id)).toBe(false)
     } finally {
       database.close()
       rmSync(directory, { recursive: true, force: true })

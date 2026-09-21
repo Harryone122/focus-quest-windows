@@ -1156,6 +1156,15 @@ select:focus { border-bottom-color: var(--amber-light); transform: translateY(-1
 .map-tool-button { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(224,214,195,.22); border-radius: 44% 56% 51% 49%; color: #a7aaa3; background: rgba(7,12,17,.7); cursor: pointer; font-size: 22px; transform: rotate(3deg); transition: transform 120ms ease, color 120ms ease; }
 .map-tool-button:hover { color: var(--amber-light); transform: rotate(-4deg) scale(1.05); }
 .visual-quest-map .hero-actions { margin-top: 4px; }
+.park-task-button { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 7px 12px; border: 0; border-bottom: 1px solid rgba(224,214,195,.20); color: #8e9996; background: rgba(7,12,17,.52); cursor: pointer; transform: rotate(-.5deg); transition: color 120ms ease, transform 120ms ease, border-color 120ms ease; }
+.park-task-button span { color: #b08b57; font-size: 18px; }
+.park-task-button b { font: 500 11px "Noto Sans TC", sans-serif; letter-spacing: .06em; }
+.park-task-button:hover { color: var(--paper); border-color: rgba(228,174,90,.46); transform: translateY(-1px) rotate(.5deg); }
+.park-task-button:active { transform: translateY(2px) scale(.96); }
+.delete-task-button { min-height: 38px; padding: 6px 9px; border: 0; color: #956f6a; background: transparent; cursor: pointer; font-size: 10px; letter-spacing: .08em; transition: color 120ms ease, transform 120ms ease; }
+.delete-task-button:hover { color: #e0a19a; transform: translateY(-1px); }
+.text-button.danger { color: #956f6a; }
+.text-button.danger:hover { color: #e0a19a; }
 .visual-quest-map .hero-start { min-width: 132px; }
 
 .hero-focus-card {

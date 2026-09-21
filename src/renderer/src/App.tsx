@@ -134,11 +134,12 @@ function LanternMark(): React.JSX.Element {
   )
 }
 
-function TaskCard({ task, onStart, onMove, onArchive }: {
+function TaskCard({ task, onStart, onMove, onArchive, onDelete }: {
   task: QuestTask
   onStart: (task: QuestTask) => void
   onMove: (taskId: string, role: TaskRole) => void
   onArchive: (taskId: string) => void
+  onDelete: (task: QuestTask) => void
 }): React.JSX.Element {
   const next = task.steps.find((step) => step.status === 'pending')
   return (
@@ -161,8 +162,9 @@ function TaskCard({ task, onStart, onMove, onArchive }: {
           <button className="ghost-button small" onClick={() => onMove(task.id, 'main')}>設為主線</button>
           <button className="ghost-button small" onClick={() => onMove(task.id, 'side')}>設為支線</button>
         </>}
-        {task.role !== 'backlog' && <button className="text-button" onClick={() => onMove(task.id, 'backlog')}>放回任務庫</button>}
+        {task.role !== 'backlog' && <button className="text-button" title="保留任務與紀錄，稍後再排" onClick={() => onMove(task.id, 'backlog')}>暫放</button>}
         <button className="text-button quiet" onClick={() => onArchive(task.id)}>封存</button>
+        <button className="text-button danger" onClick={() => onDelete(task)}>刪除</button>
       </div>
     </article>
   )
@@ -379,12 +381,14 @@ function RewardModal({ result, onClose }: { result: FocusResult; onClose: () => 
   </section></div>
 }
 
-function TodayView({ snapshot, onCreate, onStart, onMove, onArchive }: {
+function TodayView({ snapshot, onCreate, onStart, onMove, onParkMain, onArchive, onDelete }: {
   snapshot: AppSnapshot
   onCreate: () => void
   onStart: (task: QuestTask) => void
   onMove: (id: string, role: TaskRole) => void
+  onParkMain: (id: string) => void
   onArchive: (id: string) => void
+  onDelete: (task: QuestTask) => void
 }): React.JSX.Element {
   const today = snapshot.tasks.filter((task) => task.role !== 'backlog' && task.status === 'active')
   const main = today.find((task) => task.role === 'main')
@@ -405,6 +409,8 @@ function TodayView({ snapshot, onCreate, onStart, onMove, onArchive }: {
           {main && next
             ? <button className="primary-button hero-start" onClick={() => onStart(main)}><span>啟程</span><b>→</b></button>
             : <button className="primary-button hero-start" onClick={onCreate}><span>選擇</span><b>＋</b></button>}
+          {main && <button className="park-task-button" title="保留這項任務與所有紀錄，暫時換一件事" onClick={() => onParkMain(main.id)}><span>↙</span><b>暫放，換一件</b></button>}
+          {main && <button className="delete-task-button" title="永久刪除輸入錯誤的任務" onClick={() => onDelete(main)}>刪除</button>}
           <button className="map-tool-button" aria-label="新增其他任務" title="新增其他任務" onClick={onCreate}>＋</button>
         </div>
       </div>
@@ -427,19 +433,19 @@ function TodayView({ snapshot, onCreate, onStart, onMove, onArchive }: {
 
     <section className="quest-section side-quest-section">
       <div className="section-title rich-title"><div><span aria-hidden="true">⋯</span><h2>支線</h2></div><p>{sides.length} / 2</p></div>
-      <div className="task-grid">{sides.map((task) => <TaskCard key={task.id} task={task} onStart={onStart} onMove={onMove} onArchive={onArchive} />)}{sides.length < 2 && <button className="empty-slot compact" onClick={onCreate}><span>＋</span><strong>加支線</strong></button>}</div>
+      <div className="task-grid">{sides.map((task) => <TaskCard key={task.id} task={task} onStart={onStart} onMove={onMove} onArchive={onArchive} onDelete={onDelete} />)}{sides.length < 2 && <button className="empty-slot compact" onClick={onCreate}><span>＋</span><strong>加支線</strong></button>}</div>
     </section>
     <section className="daily-note"><span>↶</span><div><strong>明天再排也可以</strong></div></section>
   </div>
 }
 
-function LibraryView({ snapshot, onCreate, onMove, onArchive }: {
-  snapshot: AppSnapshot; onCreate: () => void; onMove: (id: string, role: TaskRole) => void; onArchive: (id: string) => void
+function LibraryView({ snapshot, onCreate, onMove, onArchive, onDelete }: {
+  snapshot: AppSnapshot; onCreate: () => void; onMove: (id: string, role: TaskRole) => void; onArchive: (id: string) => void; onDelete: (task: QuestTask) => void
 }): React.JSX.Element {
   const tasks = snapshot.tasks.filter((task) => task.role === 'backlog' && task.status === 'active')
   const completed = snapshot.tasks.filter((task) => task.status === 'done')
   return <div className="view-content"><header className="page-heading compact-heading"><div><p className="eyebrow">任務庫</p><h1>未出發的路</h1></div><button className="primary-button" onClick={onCreate}>＋ 新增</button></header>
-    <section className="quest-section"><div className="section-title"><h2>待選</h2><span>{tasks.length}</span></div>{tasks.length ? <div className="task-grid">{tasks.map((task) => <TaskCard key={task.id} task={task} onStart={() => undefined} onMove={onMove} onArchive={onArchive} />)}</div> : <div className="panel quiet-empty">沒有待選任務</div>}</section>
+    <section className="quest-section"><div className="section-title"><h2>暫放與待選</h2><span>{tasks.length}</span></div>{tasks.length ? <div className="task-grid">{tasks.map((task) => <TaskCard key={task.id} task={task} onStart={() => undefined} onMove={onMove} onArchive={onArchive} onDelete={onDelete} />)}</div> : <div className="panel quiet-empty">沒有暫放或待選任務</div>}</section>
     {!!completed.length && <section className="completed-list"><h2>完成</h2>{completed.map((task) => <div key={task.id}><span>✓</span><strong>{task.title}</strong><small>{task.updatedAt.slice(0, 10)}</small></div>)}</section>}
   </div>
 }
@@ -593,6 +599,16 @@ export function App(): React.JSX.Element {
     if (!window.confirm('要把這個任務封存嗎？它不會被刪除。')) return
     try { setSnapshot(await window.focusQuest.archiveTask(id)) } catch (reason) { setError(friendlyError(reason)) }
   }
+  const remove = async (task: QuestTask): Promise<void> => {
+    const confirmed = window.confirm(`確定要永久刪除「${task.title}」嗎？\n\n任務與相關專注紀錄會一併移除，而且無法復原。`)
+    if (!confirmed) return
+    try {
+      setSnapshot(await window.focusQuest.deleteTask(task.id))
+      setNotice('任務已永久刪除。')
+    } catch (reason) {
+      setError(friendlyError(reason))
+    }
+  }
 
   const navigate = (next: View): void => {
     if (next === view && viewTransition === 'idle') return
@@ -606,6 +622,16 @@ export function App(): React.JSX.Element {
     transitionTimers.current.push(window.setTimeout(() => setViewTransition('idle'), 500))
   }
 
+  const parkMain = async (id: string): Promise<void> => {
+    try {
+      setSnapshot(await window.focusQuest.setTaskRole(id, 'backlog'))
+      setNotice('任務已暫放；內容與紀錄都保留在任務庫。')
+      navigate('library')
+    } catch (reason) {
+      setError(friendlyError(reason))
+    }
+  }
+
   return <div className="app-shell">
     <aside className="sidebar">
       <div className="brand"><LanternMark /><div><strong>Focus Quest</strong><small>星光檔案館</small></div></div>
@@ -616,8 +642,8 @@ export function App(): React.JSX.Element {
     </aside>
     <main className="main-stage">
       <div className="view-transition" key={view}>
-        {view === 'today' && <TodayView snapshot={snapshot} onCreate={() => setWizard(true)} onStart={setFocusTask} onMove={(id, role) => void move(id, role)} onArchive={(id) => void archive(id)} />}
-        {view === 'library' && <LibraryView snapshot={snapshot} onCreate={() => setWizard(true)} onMove={(id, role) => void move(id, role)} onArchive={(id) => void archive(id)} />}
+        {view === 'today' && <TodayView snapshot={snapshot} onCreate={() => setWizard(true)} onStart={setFocusTask} onMove={(id, role) => void move(id, role)} onParkMain={(id) => void parkMain(id)} onArchive={(id) => void archive(id)} onDelete={(task) => void remove(task)} />}
+        {view === 'library' && <LibraryView snapshot={snapshot} onCreate={() => setWizard(true)} onMove={(id, role) => void move(id, role)} onArchive={(id) => void archive(id)} onDelete={(task) => void remove(task)} />}
         {view === 'journey' && <JourneyView snapshot={snapshot} onChanged={setSnapshot} onError={setError} />}
         {view === 'insights' && <InsightsView snapshot={snapshot} />}
         {view === 'settings' && <SettingsView snapshot={snapshot} onChanged={setSnapshot} onError={setError} onNotice={setNotice} />}
