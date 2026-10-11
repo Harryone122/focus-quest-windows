@@ -1,0 +1,44 @@
+import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { roomAudioMix, roomEchoSeconds, coreDetune, wireRoomAudio, type RoomAudioState } from '../src/renderer/src/audio/collectionRoomAudio'
+import { audioVolume, harmonyLevel, HARMONY_GAIN } from '../src/renderer/src/audio/harmony'
+import { campfireReturnMix, campfireAudioMix } from '../src/renderer/src/lobby/campfireAudio'
+import { mossAudioMix } from '../src/renderer/src/mossStation/mossStationAudio'
+
+const state: RoomAudioState = { time: 1, motionTime: 1, selected: null, cores: [0, ...Array(10).fill(1)], tracking: null, linked: false, linkTime: -1, journeys: 0, book: false, spread: 0, events: [] }
+describe('Collection audio contracts', () => {
+  it('silences each independent channel and respects the foreground budget', () => {
+    const mix = roomAudioMix(state, { environmentVolume: 0, musicVolume: 100 })
+    expect(mix.harmony).toBeGreaterThan(0)
+    expect([mix.air, mix.stone, mix.horn, mix.eye, mix.link].every(x => x === 0)).toBe(true)
+    expect(Object.values(roomAudioMix(state, { environmentVolume: 100, musicVolume: 100, audioMuted: true })).every(x => x === 0)).toBe(true)
+    expect(roomAudioMix({ ...state, selected: 10 }, { environmentVolume: 35 }).horn).toBe(0)
+    expect(roomAudioMix({ ...state, cores: Array(11).fill(0) }, { environmentVolume: 35 }).stone).toBe(0)
+  })
+  it('uses understanding and placed count without inventing progress', () => {
+    expect(coreDetune(1)).toBe(-18); expect(coreDetune(2)).toBe(0)
+    expect(roomEchoSeconds(0)).toBe(1.8); expect(roomEchoSeconds(10)).toBeCloseTo(0.5)
+    expect(roomAudioMix({ ...state, motionTime: 8.5 }, { environmentVolume: 35 }).stone).toBeGreaterThan(0)
+  })
+  it('installs every hook against the actual embedded prototype and fails softly on design drift', () => {
+    const prototype = readFileSync('docs/prototypes/collection-room.html', 'utf8')
+    const result = wireRoomAudio(prototype)
+    expect(result).toContain('window.__room = { readAudioState, S, EX,')
+    expect(result).toContain("roomSound('tick',9)")
+    expect(result).toContain("roomSound('intersection',0,H+1.0)")
+    expect(wireRoomAudio('<html>new design</html>')).toBe('<html>new design</html>')
+  })
+})
+describe('Shared suspended harmony and campfire return', () => {
+  it('keeps the same clamped curve and tiny level across scenes', () => {
+    expect(audioVolume(35)).toBeCloseTo(Math.pow(0.35, 1.4))
+    expect(audioVolume(NaN)).toBe(0)
+    expect(harmonyLevel({ environmentVolume: 35, musicVolume: 100 })).toBe(HARMONY_GAIN)
+    expect(mossAudioMix(1, 0, { environmentVolume: 35, musicVolume: 100 }).music).toBe(HARMONY_GAIN)
+    expect(harmonyLevel({ environmentVolume: 35, musicVolume: 0 })).toBe(0)
+  })
+  it('brings the fire nearer without adding steps or a label sound', () => {
+    expect(campfireReturnMix(0, 1, { environmentVolume: 35 }).fire).toBeLessThan(campfireReturnMix(2.4, 1, { environmentVolume: 35 }).fire)
+    expect(campfireReturnMix(4, 1, { environmentVolume: 35 })).toEqual(campfireAudioMix(4, 1, { environmentVolume: 35 }))
+  })
+})

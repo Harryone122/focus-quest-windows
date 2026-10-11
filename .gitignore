@@ -5,9 +5,16 @@ release-v2/
 release-v3/
 release-v4/
 release-v5/
+release-v6/
+release-v0.6.5/
+release-preview/
+release-daily-slice/
+qa-*.png
+qa-user-data*/
 release-portable/
 qa-*.png
 qa-*-data/
+.qa-*/
 dist/
 *.log
 *.db
@@ -16,3 +23,27 @@ dist/
 *.focusquest.json
 .vite/
 coverage/
+.claude/worktrees/
+
+release-v0.6.6/
+release-v0.6.7/
+release-v0.6.8/
+release-v0.6.9/
+release-v0.6.10/
+release-v0.6.11/
+
+# Generated packages, local profiles and previews stay on this machine.
+release-v*/
+*.lnk
+*.db-*
+*.sqlite-*
+*.sqlite3-*
+.env
+.env.*
+!.env.example
+__pycache__/
+previews/*
+# Source dependency of the nursery audio tester (unapproved preview motif).
+!previews/nursery-audio-qa/
+previews/nursery-audio-qa/*
+!previews/nursery-audio-qa/core_motif_07-preview.wav

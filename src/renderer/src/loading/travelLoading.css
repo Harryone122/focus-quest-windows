@@ -1,0 +1,22 @@
+.travel-loading { position: absolute; right: max(22px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom)); width: 82px; height: 64px; color: rgba(255,255,255,.85); pointer-events: none; z-index: 30; filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+.travel-loading svg { width: 100%; height: 100%; overflow: visible; }
+.travel-loading [class^="travel-loading-leg"] { animation: travel-loading-stride 1.2s linear infinite; }
+.travel-loading .travel-loading-leg-back { animation-delay: -.6s; }
+.travel-loading-arm { animation: travel-loading-arm 1.2s linear infinite; }
+.travel-loading-body { animation: travel-loading-bob .6s ease-in-out infinite; }
+.travel-loading-trail { stroke-dasharray: 4 12; animation: travel-loading-path .6s linear infinite; }
+.travel-loading[data-paused="true"] * { animation-play-state: paused; }
+/* The planted foot moves backward; the returning foot bends and clears the ground. */
+@keyframes travel-loading-stride {
+  0%, 100% { d: path('M45 55Q51 60 60 66Q63 68 67 67'); }
+  25% { d: path('M45 55Q47 61 48 66Q51 68 55 67'); }
+  50% { d: path('M45 55Q39 60 34 66Q37 68 41 67'); }
+  75% { d: path('M45 55Q53 56 47 62Q50 64 54 63'); }
+}
+@keyframes travel-loading-arm {
+  0%,100% { d: path('M56 44Q64 49 73 44'); }
+  50% { d: path('M56 44Q64 47 73 44'); }
+}
+@keyframes travel-loading-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+@keyframes travel-loading-path { to { stroke-dashoffset: 16; } }
+@media (prefers-reduced-motion: reduce) { .travel-loading * { animation: none !important; } }

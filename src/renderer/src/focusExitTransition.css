@@ -1,0 +1,21 @@
+/* Retain the exact finishing view; no second 3D scene or camera reset for review.
+   These use the existing AfterFocus blur/tint, not a new scene/art direction. */
+.focus-active.is-review-backdrop { pointer-events: none; }
+.focus-active.is-review-backdrop .focus-adventure-header,
+.focus-active.is-review-backdrop .focus-world-status { visibility: hidden; }
+.focus-active .focus-world-shell { transition: filter 360ms ease; }
+.focus-active.is-review-backdrop .focus-world-shell { filter: blur(7px) brightness(.58) saturate(.85); }
+.lobby-a.after-focus.has-focus-backdrop { background: transparent; }
+.after-focus.has-focus-backdrop .af-veil { animation: reviewVeil 360ms ease both; }
+@keyframes reviewVeil { from { opacity: 0; } }
+
+/* Chromium keeps the old composited screen while the one required lobby scene
+   initializes, then blends the two. No black frame or CSS blur over two WebGLs. */
+html.focus-exit-transition::view-transition-old(root),
+html.focus-exit-transition::view-transition-new(root) { animation-duration: 360ms; animation-timing-function: ease-in-out; }
+@media (prefers-reduced-motion: reduce) {
+  .focus-active .focus-world-shell { transition: none; }
+  .after-focus.has-focus-backdrop .af-veil { animation: none; }
+  html.focus-exit-transition::view-transition-old(root),
+  html.focus-exit-transition::view-transition-new(root) { animation-duration: 0s; }
+}

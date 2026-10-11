@@ -1,0 +1,1197 @@
+{
+ "nodes": [
+  {
+   "id": "entry0",
+   "u": -20.34,
+   "v": -4.29,
+   "kind": [
+    "entry"
+   ],
+   "label": "淡霞裡的踏石（入口）"
+  },
+  {
+   "id": "r_landing",
+   "u": -16.9,
+   "v": -3.45,
+   "kind": [
+    "spawn"
+   ],
+   "label": "蘆葦洲西岸（出生點）",
+   "face": [
+    -15.0,
+    -3.45
+   ]
+  },
+  {
+   "id": "r_reeds",
+   "u": -15.0,
+   "v": -3.25,
+   "kind": [
+    "spot"
+   ],
+   "label": "蘆葦叢邊",
+   "face": [
+    -13.4,
+    -5.7
+   ]
+  },
+  {
+   "id": "r_south",
+   "u": -13.0,
+   "v": -3.75,
+   "kind": [
+    "path"
+   ],
+   "label": "蘆葦洲南側空地"
+  },
+  {
+   "id": "r_pool",
+   "u": -10.95,
+   "v": -3.2,
+   "kind": [
+    "spot"
+   ],
+   "label": "潮池",
+   "face": [
+    -10.5,
+    -3.7
+   ]
+  },
+  {
+   "id": "r_box",
+   "u": -11.9,
+   "v": -2.0,
+   "kind": [
+    "path"
+   ],
+   "label": "蘆葦洲東側空地"
+  },
+  {
+   "id": "r_gauge",
+   "u": -10.65,
+   "v": -1.35,
+   "kind": [
+    "spot"
+   ],
+   "label": "水位標尺",
+   "face": [
+    -10.15,
+    -0.7
+   ]
+  },
+  {
+   "id": "r_lamp1",
+   "u": -10.95,
+   "v": 0.35,
+   "kind": [
+    "lamp"
+   ],
+   "label": "第一盞燈",
+   "face": [
+    -11.6,
+    0.5
+   ]
+  },
+  {
+   "id": "r_boat",
+   "u": -14.25,
+   "v": 0.95,
+   "kind": [
+    "spot"
+   ],
+   "label": "擱淺小船",
+   "face": [
+    -15.6,
+    0.9
+   ]
+  },
+  {
+   "id": "r_cw",
+   "u": -9.3,
+   "v": -1.17,
+   "kind": [
+    "path"
+   ],
+   "label": "西棧道西端"
+  },
+  {
+   "id": "c_west",
+   "u": -5.45,
+   "v": -0.3,
+   "kind": [
+    "path"
+   ],
+   "label": "西棧道東端"
+  },
+  {
+   "id": "c_lamp2",
+   "u": -5.15,
+   "v": 0.6,
+   "kind": [
+    "lamp"
+   ],
+   "label": "第二盞燈",
+   "face": [
+    -4.6,
+    0.9
+   ]
+  },
+  {
+   "id": "c_stair",
+   "u": -1.2,
+   "v": -0.55,
+   "kind": [
+    "spot"
+   ],
+   "label": "南石階"
+  },
+  {
+   "id": "c_home",
+   "u": -0.8,
+   "v": 0.6,
+   "kind": [
+    "path"
+   ],
+   "label": "石庭上層"
+  },
+  {
+   "id": "c_pillar",
+   "u": -2.4,
+   "v": 2.0,
+   "kind": [
+    "spot"
+   ],
+   "label": "斷柱",
+   "face": [
+    -3.2,
+    2.6
+   ]
+  },
+  {
+   "id": "c_north",
+   "u": 0.45,
+   "v": 3.85,
+   "kind": [
+    "path"
+   ],
+   "label": "北棧道南端"
+  },
+  {
+   "id": "c_estair",
+   "u": 1.45,
+   "v": 0.6,
+   "kind": [
+    "path"
+   ],
+   "label": "東石階"
+  },
+  {
+   "id": "c_column",
+   "u": 2.85,
+   "v": 1.3,
+   "kind": [
+    "spot"
+   ],
+   "label": "倒柱",
+   "face": [
+    3.6,
+    0.6
+   ]
+  },
+  {
+   "id": "c_stele",
+   "u": 0.65,
+   "v": -1.9,
+   "kind": [
+    "spot"
+   ],
+   "label": "石碑",
+   "face": [
+    1.4,
+    -1.2
+   ]
+  },
+  {
+   "id": "c_breach",
+   "u": 0.7,
+   "v": -2.8,
+   "kind": [
+    "spot"
+   ],
+   "label": "南緣破口",
+   "face": [
+    0.7,
+    -3.7
+   ]
+  },
+  {
+   "id": "c_south",
+   "u": -0.9,
+   "v": -3.85,
+   "kind": [
+    "path"
+   ],
+   "label": "南踏石北端"
+  },
+  {
+   "id": "c_steps",
+   "u": 3.9,
+   "v": -3.7,
+   "kind": [
+    "spot"
+   ],
+   "label": "沉階頂端",
+   "face": [
+    5.4,
+    -6.0
+   ]
+  },
+  {
+   "id": "c_east",
+   "u": 5.3,
+   "v": 0.5,
+   "kind": [
+    "path"
+   ],
+   "label": "東棧道西端"
+  },
+  {
+   "id": "e_cw",
+   "u": 7.1,
+   "v": 1.2,
+   "kind": [
+    "path"
+   ],
+   "label": "東棧道東端"
+  },
+  {
+   "id": "k_lamp4",
+   "u": 8.4,
+   "v": 2.0,
+   "kind": [
+    "lamp"
+   ],
+   "label": "第四盞燈",
+   "face": [
+    8.7,
+    1.3
+   ]
+  },
+  {
+   "id": "k_shelf",
+   "u": 8.49,
+   "v": 3.2,
+   "kind": [
+    "path"
+   ],
+   "label": "松岩西北岩棚"
+  },
+  {
+   "id": "k_top",
+   "u": 9.7,
+   "v": 2.2,
+   "kind": [
+    "path"
+   ],
+   "label": "松岩頂"
+  },
+  {
+   "id": "k_branch",
+   "u": 9.35,
+   "v": 1.85,
+   "kind": [
+    "spot"
+   ],
+   "label": "長枝下",
+   "face": [
+    8.6,
+    1.2
+   ]
+  },
+  {
+   "id": "k_roots",
+   "u": 11.25,
+   "v": 2.75,
+   "kind": [
+    "spot"
+   ],
+   "label": "松根",
+   "face": [
+    10.7,
+    3.1
+   ]
+  },
+  {
+   "id": "k_east",
+   "u": 12.3,
+   "v": 3.0,
+   "kind": [
+    "path"
+   ],
+   "label": "松岩東坡"
+  },
+  {
+   "id": "b_far",
+   "u": 14.01,
+   "v": 3.31,
+   "kind": [
+    "exit",
+    "spot"
+   ],
+   "label": "東方踏石（出口 B）",
+   "face": [
+    16.0,
+    3.7
+   ]
+  },
+  {
+   "id": "n_lamp3",
+   "u": 1.0,
+   "v": 6.55,
+   "kind": [
+    "lamp"
+   ],
+   "label": "第三盞燈",
+   "face": [
+    1.9,
+    6.5
+   ]
+  },
+  {
+   "id": "n_pier",
+   "u": 1.1,
+   "v": 6.95,
+   "kind": [
+    "spot"
+   ],
+   "label": "北棧道石墩",
+   "face": [
+    3.0,
+    6.95
+   ]
+  },
+  {
+   "id": "p_lamp5",
+   "u": 1.85,
+   "v": 8.65,
+   "kind": [
+    "lamp"
+   ],
+   "label": "第五盞燈",
+   "face": [
+    2.076,
+    9.052
+   ]
+  },
+  {
+   "id": "p_entry",
+   "u": 2.1,
+   "v": 9.9,
+   "kind": [
+    "path"
+   ],
+   "label": "亭子南口"
+  },
+  {
+   "id": "p_mirror",
+   "u": 0.4,
+   "v": 10.01,
+   "kind": [
+    "spot"
+   ],
+   "label": "鏡框（西南緣欄杆外）",
+   "face": [
+    0.9,
+    9.2
+   ]
+  },
+  {
+   "id": "p_table",
+   "u": 2.75,
+   "v": 10.7,
+   "kind": [
+    "path"
+   ],
+   "label": "石桌（只當路徑）"
+  },
+  {
+   "id": "p_bench",
+   "u": 1.5,
+   "v": 11.5,
+   "kind": [
+    "path"
+   ],
+   "label": "亭內長凳（只當路徑）"
+  },
+  {
+   "id": "p_west",
+   "u": 1.15,
+   "v": 11.45,
+   "kind": [
+    "path"
+   ],
+   "label": "亭子西北口"
+  },
+  {
+   "id": "a_stones",
+   "u": -1.9,
+   "v": 13.0,
+   "kind": [
+    "spot"
+   ],
+   "label": "往拱門的踏石"
+  },
+  {
+   "id": "a_arch",
+   "u": -3.4,
+   "v": 13.8,
+   "kind": [
+    "exit",
+    "spot"
+   ],
+   "label": "石拱門前（出口 A）",
+   "face": [
+    -5.0,
+    16.3
+   ]
+  },
+  {
+   "id": "s_isle",
+   "u": -1.35,
+   "v": -6.7,
+   "kind": [
+    "path"
+   ],
+   "label": "石環小洲北岸"
+  },
+  {
+   "id": "s_ring",
+   "u": 0.15,
+   "v": -8.2,
+   "kind": [
+    "spot"
+   ],
+   "label": "石環邊",
+   "face": [
+    -1.5,
+    -8.2
+   ]
+  },
+  {
+   "id": "leaf_entry",
+   "label": "浮葉小庭入口",
+   "u": 10.7,
+   "v": -3.2,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "leaf_watch",
+   "label": "浮葉小庭水槽邊",
+   "u": 11.2,
+   "v": -4.3,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "leaf_seat",
+   "label": "浮葉小庭石邊",
+   "u": 12.3,
+   "v": -5.8,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "moon_entry",
+   "label": "疊月橋入口",
+   "u": -9.3,
+   "v": 5.1,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "moon_watch",
+   "label": "橋前看月",
+   "u": -8.85,
+   "v": 5.75,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "moon_wfoot",
+   "label": "橋西端",
+   "u": -10.35,
+   "v": 7.55,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "moon_crown",
+   "label": "橋頂",
+   "u": -7.1,
+   "v": 7.55,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "moon_efoot",
+   "label": "橋東端",
+   "u": -3.95,
+   "v": 7.45,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "moon_bank",
+   "label": "榕樹下的岸邊",
+   "u": -5.0,
+   "v": 6.25,
+   "kind": "tidal-pocket"
+  },
+  {
+   "id": "p_seat",
+   "u": 1.1,
+   "v": 9.0,
+   "kind": [
+    "rest",
+    "spot"
+   ],
+   "label": "亭台南緣（休息點）",
+   "face": [
+    1.1,
+    8.0
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "a": "entry0",
+   "b": "r_landing",
+   "kind": "stones",
+   "via": [
+    [
+     -18.97,
+     -3.84
+    ],
+    [
+     -17.6,
+     -3.4
+    ]
+   ]
+  },
+  {
+   "a": "r_landing",
+   "b": "r_reeds",
+   "kind": "mud",
+   "via": []
+  },
+  {
+   "a": "r_reeds",
+   "b": "r_south",
+   "kind": "mud",
+   "via": [
+    [
+     -13.95,
+     -3.7
+    ]
+   ]
+  },
+  {
+   "a": "r_south",
+   "b": "r_pool",
+   "kind": "mud",
+   "via": []
+  },
+  {
+   "a": "r_south",
+   "b": "r_box",
+   "kind": "mud",
+   "via": []
+  },
+  {
+   "a": "r_pool",
+   "b": "r_cw",
+   "kind": "mud",
+   "via": [
+    [
+     -10.15,
+     -1.85
+    ],
+    [
+     -9.45,
+     -1.2
+    ]
+   ]
+  },
+  {
+   "a": "r_box",
+   "b": "r_gauge",
+   "kind": "mud",
+   "via": []
+  },
+  {
+   "a": "r_gauge",
+   "b": "r_cw",
+   "kind": "mud",
+   "via": [
+    [
+     -10.05,
+     -1.45
+    ],
+    [
+     -9.5,
+     -1.3
+    ]
+   ]
+  },
+  {
+   "a": "r_gauge",
+   "b": "r_lamp1",
+   "kind": "mud",
+   "via": [
+    [
+     -10.95,
+     -0.95
+    ],
+    [
+     -11.0,
+     -0.4
+    ]
+   ]
+  },
+  {
+   "a": "r_lamp1",
+   "b": "r_boat",
+   "kind": "mud",
+   "via": [
+    [
+     -10.85,
+     1.0
+    ],
+    [
+     -11.3,
+     1.15
+    ],
+    [
+     -13.85,
+     1.1
+    ]
+   ]
+  },
+  {
+   "a": "r_cw",
+   "b": "c_west",
+   "kind": "causeway",
+   "via": []
+  },
+  {
+   "a": "c_west",
+   "b": "c_lamp2",
+   "kind": "court",
+   "via": []
+  },
+  {
+   "a": "c_west",
+   "b": "c_stair",
+   "kind": "court",
+   "via": [
+    [
+     -3.55,
+     -0.7
+    ],
+    [
+     -3.4,
+     -0.8
+    ],
+    [
+     -2.95,
+     -0.6
+    ]
+   ]
+  },
+  {
+   "a": "c_stair",
+   "b": "c_home",
+   "kind": "stair",
+   "via": []
+  },
+  {
+   "a": "c_home",
+   "b": "c_pillar",
+   "kind": "court",
+   "via": [
+    [
+     -2.4,
+     1.85
+    ]
+   ]
+  },
+  {
+   "a": "c_home",
+   "b": "c_north",
+   "kind": "court",
+   "via": []
+  },
+  {
+   "a": "c_pillar",
+   "b": "c_north",
+   "kind": "court",
+   "via": [
+    [
+     -2.45,
+     1.85
+    ],
+    [
+     -2.25,
+     1.8
+    ],
+    [
+     -2.1,
+     1.9
+    ],
+    [
+     -1.65,
+     2.0
+    ]
+   ]
+  },
+  {
+   "a": "c_home",
+   "b": "c_estair",
+   "kind": "stair",
+   "via": []
+  },
+  {
+   "a": "c_estair",
+   "b": "c_column",
+   "kind": "court",
+   "via": [
+    [
+     2.6,
+     1.0
+    ]
+   ]
+  },
+  {
+   "a": "c_estair",
+   "b": "c_east",
+   "kind": "court",
+   "via": [
+    [
+     2.1,
+     0.55
+    ]
+   ]
+  },
+  {
+   "a": "c_estair",
+   "b": "c_stele",
+   "kind": "court",
+   "via": [
+    [
+     1.25,
+     0.0
+    ],
+    [
+     0.3,
+     -1.05
+    ],
+    [
+     0.55,
+     -1.8
+    ]
+   ]
+  },
+  {
+   "a": "c_stair",
+   "b": "c_stele",
+   "kind": "court",
+   "via": [
+    [
+     0.4,
+     -1.7
+    ]
+   ]
+  },
+  {
+   "a": "c_stele",
+   "b": "c_breach",
+   "kind": "court",
+   "via": []
+  },
+  {
+   "a": "c_breach",
+   "b": "c_south",
+   "kind": "court",
+   "via": [
+    [
+     -0.05,
+     -3.15
+    ]
+   ]
+  },
+  {
+   "a": "c_breach",
+   "b": "c_steps",
+   "kind": "court",
+   "via": [
+    [
+     2.4,
+     -2.95
+    ],
+    [
+     3.4,
+     -3.2
+    ]
+   ]
+  },
+  {
+   "a": "c_steps",
+   "b": "c_east",
+   "kind": "court",
+   "via": [
+    [
+     4.27,
+     -3.35
+    ]
+   ]
+  },
+  {
+   "a": "c_south",
+   "b": "s_isle",
+   "kind": "stones",
+   "via": [
+    [
+     -0.9,
+     -4.5
+    ],
+    [
+     -1.1,
+     -5.45
+    ],
+    [
+     -1.3,
+     -6.4
+    ]
+   ]
+  },
+  {
+   "a": "s_isle",
+   "b": "s_ring",
+   "kind": "court",
+   "via": [
+    [
+     -0.35,
+     -6.7
+    ],
+    [
+     0.3,
+     -8.05
+    ]
+   ]
+  },
+  {
+   "a": "c_east",
+   "b": "e_cw",
+   "kind": "causeway",
+   "via": []
+  },
+  {
+   "a": "e_cw",
+   "b": "k_lamp4",
+   "kind": "stones",
+   "via": [
+    [
+     7.85,
+     1.6
+    ]
+   ]
+  },
+  {
+   "a": "k_lamp4",
+   "b": "k_shelf",
+   "kind": "rock",
+   "via": [
+    [
+     8.4,
+     2.6
+    ]
+   ]
+  },
+  {
+   "a": "k_shelf",
+   "b": "k_top",
+   "kind": "rock",
+   "via": [
+    [
+     9.0,
+     3.3
+    ],
+    [
+     9.4,
+     3.25
+    ],
+    [
+     9.62,
+     3.0
+    ],
+    [
+     9.68,
+     2.6
+    ]
+   ]
+  },
+  {
+   "a": "k_top",
+   "b": "k_branch",
+   "kind": "rock",
+   "via": []
+  },
+  {
+   "a": "k_top",
+   "b": "k_roots",
+   "kind": "rock",
+   "via": [
+    [
+     10.4,
+     2.25
+    ],
+    [
+     10.9,
+     2.3
+    ],
+    [
+     11.15,
+     2.5
+    ]
+   ]
+  },
+  {
+   "a": "k_roots",
+   "b": "k_east",
+   "kind": "rock",
+   "via": []
+  },
+  {
+   "a": "k_east",
+   "b": "b_far",
+   "kind": "stones",
+   "via": []
+  },
+  {
+   "a": "c_north",
+   "b": "n_lamp3",
+   "kind": "causeway",
+   "via": [
+    [
+     0.95,
+     3.55
+    ],
+    [
+     1.1,
+     3.7
+    ],
+    [
+     0.45,
+     5.2
+    ]
+   ]
+  },
+  {
+   "a": "n_lamp3",
+   "b": "n_pier",
+   "kind": "causeway",
+   "via": []
+  },
+  {
+   "a": "n_pier",
+   "b": "p_lamp5",
+   "kind": "causeway",
+   "via": []
+  },
+  {
+   "a": "p_lamp5",
+   "b": "p_entry",
+   "kind": "pavilion",
+   "via": []
+  },
+  {
+   "a": "p_entry",
+   "b": "p_table",
+   "kind": "pavilion",
+   "via": []
+  },
+  {
+   "a": "p_bench",
+   "b": "p_west",
+   "kind": "pavilion",
+   "via": [
+    [
+     1.35,
+     11.45
+    ]
+   ]
+  },
+  {
+   "a": "p_west",
+   "b": "a_stones",
+   "kind": "stones",
+   "via": [
+    [
+     0.75,
+     11.47
+    ],
+    [
+     -0.4,
+     12.2
+    ],
+    [
+     -1.15,
+     12.6
+    ]
+   ]
+  },
+  {
+   "a": "a_stones",
+   "b": "a_arch",
+   "kind": "stones",
+   "via": [
+    [
+     -2.65,
+     13.4
+    ]
+   ]
+  },
+  {
+   "a": "c_east",
+   "b": "leaf_entry",
+   "kind": "court",
+   "via": [
+    [
+     8.4,
+     -1.3
+    ],
+    [
+     10.5,
+     -2.5
+    ]
+   ]
+  },
+  {
+   "a": "leaf_entry",
+   "b": "leaf_watch",
+   "kind": "court",
+   "via": []
+  },
+  {
+   "a": "leaf_watch",
+   "b": "leaf_seat",
+   "kind": "court",
+   "via": [
+    [
+     11.2,
+     -5.2
+    ]
+   ]
+  },
+  {
+   "a": "r_lamp1",
+   "b": "moon_entry",
+   "kind": "court",
+   "via": [
+    [
+     -10.95,
+     1.6
+    ],
+    [
+     -10.6,
+     2.8
+    ],
+    [
+     -9.8,
+     4.0
+    ]
+   ]
+  },
+  {
+   "a": "moon_entry",
+   "b": "moon_watch",
+   "kind": "court",
+   "via": []
+  },
+  {
+   "a": "moon_watch",
+   "b": "moon_wfoot",
+   "kind": "court",
+   "via": [
+    [
+     -9.6,
+     6.2
+    ],
+    [
+     -10.3,
+     6.7
+    ]
+   ]
+  },
+  {
+   "a": "moon_wfoot",
+   "b": "moon_crown",
+   "kind": "stair",
+   "via": []
+  },
+  {
+   "a": "moon_crown",
+   "b": "moon_efoot",
+   "kind": "stair",
+   "via": []
+  },
+  {
+   "a": "moon_efoot",
+   "b": "moon_bank",
+   "kind": "court",
+   "via": [
+    [
+     -3.7,
+     6.9
+    ],
+    [
+     -4.25,
+     6.4
+    ]
+   ]
+  },
+  {
+   "a": "p_entry",
+   "b": "p_bench",
+   "kind": "pavilion",
+   "via": [
+    [
+     1.4,
+     10.5
+    ],
+    [
+     1.3,
+     10.64
+    ],
+    [
+     1.25,
+     11.05
+    ],
+    [
+     1.35,
+     11.35
+    ]
+   ]
+  },
+  {
+   "a": "p_seat",
+   "b": "p_lamp5",
+   "kind": "pavilion",
+   "via": []
+  },
+  {
+   "a": "p_seat",
+   "b": "p_mirror",
+   "kind": "pavilion",
+   "via": [
+    [
+     0.7,
+     9.15
+    ]
+   ]
+  }
+ ]
+}

@@ -1,0 +1,538 @@
+<title>玻璃苗圃構圖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed 3D scene; frosted-glass card top-left, time bar bottom-centre (Focus Quest glass-over-scene language). Single look. */
+:root {
+  --ink: #f1eee6;
+  --ink-dim: rgba(241, 238, 230, 0.68);
+  --glass: rgba(24, 28, 26, 0.34);
+  --glass-line: rgba(241, 238, 230, 0.18);
+  --amber: #e0b265;
+  --teal: #a9d0c9;
+  --ground: #1b2430;
+  --f-hand: "LXGW WenKai TC", "Noto Serif TC", serif;
+  --f-body: "Noto Sans TC", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--ground); color: var(--ink); font-family: var(--f-body); overflow: hidden; }
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#c.drag { cursor: grabbing; }
+.card, .bar { background: var(--glass); border: 1px solid var(--glass-line); backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1); border-radius: 16px; }
+.card { position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; width: min(360px, calc(100% - 32px)); padding: 16px 18px; display: grid; gap: 8px; }
+.eyebrow { margin: 0; font-size: 11px; letter-spacing: 0.12em; color: var(--teal); }
+h1 { margin: 0; font-family: var(--f-hand); font-weight: 700; font-size: 26px; letter-spacing: 0.04em; text-wrap: balance; }
+#desc { margin: 0; font-size: 13px; line-height: 1.7; color: var(--ink-dim); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+button { font: inherit; color: var(--ink); background: rgba(241, 238, 230, 0.07); border: 1px solid var(--glass-line); border-radius: 16px; padding: 6px 13px; font-size: 13px; cursor: pointer; transition: background .2s, border-color .2s; }
+button:hover { background: rgba(241, 238, 230, 0.14); }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+button[aria-pressed="true"] { border-color: var(--amber); background: rgba(224, 178, 101, 0.18); color: #fff3dc; }
+.bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); padding: 8px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: calc(100% - 32px); }
+.bar .play { border-color: rgba(169, 208, 201, 0.5); }
+.hint { position: fixed; right: 16px; top: calc(16px + env(safe-area-inset-top, 0px)); margin: 0; font-size: 11px; color: var(--ink-dim); background: var(--glass); border: 1px solid var(--glass-line); border-radius: 16px; padding: 5px 11px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#status { margin: 0; font-family: var(--f-hand); font-size: 14px; color: #fff3dc; min-height: 1.4em; }
+@media (max-width: 520px) { .hint { display: none; } .card { padding: 12px 14px; } h1 { font-size: 22px; } #desc { font-size: 12px; } }
+</style>
+
+<canvas id="c" aria-label="玻璃苗圃的 3D 構圖草案"></canvas>
+<section class="card" aria-live="polite">
+  <p class="eyebrow">07 玻璃苗圃・構圖草案</p>
+  <h1 id="name">大圓頂</h1>
+  <p id="desc"></p>
+  <div class="tabs" role="group" aria-label="構圖方向">
+    <button id="tA" data-c="A" aria-pressed="true">A 大圓頂</button>
+    <button id="tB" data-c="B" aria-pressed="false">B 長廊溫室</button>
+    <button id="tC" data-c="C" aria-pressed="false">C 溫室群</button>
+  </div>
+  <p id="status"></p>
+</section>
+<p class="hint">拖曳可以偷看，放開會彈回</p>
+<nav class="bar" aria-label="時段">
+  <button id="mDay" data-m="day" aria-pressed="true">白天</button>
+  <button id="mNight" data-m="night" aria-pressed="false">夜晚・濃霧</button>
+  <button id="mDawn" data-m="dawn" aria-pressed="false">早晨・霧散</button>
+  <button id="play" class="play">▶ 播放霧散</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const T = THREE;
+const V3 = (x, y, z) => new T.Vector3(x, y, z);
+function mulberry(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+let R = mulberry(7);
+const rr = (a, b) => a + (b - a) * R();
+
+// ---------- renderer ----------
+const canvas = document.getElementById('c');
+const renderer = new T.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+const scene = new T.Scene();
+scene.background = new T.Color(0xe4dcc6);
+const DIST = 70;
+scene.fog = new T.Fog(0xddd3bb, DIST + 10, DIST + 70);
+
+const hemi = new T.HemisphereLight(0xf2ead8, 0x5d5a40, 0.65); scene.add(hemi);
+const sun = new T.DirectionalLight(0xfff0d2, 1.5); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -17, right: 17, top: 17, bottom: -17, near: 1, far: 90 }); sun.shadow.bias = -0.0012; sun.shadow.normalBias = 0.05;
+scene.add(sun); scene.add(sun.target);
+
+// ---------- materials ----------
+const mat = (color, o = {}) => new T.MeshStandardMaterial(Object.assign({ color, roughness: 0.9, metalness: 0, flatShading: true }, o));
+const M = {
+  iron: mat(0xd9d3c4, { roughness: 0.7 }), rust: mat(0x8b5a3a), ironDark: mat(0x3b3a36, { roughness: 0.6 }),
+  stone: mat(0xa49d8a), stoneLight: mat(0xbab29c), stoneDark: mat(0x6f6a5d), cliff: mat(0x7d7462),
+  soil: mat(0x5b4a39), grass: mat(0x66704a), moss: mat(0x5d6a3f),
+  leaf: mat(0x5f7f45), leafLight: mat(0x88a55a, { side: T.DoubleSide }), leafDark: mat(0x3f5e3a), palm: mat(0x6f9048, { side: T.DoubleSide }),
+  bark: mat(0x6b5440), terracotta: mat(0xb06a46), copper: mat(0xa86e45, { roughness: 0.55, metalness: 0.2 }),
+  grate: mat(0x3d3c38, { roughness: 0.55, metalness: 0.3 }), wood: mat(0x8a6a4a), woodDark: mat(0x5a4532),
+  cloak: mat(0x47535c), hat: mat(0x3a3029), skin: mat(0xe8cfb4), paper: mat(0xece3cf), water: mat(0x55707a, { roughness: 0.2, metalness: 0.1 }),
+  canvasBag: mat(0x8a7a5c)
+};
+const glassMat = new T.MeshStandardMaterial({ color: 0xdcefe9, transparent: true, opacity: 0.16, roughness: 0.12, metalness: 0, side: T.DoubleSide, depthWrite: false, flatShading: true });
+
+function mesh(geo, m, parent, x = 0, y = 0, z = 0) { const o = new T.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; parent.add(o); return o; }
+function tube(points, r, m, parent, seg) { const g = new T.TubeGeometry(new T.CatmullRomCurve3(points), seg || points.length * 6, r, 5, false); return mesh(g, m, parent); }
+function ring(parent, cx, y, cz, radius, r, m, arc) { const o = mesh(new T.TorusGeometry(radius, r, 4, 56, arc || Math.PI * 2), m, parent, cx, y, cz); o.rotation.x = Math.PI / 2; return o; }
+
+// soft sprite texture
+function softTex(inner = 'rgba(255,255,255,1)') { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, inner); gr.addColorStop(0.45, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new T.CanvasTexture(c); }
+const SOFT = softTex();
+
+const CAM_H = V3(1, 0, 1).normalize();          // camera side (az 45 deg)
+const SUN_DAWN = V3(-0.72, 0.56, -0.42).normalize();  // low sun behind the glasshouse: backlit beams toward the camera
+
+// ---------- shared world: plateau, fog sea, distant hills ----------
+const world = new T.Group(); scene.add(world);
+{
+  const g = new T.CylinderGeometry(12.5, 8.5, 5, 30, 2); const pos = g.attributes.position;
+  for (let i = 0; i < pos.count; i++) { const y = pos.getY(i); if (y > 2.4) continue; const k = 1 + (R() - 0.5) * 0.12; pos.setX(i, pos.getX(i) * k); pos.setZ(i, pos.getZ(i) * k); }
+  g.computeVertexNormals(); mesh(g, M.cliff, world, 0, -2.62, 0);
+  const top = new T.CylinderGeometry(12.5, 12.5, 0.3, 30); mesh(top, M.grass, world, 0, -0.15, 0);
+  const sea = new T.Mesh(new T.PlaneGeometry(500, 500), new T.MeshBasicMaterial({ color: 0xddd3bb })); sea.rotation.x = -Math.PI / 2; sea.position.y = -7; world.add(sea); world.userData.sea = sea;
+  const hill = mat(0x8a8e92);
+  for (let i = 0; i < 14; i++) { const a = -Math.PI * 0.95 + i / 13 * Math.PI * 1.35 + Math.PI * 0.75; const d = rr(38, 64); const h = rr(9, 17); const c = mesh(new T.ConeGeometry(rr(7, 13), h, 6), hill, world, Math.cos(a) * d, -14 + h / 2, Math.sin(a) * d); c.castShadow = false; c.rotation.y = R() * 3; }
+  // edge mist puffs around the plateau
+  world.userData.edgeMist = [];
+  for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2; const s = new T.Sprite(new T.SpriteMaterial({ map: SOFT, transparent: true, depthWrite: false, opacity: 0.5, color: 0xffffff })); s.position.set(Math.cos(a) * rr(12, 16), rr(-5, -2), Math.sin(a) * rr(12, 16)); s.scale.setScalar(rr(9, 14)); world.add(s); world.userData.edgeMist.push(s); }
+}
+
+// ---------- shared props ----------
+const swayers = [];
+function sway(o, amp = 0.05) { o.userData.ph = R() * 6.28; o.userData.amp = amp; o.userData.rz = o.rotation.z; o.userData.rx = o.rotation.x; swayers.push(o); return o; }
+function palm(parent, x, z, h = 4, lean = 0.15) {
+  const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = R() * 6.28; parent.add(g);
+  const n = 6; let p = V3(0, 0, 0); const pts = [p.clone()];
+  for (let i = 1; i <= n; i++) { p = V3(Math.sin(i / n * 1.4) * lean * h * 0.5, i / n * h, 0); pts.push(p.clone()); }
+  tube(pts, 0.11, M.bark, g, 12);
+  const crown = new T.Group(); crown.position.copy(p); g.add(crown); sway(crown, 0.06);
+  for (let i = 0; i < 9; i++) {
+    const f = new T.Group(); f.rotation.y = i / 9 * 6.28 + R() * 0.3; crown.add(f);
+    const a = new T.Group(); a.rotation.z = -rr(0.25, 0.75); f.add(a);
+    const leaf = mesh(new T.PlaneGeometry(1.9, 0.5, 4, 1), M.palm, a, 0.95, 0, 0); leaf.rotation.x = Math.PI / 2;
+    const lp = leaf.geometry.attributes.position; for (let k = 0; k < lp.count; k++) { const lx = lp.getX(k); lp.setZ(k, ((lx + 0.95) ** 2) * 0.22); if (Math.abs(lx - 0.95) < 0.01) lp.setY(k, 0); } leaf.geometry.computeVertexNormals();
+  }
+  return g;
+}
+function banana(parent, x, z, s = 1) {
+  const g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); g.rotation.y = R() * 6.28; parent.add(g);
+  mesh(new T.CylinderGeometry(0.1, 0.16, 1.2, 6), M.leafDark, g, 0, 0.6, 0);
+  for (let i = 0; i < 6; i++) { const f = new T.Group(); f.position.y = 1.1; f.rotation.y = i / 6 * 6.28; g.add(f); const a = new T.Group(); a.rotation.z = -rr(0.35, 0.9); f.add(a); sway(a, 0.07);
+    const leaf = mesh(new T.PlaneGeometry(1.7, 0.75, 3, 1), M.leafLight, a, 0.85, 0, 0); leaf.rotation.x = Math.PI / 2 + rr(-0.3, 0.3);
+    const lp = leaf.geometry.attributes.position; for (let k = 0; k < lp.count; k++) { const lx = lp.getX(k) + 0.85; lp.setZ(k, lx * lx * 0.12); } leaf.geometry.computeVertexNormals(); }
+  return g;
+}
+function fern(parent, x, z, s = 1, m = M.leaf) {
+  const g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); parent.add(g); sway(g, 0.04);
+  for (let i = 0; i < 8; i++) { const c = mesh(new T.ConeGeometry(0.1, 0.9, 3), m, g); c.geometry.translate(0, 0.45, 0); c.rotation.set(rr(0.6, 1.0), 0, 0); const p = new T.Group(); p.rotation.y = i / 8 * 6.28 + R() * 0.3; p.add(c); g.add(p); }
+  return g;
+}
+function bush(parent, x, z, s = 0.7, m = M.leaf) { const g = new T.Group(); g.position.set(x, 0, z); parent.add(g); for (let i = 0; i < 3; i++) mesh(new T.IcosahedronGeometry(s * rr(0.6, 1), 0), i ? m : M.leafDark, g, rr(-s, s) * 0.6, s * rr(0.5, 0.9), rr(-s, s) * 0.6); sway(g, 0.02); return g; }
+function tree(parent, x, z, h, spread = 2.6) {
+  const g = new T.Group(); g.position.set(x, 0, z); parent.add(g);
+  tube([V3(0, 0, 0), V3(0.3, h * 0.35, 0.1), V3(-0.2, h * 0.7, -0.2), V3(0.1, h, 0)], 0.28, M.bark, g, 18);
+  tube([V3(0.2, h * 0.5, 0), V3(1.2, h * 0.7, 0.6), V3(1.8, h * 0.82, 0.8)], 0.12, M.bark, g, 10);
+  const can = new T.Group(); can.position.y = h; g.add(can); sway(can, 0.02);
+  for (let i = 0; i < 9; i++) mesh(new T.IcosahedronGeometry(rr(0.9, 1.5), 0), i % 3 ? M.leaf : M.leafDark, can, rr(-spread, spread), rr(-0.8, 0.9), rr(-spread, spread) * 0.8);
+  mesh(new T.IcosahedronGeometry(1.2, 0), M.leaf, can, 1.7, -h * 0.18, 0.8);
+  // roots
+  for (let i = 0; i < 5; i++) { const a = i / 5 * 6.28; tube([V3(0, 0.4, 0), V3(Math.cos(a) * 0.6, 0.15, Math.sin(a) * 0.6), V3(Math.cos(a) * 1.1, 0.02, Math.sin(a) * 1.1)], 0.09, M.bark, g, 6); }
+  return g;
+}
+function pot(parent, x, z, r = 0.28, plant = true) { const g = new T.Group(); g.position.set(x, 0, z); parent.add(g); mesh(new T.CylinderGeometry(r, r * 0.75, r * 1.3, 8), M.terracotta, g, 0, r * 0.65, 0); if (plant) { if (R() < 0.5) fern(g, 0, 0, r * 1.4).position.y = r * 1.2; else bush(g, 0, 0, r * 0.9).position.y = r * 1.1; } return g; }
+function vine(parent, x, y, z, len) { const g = new T.Group(); g.position.set(x, y, z); parent.add(g); sway(g, 0.05); let yy = 0; while (yy < len) { mesh(new T.BoxGeometry(0.06, 0.32, 0.06), R() < 0.5 ? M.leaf : M.leafDark, g, rr(-0.05, 0.05), -yy - 0.16, rr(-0.05, 0.05)); if (R() < 0.5) mesh(new T.IcosahedronGeometry(0.1, 0), M.leafLight, g, rr(-0.1, 0.1), -yy - 0.1, rr(-0.1, 0.1)); yy += 0.3; } return g; }
+function grate(parent, x, z, r) {
+  const g = new T.Group(); g.position.set(x, 0, z); parent.add(g);
+  mesh(new T.CylinderGeometry(r + 0.18, r + 0.24, 0.16, 40), M.stoneDark, g, 0, 0.08, 0);
+  mesh(new T.CylinderGeometry(r, r, 0.04, 40), M.grate, g, 0, 0.17, 0);
+  ring(g, 0, 0.19, 0, r, 0.05, M.copper); ring(g, 0, 0.19, 0, r * 0.55, 0.035, M.copper); ring(g, 0, 0.19, 0, r * 0.18, 0.04, M.copper);
+  for (let i = 0; i < 12; i++) { const b = mesh(new T.BoxGeometry(r * 2, 0.03, 0.05), M.copper, g, 0, 0.19, 0); b.rotation.y = i / 12 * Math.PI; }
+  return g;
+}
+function bench(parent, x, z, ry) { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = ry; parent.add(g); mesh(new T.BoxGeometry(1.3, 0.07, 0.4), M.wood, g, 0, 0.45, 0); mesh(new T.BoxGeometry(1.3, 0.35, 0.06), M.wood, g, 0, 0.75, -0.18); [-0.55, 0.55].forEach((sx) => mesh(new T.BoxGeometry(0.06, 0.45, 0.4), M.ironDark, g, sx, 0.22, 0)); return g; }
+function luggage(parent, x, z, ry) { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = ry; parent.add(g); mesh(new T.BoxGeometry(0.55, 0.4, 0.3), M.canvasBag, g, 0, 0.2, 0); mesh(new T.BoxGeometry(0.57, 0.06, 0.32), M.woodDark, g, 0, 0.36, 0); mesh(new T.TorusGeometry(0.08, 0.015, 4, 10, Math.PI), M.copper, g, 0, 0.42, 0); return g; }
+function stairsDown(parent, x, z, ry, n = 7) { const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = ry; parent.add(g); for (let i = 0; i < n; i++) mesh(new T.BoxGeometry(1.2, 0.25, 0.5), i % 2 ? M.stone : M.stoneDark, g, 0, -i * 0.45 - 0.1, i * 0.5); return g; }
+function footbridge(parent, x, z, ry, len = 6) { const g = new T.Group(); g.position.set(x, -0.05, z); g.rotation.y = ry; parent.add(g); for (let i = 0; i < len / 0.4; i++) mesh(new T.BoxGeometry(1.1, 0.06, 0.32), i % 5 === 3 ? M.rust : M.ironDark, g, 0, -Math.sin(i / (len / 0.4) * Math.PI) * 0.4, i * 0.4); [-0.55, 0.55].forEach((sx) => { const pts = []; for (let i = 0; i <= 8; i++) pts.push(V3(sx, 0.8 - Math.sin(i / 8 * Math.PI) * 0.4, i / 8 * len)); tube(pts, 0.03, M.rust, g); }); return g; }
+
+// lamps (5 per map, driven by mood here)
+function lamp(parent, list, x, z) {
+  const g = new T.Group(); g.position.set(x, 0, z); parent.add(g);
+  mesh(new T.CylinderGeometry(0.05, 0.07, 1.7, 6), M.ironDark, g, 0, 0.85, 0);
+  mesh(new T.BoxGeometry(0.34, 0.04, 0.04), M.ironDark, g, 0.12, 1.66, 0);
+  const gm = new T.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 0, roughness: 1 });
+  const head = mesh(new T.BoxGeometry(0.16, 0.22, 0.16), gm, g, 0.26, 1.5, 0); head.castShadow = false;
+  mesh(new T.ConeGeometry(0.15, 0.1, 4), M.ironDark, g, 0.26, 1.66, 0).rotation.y = Math.PI / 4;
+  const light = new T.PointLight(0xffb05a, 0, 5, 2); light.position.set(0.26, 1.5, 0); g.add(light);
+  const halo = new T.Sprite(new T.SpriteMaterial({ map: SOFT, color: 0xffc27a, blending: T.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0 })); halo.position.set(0.26, 1.5, 0); halo.scale.setScalar(1.6); g.add(halo);
+  list.push({ gm, light, halo }); return g;
+}
+
+// ---------- glass structures ----------
+// Domes and vaults record their open (broken) panes on the far side, which become the sun-beam sources at dawn.
+function front(nx, nz) { return (nx * CAM_H.x + nz * CAM_H.z); }
+function pushQuad(arr, a, b, c, d) { arr.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, a.x, a.y, a.z, c.x, c.y, c.z, d.x, d.y, d.z); }
+function glassMesh(arr, parent) { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(arr, 3)); g.computeVertexNormals(); const m = new T.Mesh(g, glassMat); m.renderOrder = 2; parent.add(m); return m; }
+
+function dome(parent, o) {
+  const { cx, cz, r, h, drum, segs = 16, rings = 5, broken = 0.25, holes, cutAt = 0.05, avoid } = o;
+  const g = new T.Group(); parent.add(g); const panes = [];
+  const P = (th, ph) => V3(cx + r * Math.cos(ph) * Math.cos(th), drum + h * Math.sin(ph), cz + r * Math.cos(ph) * Math.sin(th));
+  const PHM = Math.PI / 2 * 0.86;
+  // base curb + drum
+  for (let j = 0; j < segs; j++) {
+    const t0 = j / segs * 6.28, t1 = (j + 1) / segs * 6.28, tm = (t0 + t1) / 2; const f = front(Math.cos(tm), Math.sin(tm));
+    const wall = f > 0.2 ? 0.25 : 0.6;
+    const w = mesh(new T.BoxGeometry(2 * r * Math.sin(Math.PI / segs) + 0.05, wall, 0.32), M.stone, g, cx + Math.cos(tm) * r * Math.cos(Math.PI / segs), wall / 2, cz + Math.sin(tm) * r * Math.cos(Math.PI / segs)); w.rotation.y = -tm + Math.PI / 2;
+    const post = mesh(new T.BoxGeometry(0.1, drum - 0.6, 0.1), M.iron, g, cx + Math.cos(t0) * r, 0.6 + (drum - 0.6) / 2, cz + Math.sin(t0) * r);
+    if (f > cutAt && j % 2) post.visible = false;
+    if (!(f > cutAt) && R() > broken) { pushQuad(panes, V3(cx + Math.cos(t0) * r, 0.6, cz + Math.sin(t0) * r), V3(cx + Math.cos(t1) * r, 0.6, cz + Math.sin(t1) * r), V3(cx + Math.cos(t1) * r, drum, cz + Math.sin(t1) * r), V3(cx + Math.cos(t0) * r, drum, cz + Math.sin(t0) * r)); }
+    else if (!(f > cutAt) && holes) holes.push(V3(cx + Math.cos(tm) * r, drum * 0.75, cz + Math.sin(tm) * r));
+    // dome panes
+    for (let i = 0; i < rings; i++) {
+      const p0 = i / rings * PHM, p1 = (i + 1) / rings * PHM, pm = (p0 + p1) / 2;
+      const c = P(tm, pm); const isFront = f > cutAt || (pm > 1.0 && f > -0.45);
+      const near = avoid && avoid.some((a) => c.distanceTo(a.p) < a.r);
+      if (isFront || near || R() < broken) { if (!isFront && holes && f < -0.15) holes.push(c); continue; }
+      pushQuad(panes, P(t0, p0), P(t1, p0), P(t1, p1), P(t0, p1));
+    }
+    // meridian rib (keep every other one on the camera side for a lighter skeleton)
+    if (!(f > cutAt && j % 2)) { const pts = []; for (let i = 0; i <= 8; i++) pts.push(P(t0, i / 8 * PHM)); tube(pts, f > cutAt ? 0.045 : 0.06, M.iron, g, 20); }
+  }
+  ring(g, cx, drum, cz, r, 0.07, M.iron); ring(g, cx, 0.6, cz, r, 0.06, M.iron);
+  for (let i = 1; i < rings; i++) { const ph = i / rings * PHM; const rr2 = ring(g, cx, drum + h * Math.sin(ph), cz, r * Math.cos(ph), 0.04, M.iron, Math.PI * 1.25); rr2.rotation.z = Math.PI * 0.62; }
+  // cupola
+  const top = drum + h * Math.sin(PHM), rt = r * Math.cos(PHM);
+  ring(g, cx, top, cz, rt, 0.07, M.iron);
+  for (let k = 0; k < 8; k++) { const a = k / 8 * 6.28; mesh(new T.BoxGeometry(0.06, 0.7, 0.06), M.iron, g, cx + Math.cos(a) * rt * 0.8, top + 0.35, cz + Math.sin(a) * rt * 0.8); }
+  const cap = mesh(new T.ConeGeometry(rt * 0.95, 0.8, 8), M.rust, g, cx, top + 1.1, cz); mesh(new T.SphereGeometry(0.1, 6, 4), M.copper, g, cx, top + 1.6, cz);
+  glassMesh(panes, g);
+  return { top, g };
+}
+
+// barrel-vault wing along x, from x0 to x1, half-width w, wall height wh
+function vault(parent, o) {
+  const { x0, x1, cz = 0, w, wh, step = 1.5, broken = 0.25, holes, gable0, gable1 } = o;
+  const g = new T.Group(); parent.add(g); const panes = []; const n = Math.round((x1 - x0) / step);
+  const A = (x, a) => V3(x, wh + Math.sin(a) * w * 0.95, cz + Math.cos(a) * w);   // a: 0 = front (z+), PI = back
+  for (let i = 0; i <= n; i++) {
+    const x = x0 + (x1 - x0) * i / n;
+    // posts
+    mesh(new T.BoxGeometry(0.1, wh, 0.1), M.iron, g, x, wh / 2, cz - w);
+    if (i % 2 === 0) mesh(new T.BoxGeometry(0.08, wh, 0.08), M.iron, g, x, wh / 2, cz + w);
+    // arched rib: full on the back half, partial in front
+    const pts = []; const aEnd = i % 2 === 0 ? 0 : Math.PI * 0.45; for (let k = 0; k <= 10; k++) { const a = Math.PI - (Math.PI - aEnd) * k / 10; pts.push(A(x, a)); }
+    tube(pts, 0.055, M.iron, g, 20);
+    if (i === n) break;
+    const xa = x, xb = x0 + (x1 - x0) * (i + 1) / n;
+    // back wall panes
+    if (R() > broken) pushQuad(panes, V3(xa, 0.5, cz - w), V3(xb, 0.5, cz - w), V3(xb, wh, cz - w), V3(xa, wh, cz - w)); else if (holes) holes.push(V3((xa + xb) / 2, wh * 0.7, cz - w));
+    // vault panes on the back half only
+    for (let k = 0; k < 4; k++) { const a0 = Math.PI - k / 4 * Math.PI * 0.5, a1 = Math.PI - (k + 1) / 4 * Math.PI * 0.5; if (R() < broken) { if (holes) holes.push(A((xa + xb) / 2, (a0 + a1) / 2)); continue; } pushQuad(panes, A(xa, a0), A(xb, a0), A(xb, a1), A(xa, a1)); }
+  }
+  // wall plates and ridge
+  tube([V3(x0, wh, cz - w), V3(x1, wh, cz - w)], 0.06, M.iron, g, 2); tube([V3(x0, wh, cz + w), V3(x1, wh, cz + w)], 0.05, M.iron, g, 2);
+  tube([A(x0, Math.PI / 2), A(x1, Math.PI / 2)], 0.05, M.iron, g, 2);
+  mesh(new T.BoxGeometry(x1 - x0, 0.5, 0.3), M.stone, g, (x0 + x1) / 2, 0.25, cz - w);
+  mesh(new T.BoxGeometry(x1 - x0, 0.22, 0.3), M.stone, g, (x0 + x1) / 2, 0.11, cz + w);
+  // gable fans (only the far end keeps glass)
+  [[gable0, x0], [gable1, x1]].forEach(([keep, x]) => { if (keep === undefined) return; for (let k = 0; k < 8; k++) { const a0 = Math.PI - k / 8 * Math.PI, a1 = Math.PI - (k + 1) / 8 * Math.PI; tube([V3(x, wh, cz), A(x, a0)], 0.035, M.iron, g, 2); if (keep && R() > broken) { panes.push(x, wh, cz, ...A(x, a0).toArray(), ...A(x, a1).toArray()); } } });
+  glassMesh(panes, g);
+  return g;
+}
+
+function sprinklerTruss(parent, cx, y, cz, len) {
+  const g = new T.Group(); g.position.set(cx, y, cz); parent.add(g);
+  mesh(new T.BoxGeometry(len, 0.08, 0.08), M.copper, g, 0, 0, 0.18); mesh(new T.BoxGeometry(len, 0.08, 0.08), M.copper, g, 0, 0, -0.18);
+  for (let i = 0; i <= len / 0.6; i++) { const x = -len / 2 + i * 0.6; const b = mesh(new T.BoxGeometry(0.04, 0.04, 0.42), M.rust, g, x, 0, 0); b.rotation.x = i % 2 ? 0.6 : -0.6; if (i % 2 === 0) { mesh(new T.CylinderGeometry(0.02, 0.02, 0.4, 4), M.copper, g, x, -0.22, 0); mesh(new T.ConeGeometry(0.06, 0.1, 6), M.copper, g, x, -0.45, 0).rotation.x = Math.PI; } }
+  [-1, 1].forEach((s) => { mesh(new T.BoxGeometry(0.22, 0.2, 0.5), M.ironDark, g, s * len / 2, 0, 0); mesh(new T.CylinderGeometry(0.09, 0.09, 0.06, 8), M.ironDark, g, s * len / 2, -0.14, 0).rotation.x = Math.PI / 2; });
+  return g;
+}
+function valve(parent, x, y, z) { const v = mesh(new T.TorusGeometry(0.14, 0.025, 4, 10), M.rust, parent, x, y + 0.25, z); mesh(new T.CylinderGeometry(0.03, 0.03, 0.25, 5), M.copper, parent, x, y + 0.12, z); v.rotation.x = Math.PI / 2; }
+function pipeRun(parent, pts, r = 0.07) { tube(pts, r, M.copper, parent, pts.length * 4); }
+
+// ---------- traveller ----------
+function traveller(parent) {
+  const trav = new T.Group(); trav.scale.setScalar(1.15); parent.add(trav);
+  const legGeo = new T.CylinderGeometry(0.045, 0.04, 0.3, 5); legGeo.translate(0, -0.15, 0);
+  mesh(legGeo, M.woodDark, trav, -0.07, 0.3, 0); mesh(legGeo, M.woodDark, trav, 0.07, 0.3, 0);
+  const upper = new T.Group(); upper.position.y = 0.3; trav.add(upper);
+  mesh(new T.ConeGeometry(0.23, 0.6, 8), M.cloak, upper, 0, 0.25, 0);
+  mesh(new T.CylinderGeometry(0.07, 0.07, 0.34, 7), M.canvasBag, upper, 0, 0.36, -0.15).rotation.z = Math.PI / 2;
+  const head = new T.Group(); head.position.y = 0.6; upper.add(head);
+  mesh(new T.SphereGeometry(0.105, 12, 9), M.skin, head); mesh(new T.ConeGeometry(0.3, 0.13, 12), M.hat, head, 0, 0.1, 0);
+  const staff = new T.Group(); staff.position.set(0.2, 0.25, 0.08); upper.add(staff);
+  mesh(new T.CylinderGeometry(0.017, 0.02, 1.08, 5), M.wood, staff, 0, 0.02, 0);
+  const gm = new T.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 1.2, roughness: 1 });
+  mesh(new T.BoxGeometry(0.075, 0.1, 0.075), gm, staff, 0, 0.46, 0.13).castShadow = false;
+  const halo = new T.Sprite(new T.SpriteMaterial({ map: SOFT, color: 0xffc27a, blending: T.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.3 })); halo.position.set(0, 0.46, 0.13); halo.scale.setScalar(0.8); staff.add(halo);
+  trav.userData = { head, halo };
+  return trav;
+}
+
+// ---------- mist, beams, motes ----------
+function mistCloud(parent, list, cx, cz, rad, n, yMax = 3) { for (let i = 0; i < n; i++) { const s = new T.Sprite(new T.SpriteMaterial({ map: SOFT, transparent: true, depthWrite: false, opacity: 0, color: 0xffffff })); const a = R() * 6.28, d = Math.sqrt(R()) * rad; s.position.set(cx + Math.cos(a) * d, rr(0.4, yMax), cz + Math.sin(a) * d); s.scale.setScalar(rr(3.5, 6)); s.renderOrder = 3; s.userData = { base: s.position.clone(), ph: R() * 6.28 }; parent.add(s); list.push(s); } }
+const beamU = { uOpacity: { value: 0 }, uTime: { value: 0 }, uColor: { value: new T.Color(0xffd79a) } };
+const beamMat = new T.ShaderMaterial({
+  uniforms: beamU, transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide,
+  vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv=uv; vec4 mv=modelViewMatrix*vec4(position,1.0); vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }',
+  fragmentShader: 'uniform float uOpacity; uniform float uTime; uniform vec3 uColor; varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ float along = smoothstep(0.0,0.12,vUv.y)*smoothstep(1.0,0.35,vUv.y); float edge = pow(abs(dot(vN, vec3(0.0,0.0,1.0))), 1.2); float flick = 0.85+0.15*sin(uTime*0.7+vUv.x*6.28); gl_FragColor = vec4(uColor, uOpacity*along*edge*flick*0.55); }'
+});
+function beams(parent, holes, maxN, floorY = 0.1) {
+  const d = SUN_DAWN.clone().negate(); const out = [];
+  const picked = holes.filter((p) => p.y > 2.2 && p.y < 7.5).sort(() => R() - 0.5).slice(0, maxN);
+  picked.forEach((p) => {
+    const L = (p.y - floorY) / -d.y; const rTop = rr(0.2, 0.38), rBot = rTop * rr(1.4, 1.9);
+    const geo = new T.CylinderGeometry(rBot, rTop, L, 10, 1, true); geo.translate(0, L / 2, 0);
+    const m = new T.Mesh(geo, beamMat); m.renderOrder = 4;
+    const end = p.clone().addScaledVector(d, L); m.position.copy(end); m.quaternion.setFromUnitVectors(V3(0, 1, 0), SUN_DAWN); parent.add(m); out.push({ m, a: end, b: p });
+  });
+  // dust motes inside the beams
+  const N = 220, arr = new Float32Array(N * 3), seeds = [];
+  for (let i = 0; i < N; i++) { const bm = out[i % Math.max(1, out.length)]; if (!bm) break; const t = R(); const q = bm.a.clone().lerp(bm.b, t * 0.8); q.x += rr(-0.5, 0.5); q.z += rr(-0.5, 0.5); arr.set([q.x, q.y, q.z], i * 3); seeds.push(q); }
+  const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.BufferAttribute(arr, 3));
+  const pm = new T.PointsMaterial({ color: 0xfff0c8, size: 0.06, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending });
+  const pts = new T.Points(pg, pm); parent.add(pts);
+  return { list: out, motes: pts, seeds };
+}
+
+// ---------- concepts ----------
+const CONCEPTS = {};
+function makeConcept(key, name, desc, build) { R = mulberry(key.charCodeAt(0) * 97 + 11); const g = new T.Group(); g.visible = false; scene.add(g); const C = { key, name, desc, g, lamps: [], mist: [], holes: [] , trusses: [] }; build(C); CONCEPTS[key] = C; }
+
+makeConcept('A', '大圓頂', '一座圓頂溫室占滿台地中央，大樹從破掉的頂端長出去。中央的圓形格柵育苗台是休息點，頂上的灑水桁架沿著圓軌慢慢轉。最接近參考圖，光束也最集中。', (C) => {
+  const g = C.g;
+  // floor
+  mesh(new T.CylinderGeometry(6.3, 6.3, 0.12, 40), M.stoneLight, g, 0.4, 0.06, -0.4);
+  ring(g, 0.4, 0.13, -0.4, 3.2, 0.06, M.stoneDark);
+  // planting beds on the far half + ring channel
+  for (let i = 0; i < 18; i++) { const a = Math.PI * 0.8 + i / 17 * Math.PI * 1.4; const b = mesh(new T.BoxGeometry(1.25, 0.32, 1.3), M.soil, g, 0.4 + Math.cos(a) * 5.2, 0.16, -0.4 + Math.sin(a) * 5.2); b.rotation.y = -a; }
+  ring(g, 0.4, 0.32, -0.4, 4.5, 0.08, M.stone, Math.PI * 1.45).rotation.z = Math.PI * 0.78;
+  const tr = V3(-3.3, 0, -3.5);
+  tree(g, tr.x, tr.z, 8.6, 2.4);
+  const d = dome(g, { cx: 0.4, cz: -0.4, r: 6.6, h: 5.2, drum: 3.0, segs: 18, rings: 5, broken: 0.22, holes: C.holes, avoid: [{ p: V3(tr.x, 8.0, tr.z), r: 3.2 }] });
+  grate(g, 0.4, -0.4, 1.7);
+  // plants: tall at the back, low in front so the traveller stays visible
+  palm(g, -4.2, 0.6, 5.4, 0.2); palm(g, 2.2, -5.0, 5.0, 0.25); palm(g, -1.0, -5.3, 4.2, 0.1); palm(g, 4.8, -3.0, 4.4, 0.2);
+  banana(g, -3.6, -3.8, 1.2); banana(g, 4.0, -1.0, 1.0); banana(g, -5.0, -1.8, 1.1); banana(g, 0.8, -4.0, 0.9);
+  for (let i = 0; i < 14; i++) { const a = Math.PI * 0.8 + R() * Math.PI * 1.4; const rr2 = rr(4.6, 5.8); fern(g, 0.4 + Math.cos(a) * rr2, -0.4 + Math.sin(a) * rr2, rr(0.9, 1.4), R() < 0.5 ? M.leaf : M.leafLight); }
+  for (let i = 0; i < 6; i++) bush(g, rr(-3, 4), rr(2.4, 4.5), rr(0.35, 0.55));
+  [[2.8, 2.6], [3.4, 2.0], [-2.2, 3.4], [-1.6, 4.0], [2.3, 1.8]].forEach(([x, z]) => pot(g, x, z, rr(0.22, 0.32)));
+  // hanging vines from the ribs
+  for (let i = 0; i < 9; i++) { const a = Math.PI * 0.85 + R() * Math.PI * 1.3; vine(g, 0.4 + Math.cos(a) * 6.0, rr(4.8, 6.4), -0.4 + Math.sin(a) * 6.0, rr(1.2, 3.0)); }
+  // rotating sprinkler truss on the drum ring
+  C.trusses.push({ o: sprinklerTruss(g, 0.4, 3.05, -0.4, 12.6), spin: 0.035 });
+  mesh(new T.CylinderGeometry(0.14, 0.14, 0.4, 8), M.ironDark, g, 0.4, 3.2, -0.4);
+  // pipes and valves
+  pipeRun(g, [V3(-5.7, 0.25, 2.6), V3(-5.0, 0.25, 0.4), V3(-5.6, 0.25, -2.2), V3(-4.0, 0.25, -4.9)]);
+  valve(g, -5.2, 0.25, 1.2); valve(g, 3.6, 0.25, -4.6);
+  pipeRun(g, [V3(5.6, 0.25, 0.4), V3(5.0, 0.25, -2.6), V3(3.6, 0.25, -4.6)]);
+  // water tank outside (feeds the sprinkler)
+  const tank = new T.Group(); tank.position.set(-7.6, 0, -5.4); g.add(tank);
+  [[-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]].forEach(([x, z]) => mesh(new T.CylinderGeometry(0.07, 0.09, 3.2, 5), M.ironDark, tank, x, 1.6, z));
+  mesh(new T.CylinderGeometry(1.1, 1.1, 1.6, 12), M.copper, tank, 0, 4.0, 0); mesh(new T.ConeGeometry(1.25, 0.6, 12), M.rust, tank, 0, 5.1, 0);
+  pipeRun(g, [V3(-7.0, 3.2, -4.8), V3(-6.4, 1.2, -3.2), V3(-5.7, 0.25, -2.6)], 0.06);
+  // rest point: bench + luggage beside the grate
+  bench(g, 1.9, 1.3, -Math.PI * 0.25); luggage(g, 2.7, 0.9, 0.4);
+  // exits: stair into the fog (left) and rusted footbridge (right)
+  stairsDown(g, -5.4, 9.7, 0.55); footbridge(g, 9.6, 3.6, Math.PI * 0.42, 6);
+  tube([V3(6.2, 0.02, 1.4), V3(8.0, 0.02, 2.6), V3(9.6, 0.02, 3.6)], 0.5, M.stone, g, 10).scale.y = 0.08;
+  tube([V3(-1.6, 0.02, 5.6), V3(-3.6, 0.02, 7.6), V3(-5.0, 0.02, 9.4)], 0.5, M.stone, g, 10).scale.y = 0.08;
+  // lamps
+  lamp(g, C.lamps, 7.6, 2.0); lamp(g, C.lamps, 4.4, 1.4); lamp(g, C.lamps, -2.8, -1.2); lamp(g, C.lamps, -3.4, 2.6); lamp(g, C.lamps, -4.0, 8.0);
+  mistCloud(g, C.mist, 0.4, -0.4, 5.5, 22, 4.5);
+  C.travPos = V3(1.0, 0.2, 1.1); C.travYaw = Math.PI * 0.25; C.view = 26; C.target = V3(0.6, 2.4, -0.2);
+  Object.assign(C, beams(g, C.holes, 8));
+});
+
+makeConcept('B', '長廊溫室', '一條長長的拱頂溫室斜放在台地上，中間是圓頂交叉廳。旅人沿中央走道來回，灑水架沿著軌道前後移動。路線最清楚，五盞燈可以沿走道排開；缺點是比較像一條走廊，留白少一點。', (C) => {
+  const g = C.g;
+  mesh(new T.BoxGeometry(19, 0.12, 6.6), M.stoneLight, g, 0, 0.06, -0.4);
+  mesh(new T.BoxGeometry(19, 0.13, 1.4), M.stone, g, 0, 0.07, -0.4);
+  vault(g, { x0: -9.5, x1: -3.2, cz: -0.4, w: 3.1, wh: 2.8, broken: 0.24, holes: C.holes, gable0: true });
+  vault(g, { x0: 3.2, x1: 9.5, cz: -0.4, w: 3.1, wh: 2.8, broken: 0.3, holes: C.holes, gable1: false });
+  const tr = V3(-0.6, 0, -2.4);
+  tree(g, tr.x, tr.z, 8.6, 2.3);
+  dome(g, { cx: 0, cz: -0.4, r: 3.9, h: 3.2, drum: 3.6, segs: 14, rings: 4, broken: 0.25, holes: C.holes, avoid: [{ p: V3(tr.x, 8.6, tr.z), r: 2.8 }] });
+  grate(g, 0.3, 0.4, 1.3);
+  // beds both sides of the aisle
+  for (let x = -9; x <= 9; x += 1.5) { if (Math.abs(x) < 3) continue; mesh(new T.BoxGeometry(1.4, 0.32, 1.5), M.soil, g, x, 0.16, -2.3); mesh(new T.BoxGeometry(1.4, 0.24, 1.2), M.soil, g, x, 0.12, 1.4); }
+  palm(g, -7.6, -2.4, 4.6, 0.2); palm(g, -4.6, -2.3, 4.0, 0.15); palm(g, 5.0, -2.4, 4.8, 0.2); palm(g, 8.0, -2.2, 3.8, 0.2);
+  banana(g, -6.0, -2.2, 1.0); banana(g, 6.6, -2.3, 1.1); banana(g, 3.4, -2.6, 0.9);
+  for (let x = -9; x <= 9; x += 0.9) { if (Math.abs(x) < 3.2) continue; fern(g, x + rr(-0.2, 0.2), rr(1.0, 1.8), rr(0.6, 0.9), R() < 0.5 ? M.leaf : M.leafLight); }
+  // seedling trays on the near beds
+  for (let x = -8.5; x <= 8.5; x += 2.2) { if (Math.abs(x) < 3.2) continue; const tray = mesh(new T.BoxGeometry(0.9, 0.1, 0.6), M.wood, g, x, 0.3, 1.1); for (let k = 0; k < 6; k++) mesh(new T.ConeGeometry(0.05, 0.18, 3), M.leafLight, g, x - 0.3 + (k % 3) * 0.3, 0.44, 1.0 + Math.floor(k / 3) * 0.25); }
+  for (let i = 0; i < 10; i++) vine(g, rr(-9, 9), rr(4.2, 5.4), rr(-2.2, -1.0), rr(0.8, 2.4));
+  // travelling sprinkler gantry on the wall plates of the west wing
+  const gt = sprinklerTruss(g, -6.4, 2.85, -0.4, 6.2); gt.rotation.y = Math.PI / 2; C.trusses.push({ o: gt, slide: [-9.0, -3.8] });
+  pipeRun(g, [V3(-9.6, 0.25, -3.6), V3(9.6, 0.25, -3.6)], 0.07); valve(g, -6.0, 0.25, -3.6); valve(g, 6.2, 0.25, -3.6);
+  // rest point
+  bench(g, 1.9, 1.7, -Math.PI * 0.1); luggage(g, 2.7, 1.5, 0.4);
+  // exits: west stair, east footbridge
+  stairsDown(g, -10.6, 3.0, 1.2); footbridge(g, 10.6, -0.4, Math.PI / 2, 6);
+  lamp(g, C.lamps, -8.4, 0.6); lamp(g, C.lamps, -4.2, 0.6); lamp(g, C.lamps, 2.0, -1.8); lamp(g, C.lamps, 4.6, 0.6); lamp(g, C.lamps, 8.8, 0.6);
+  for (let i = 0; i < 6; i++) bush(g, rr(-8, 8), rr(4.5, 8), rr(0.4, 0.7), M.moss);
+  mistCloud(g, C.mist, -6, -0.4, 3.4, 10, 3.4); mistCloud(g, C.mist, 6, -0.4, 3.4, 10, 3.4); mistCloud(g, C.mist, 0, -0.4, 3.4, 8, 5);
+  C.travPos = V3(-3.8, 0.13, -0.3); C.travYaw = Math.PI * 0.25; C.view = 26; C.target = V3(0, 2.2, -0.2);
+  Object.assign(C, beams(g, C.holes, 9));
+});
+
+makeConcept('C', '溫室群', '幾座大小不同的溫室散在台地上：一座圓頂還算完整、一座斜頂塌了一半，戶外是育苗床，中間用架高的水管和水塔連起來。天空和留白最多，但「整座溫室起霧」的感覺比較弱，光束只在圓頂裡。', (C) => {
+  const g = C.g;
+  const tr = V3(-4.4, 0, -4.0);
+  tree(g, tr.x, tr.z, 7.6, 2.0);
+  mesh(new T.CylinderGeometry(3.6, 3.6, 0.12, 30), M.stoneLight, g, -3.6, 0.06, -3.6);
+  dome(g, { cx: -3.6, cz: -3.6, r: 3.6, h: 3.0, drum: 2.4, segs: 14, rings: 4, broken: 0.3, holes: C.holes, avoid: [{ p: V3(tr.x, 7.6, tr.z), r: 2.6 }] });
+  palm(g, -2.4, -5.4, 3.6, 0.2); banana(g, -5.6, -2.4, 0.9); fern(g, -2.0, -3.0, 1.0); fern(g, -1.8, -2.0, 0.9, M.leafLight);
+  // half-collapsed gable house
+  const hx = 4.2, hz = -3.6; mesh(new T.BoxGeometry(6, 0.12, 3.6), M.stoneLight, g, hx, 0.06, hz);
+  const panes = [];
+  for (let i = 0; i <= 5; i++) {
+    const x = hx - 3 + i * 1.2; const fallen = i >= 3;
+    const fr = new T.Group(); fr.position.set(x, 0, hz); g.add(fr);
+    if (fallen) { fr.rotation.x = i === 5 ? 1.35 : 1.15 + (i - 3) * 0.1; fr.position.z += 0.4; }
+    mesh(new T.BoxGeometry(0.08, 2.2, 0.08), M.iron, fr, 0, 1.1, -1.8); mesh(new T.BoxGeometry(0.08, 2.2, 0.08), M.iron, fr, 0, 1.1, 1.8);
+    tube([V3(0, 2.2, -1.8), V3(0, 3.5, 0), V3(0, 2.2, 1.8)], 0.05, M.iron, fr, 4);
+    if (!fallen && i < 2) { const xa = x, xb = x + 1.2; pushQuad(panes, V3(xa, 0.4, hz - 1.8), V3(xb, 0.4, hz - 1.8), V3(xb, 2.2, hz - 1.8), V3(xa, 2.2, hz - 1.8)); pushQuad(panes, V3(xa, 2.2, hz - 1.8), V3(xb, 2.2, hz - 1.8), V3(xb, 3.5, hz), V3(xa, 3.5, hz)); C.holes.push(V3(xa + 0.6, 2.9, hz - 0.9)); }
+  }
+  glassMesh(panes, g);
+  for (let i = 0; i < 8; i++) mesh(new T.BoxGeometry(rr(0.3, 0.7), 0.02, rr(0.3, 0.6)), glassMat, g, hx + rr(0, 3), 0.14, hz + rr(-1, 2)).rotation.y = R() * 3;
+  banana(g, hx + 1.4, hz - 0.6, 1.1); bush(g, hx + 2.4, hz + 0.6, 0.6); vine(g, hx - 2.4, 3.3, hz, 1.6); fern(g, hx - 1.6, hz - 1, 1.1);
+  // big open-air tree with the round seed-bed grate (rest point)
+  grate(g, 1.0, 1.8, 1.4);
+  palm(g, 3.8, 2.6, 3.4, 0.25);
+  // outdoor nursery beds with cold frames
+  for (let k = 0; k < 4; k++) { const x = -5.6 + k * 1.7, z = 4.4; mesh(new T.BoxGeometry(1.4, 0.3, 1.0), M.wood, g, x, 0.15, z); const lid = mesh(new T.BoxGeometry(1.4, 0.03, 1.0), glassMat, g, x, 0.42, z - 0.1); lid.rotation.x = k % 2 ? -0.5 : -0.15; for (let s = 0; s < 4; s++) mesh(new T.ConeGeometry(0.05, 0.2, 3), M.leafLight, g, x - 0.45 + s * 0.3, 0.38, z + 0.1); }
+  // water tower + raised pipes on stilts
+  const tank = new T.Group(); tank.position.set(-8.0, 0, 2.4); g.add(tank);
+  [[-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]].forEach(([x, z]) => mesh(new T.CylinderGeometry(0.07, 0.09, 3.4, 5), M.ironDark, tank, x, 1.7, z));
+  mesh(new T.CylinderGeometry(1.1, 1.1, 1.6, 12), M.copper, tank, 0, 4.2, 0); mesh(new T.ConeGeometry(1.25, 0.6, 12), M.rust, tank, 0, 5.3, 0);
+  const pipe = [V3(-7.4, 3.3, 2.0), V3(-4.0, 2.8, 1.0), V3(-0.4, 2.6, -0.4), V3(2.0, 2.6, -2.0), V3(2.6, 2.4, -2.6)];
+  pipeRun(g, pipe, 0.07); pipe.slice(1, 4).forEach((p) => mesh(new T.CylinderGeometry(0.05, 0.06, p.y, 5), M.ironDark, g, p.x, p.y / 2, p.z));
+  pipeRun(g, [V3(-4.0, 2.8, 1.0), V3(-3.4, 2.6, -0.6)], 0.05);
+  // rotating sprinkler head in the beds
+  const sp = new T.Group(); sp.position.set(-1.6, 0, 4.0); g.add(sp); mesh(new T.CylinderGeometry(0.04, 0.05, 1.4, 5), M.ironDark, sp, 0, 0.7, 0); const arm = new T.Group(); arm.position.y = 1.4; sp.add(arm); mesh(new T.BoxGeometry(1.2, 0.05, 0.05), M.copper, arm); C.trusses.push({ o: arm, spin: 0.25 });
+  for (let i = 0; i < 10; i++) pot(g, rr(-2, 3), rr(3.2, 6.2), rr(0.18, 0.28), R() < 0.7);
+  for (let i = 0; i < 8; i++) bush(g, rr(-9, 9), rr(-9, 9) * 0.6 + 2, rr(0.4, 0.7), M.moss);
+  bench(g, 2.4, 0.4, -Math.PI * 0.35); luggage(g, 2.9, -0.2, 0.2);
+  stairsDown(g, -2.4, 9.8, 0.35); footbridge(g, 9.4, 3.0, Math.PI * 0.42, 6);
+  lamp(g, C.lamps, 7.0, 1.4); lamp(g, C.lamps, 4.6, -1.2); lamp(g, C.lamps, -1.0, -2.6); lamp(g, C.lamps, -5.4, 0.6); lamp(g, C.lamps, -1.4, 7.2);
+  mistCloud(g, C.mist, -3.6, -3.6, 3.0, 10, 3.6); mistCloud(g, C.mist, 4.2, -3.6, 2.6, 6, 2.6); mistCloud(g, C.mist, 0, 3, 7, 10, 1.2);
+  C.travPos = V3(0.2, 0.2, 3.0); C.travYaw = Math.PI * 0.3; C.view = 26; C.target = V3(-0.2, 2.2, 0);
+  Object.assign(C, beams(g, C.holes, 6));
+});
+
+const trav = traveller(scene);
+
+// ---------- moods ----------
+const MOODS = {
+  day:   { bg: 0xe6dcc5, fog: 0xddd3bb, near: 10, far: 100, sun: 0xfff0d2, sunI: 1.15, dir: V3(-0.55, 0.85, -0.45), hs: 0xf2ead8, hg: 0x5d5a40, hI: 0.55, glass: 0xdcefe9, gO: 0.16, mist: 0.0, mistC: 0xffffff, beam: 0.0, lamps: 0, look: 0, edge: 0.35 },
+  night: { bg: 0x1d2632, fog: 0x2a3441, near: -6, far: 34, sun: 0x9fb4d6, sunI: 0.22, dir: V3(0.35, 0.8, -0.5), hs: 0x44536b, hg: 0x16181b, hI: 0.42, glass: 0xd5dee2, gO: 0.72, mist: 0.7, mistC: 0x9eacb9, beam: 0.0, lamps: 1, look: 0.1, edge: 0.5 },
+  dawn:  { bg: 0xf0d3a3, fog: 0xeccb98, near: 4, far: 92, sun: 0xffc27a, sunI: 1.45, dir: SUN_DAWN.clone(), hs: 0xf6dcb8, hg: 0x5a4a38, hI: 0.48, glass: 0xf3e3c8, gO: 0.3, mist: 0.18, mistC: 0xffe7c4, beam: 0.85, lamps: 0.25, look: -0.42, edge: 0.6 }
+};
+const col = (h) => new T.Color(h);
+function lerpMood(a, b, t) { const o = {}; for (const k in a) { const x = a[k], y = b[k]; if (typeof x === 'number' && ['bg', 'fog', 'sun', 'hs', 'hg', 'glass', 'mistC'].includes(k)) o[k] = col(x).lerp(col(y), t); else if (x && x.isVector3) o[k] = x.clone().lerp(y, t).normalize(); else o[k] = x + (y - x) * t; } return o; }
+let cur = lerpMood(MOODS.day, MOODS.day, 0), from = cur, to = MOODS.day, mt = 1, mDur = 1.2, playSeq = null;
+
+function apply(P) {
+  scene.background.copy(P.bg); scene.fog.color.copy(P.fog); scene.fog.near = DIST + P.near; scene.fog.far = DIST + P.far;
+  world.userData.sea.material.color.copy(P.fog);
+  world.userData.edgeMist.forEach((s) => { s.material.opacity = P.edge; s.material.color.copy(P.fog).lerp(col(0xffffff), 0.35); });
+  sun.color.copy(P.sun); sun.intensity = P.sunI; sun.castShadow = P.sunI > 0.6; sun.position.copy(P.dir).multiplyScalar(40); sun.target.position.set(0, 0, 0);
+  hemi.color.copy(P.hs); hemi.groundColor.copy(P.hg); hemi.intensity = P.hI;
+  glassMat.color.copy(P.glass); glassMat.opacity = P.gO;
+  beamU.uOpacity.value = P.beam;
+  const C = CONCEPTS[active];
+  C.mist.forEach((s) => { s.material.opacity = P.mist * 0.55; s.material.color.copy(P.mistC); });
+  C.lamps.forEach((l) => { l.gm.emissiveIntensity = 1.4 * P.lamps; l.light.intensity = 1.1 * P.lamps; l.halo.material.opacity = 0.55 * P.lamps; });
+  if (C.motes) C.motes.material.opacity = Math.min(1, P.beam * 1.3);
+  trav.userData.head.rotation.x = P.look;
+}
+
+// ---------- camera ----------
+const camera = new T.OrthographicCamera(-1, 1, 1, -1, 1, 300);
+const BASE_EL = 31 * Math.PI / 180, BASE_AZ = Math.PI / 4;
+let yawOff = 0, pitchOff = 0, dragging = false, lx = 0, ly = 0, active = 'A';
+const target = V3(0, 2, 0);
+function resize() { const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight; renderer.setSize(w, h, false); const aspect = w / h; const C = CONCEPTS[active]; let vh = C.view; let vw = vh * aspect; if (vw < C.view * 1.05) { vw = C.view * 1.05; vh = vw / aspect; } Object.assign(camera, { left: -vw / 2, right: vw / 2, top: vh / 2, bottom: -vh / 2 }); camera.updateProjectionMatrix(); }
+function placeCam() { const el = BASE_EL + pitchOff, az = BASE_AZ + yawOff; camera.position.set(target.x + DIST * Math.cos(el) * Math.sin(az), target.y + DIST * Math.sin(el), target.z + DIST * Math.cos(el) * Math.cos(az)); camera.lookAt(target); }
+canvas.addEventListener('pointerdown', (e) => { dragging = true; lx = e.clientX; ly = e.clientY; canvas.classList.add('drag'); try { canvas.setPointerCapture(e.pointerId); } catch (_) {} });
+canvas.addEventListener('pointermove', (e) => { if (!dragging) return; yawOff = Math.max(-0.9, Math.min(0.9, yawOff - (e.clientX - lx) * 0.006)); pitchOff = Math.max(-0.25, Math.min(0.45, pitchOff + (e.clientY - ly) * 0.004)); lx = e.clientX; ly = e.clientY; });
+const endDrag = () => { dragging = false; canvas.classList.remove('drag'); };
+canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+addEventListener('resize', resize);
+
+// ---------- UI ----------
+const $ = (id) => document.getElementById(id);
+const statusEl = $('status');
+const STATUS = { day: '午後。玻璃是乾的，灑水桁架慢慢轉一圈。', night: '夜裡起了濃霧，玻璃整片結露，燈點起來會散成一團光。', dawn: '太陽升起來，霧從破掉的玻璃退出去，光一道一道照進來。' };
+function setConcept(k) {
+  active = k; Object.values(CONCEPTS).forEach((c) => { c.g.visible = c.key === k; });
+  const C = CONCEPTS[k]; $('name').textContent = C.name; $('desc').textContent = C.desc; target.copy(C.target);
+  trav.position.copy(C.travPos); trav.rotation.y = C.travYaw;
+  document.querySelectorAll('[data-c]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.c === k)));
+  resize(); apply(cur);
+}
+let moodKey = 'day';
+function setMood(k, instant) { moodKey = k; playSeq = null; from = cur; to = MOODS[k]; mt = instant ? 1 : 0; if (instant) cur = lerpMood(to, to, 0); statusEl.textContent = STATUS[k]; document.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === k))); }
+document.querySelectorAll('[data-c]').forEach((b) => b.addEventListener('click', () => setConcept(b.dataset.c)));
+document.querySelectorAll('[data-m]').forEach((b) => b.addEventListener('click', () => setMood(b.dataset.m)));
+$('play').addEventListener('click', () => { setMood('night', true); playSeq = { t: -1.2, dur: 9 }; statusEl.textContent = '夜裡的濃霧……'; document.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-pressed', 'false')); });
+
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- loop ----------
+const clock = new T.Clock(); let time = 0;
+function frame() {
+  const dt = Math.min(0.05, clock.getDelta()); time += dt; tick(dt); renderer.render(scene, camera); requestAnimationFrame(frame);
+}
+function tick(dt) {
+  if (playSeq) {
+    playSeq.t += dt; const k = Math.max(0, playSeq.t / playSeq.dur);
+    const base = lerpMood(MOODS.night, MOODS.dawn, smooth(0, 0.75, k));
+    base.mist = MOODS.night.mist * (1 - smooth(0.15, 0.85, k)) + MOODS.dawn.mist * smooth(0.6, 1, k);
+    base.gO = MOODS.night.gO + (MOODS.dawn.gO - MOODS.night.gO) * smooth(0.2, 0.9, k);
+    base.beam = MOODS.dawn.beam * smooth(0.4, 0.95, k);
+    base.lamps = 1 - 0.75 * smooth(0.3, 0.9, k);
+    cur = base;
+    if (k > 0.35 && k < 0.36) statusEl.textContent = '天亮了，霧開始從破玻璃退出去。';
+    if (k > 0.7 && k < 0.71) statusEl.textContent = '光一道一道照進來，旅人抬起頭。';
+    if (k >= 1) { playSeq = null; moodKey = 'dawn'; to = MOODS.dawn; mt = 1; document.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === 'dawn'))); }
+  } else if (mt < 1) { mt = Math.min(1, mt + dt / mDur); cur = lerpMood(from, to, smooth(0, 1, mt)); }
+  apply(cur);
+  const C = CONCEPTS[active];
+  const wind = reduced ? 0 : 1;
+  swayers.forEach((o) => { o.rotation.z = o.userData.rz + Math.sin(time * 0.9 + o.userData.ph) * o.userData.amp * wind; o.rotation.x = o.userData.rx + Math.sin(time * 0.7 + o.userData.ph * 1.3) * o.userData.amp * 0.5 * wind; });
+  C.trusses.forEach((t) => { if (reduced) return; if (t.spin) t.o.rotation.y += t.spin * dt; if (t.slide) t.o.position.x = t.slide[0] + (t.slide[1] - t.slide[0]) * (0.5 - 0.5 * Math.cos(time * 0.08)); });
+  C.mist.forEach((s) => { const b = s.userData.base; s.position.set(b.x + Math.sin(time * 0.12 + s.userData.ph) * 0.6, b.y + Math.sin(time * 0.2 + s.userData.ph) * 0.15, b.z + Math.cos(time * 0.1 + s.userData.ph) * 0.6); });
+  if (C.motes && !reduced) { const a = C.motes.geometry.attributes.position; for (let i = 0; i < C.seeds.length; i++) { const q = C.seeds[i]; a.setXYZ(i, q.x + Math.sin(time * 0.3 + i) * 0.15, q.y + Math.sin(time * 0.21 + i * 1.7) * 0.2, q.z + Math.cos(time * 0.27 + i) * 0.15); } a.needsUpdate = true; }
+  beamU.uTime.value = time;
+  if (!dragging) { yawOff *= Math.pow(0.02, dt); pitchOff *= Math.pow(0.02, dt); }
+  placeCam();
+}
+window.__g7 = { setConcept, setMood, advance(s) { const n = Math.ceil(s / 0.05); for (let i = 0; i < n; i++) { time += 0.05; tick(0.05); } renderer.render(scene, camera); }, play() { $('play').click(); } };
+setConcept('A'); setMood('day', true);
+requestAnimationFrame(frame);
+</script>

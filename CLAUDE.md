@@ -1,0 +1,19 @@
+# Focus Quest guidance for Claude
+
+Read `AGENTS.md` and `docs/CORE_PLAN_AGENT_BRIEF.md` once at the start of a task. Use the relevant sections of the searchable Markdown plan for exact product requirements. The plan's dated decisions supersede the archived PDF. Read `docs/AGENT_WORKFLOW.md` once for shared work with Codex.
+
+For collaboration, also read `docs/COLLABORATION_STATUS.md` and the relevant latest handoff it links. Read prompts, engineering replies and reports from the shared files rather than asking the user to transfer their full contents between Claude and Codex. Update your existing design handoff and the matching index row at delivery. Preserve user preview/prototype acceptance gates, check current file ownership before edits, and do not treat the index as a writer lock or automatic task authorization. Existing conversations must read this new index explicitly; file changes alone do not wake another conversation.
+
+## Your primary responsibility
+
+**2026-09-27 user decision: design only.** Own map concepts, composition, camera and character design, UI layout, art direction, motion and interaction design. You may provide a runnable web prototype, reference images, assets and design notes to communicate the intended result. Production App modules, renderer integration and playback implementation are not required from you. This supersedes the earlier instruction that Claude implements all frontend visuals and animations.
+
+Codex owns production frontend/backend implementation, HTML-prototype porting, animation playback, gameplay rules, traveller decisions/routes, Focus timing, rewards, persistence, shared contracts, bug fixes, tests, integration, visual QA and packaging. Codex can directly implement and repair scene/frontend files while preserving the user's approved design. Do not reserve these files as Claude-only or make App module delivery a prerequisite for handoff. The user decides product direction and accepts the final result.
+
+Hand off the available prototype/source/assets, intended behavior, scene paths and lamp anchors, event identifiers/state needs and any unresolved design questions. Design feedback remains welcome, but Codex handles code changes. New gameplay effects on routes, tags, tokens, rewards or permanent progress require user approval unless already authorized. Focus remains calm and low-interaction; failed animation must never change the saved game result. Preserve accepted composition, lighting and motion; do not impose the legacy Phaser renderer on the final design.
+
+## Handoff and Git
+
+Before editing, check the working tree and identify your task's files. This checkout currently contains important uncommitted map code and art. Until a reviewed baseline commit includes those files, work sequentially with Codex in this checkout; a new worktree from the old HEAD will not contain them. Do not reset, clean, stash, or overwrite another agent's work.
+
+At handoff, report the design changes, available prototype/assets, files touched, expected behavior and unresolved design questions. Include any checks already run, but production typecheck, tests and App integration are Codex responsibilities. Mark unavailable checks as not run and explain why. Per the 2026-09-26 user decision, do not launch windows or capture screenshots for handoff, and do not configure nvm or simulation environments for that purpose; Codex owns these runtime checks and packaging. Handoff is not blocked by your inability to run the App. On this same computer, a Git push is not required for handoff. After the baseline is committed, use a separate branch/worktree for parallel tasks and hand off the commit or branch for local integration. Push only when a remote exists and the user wants remote backup, collaboration, or a pull request. Do not push directly to `main` as a handoff shortcut.

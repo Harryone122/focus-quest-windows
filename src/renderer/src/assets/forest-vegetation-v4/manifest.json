@@ -1,0 +1,153 @@
+{
+  "version": 4,
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "phases": [
+    "morning",
+    "noon",
+    "afternoon",
+    "night"
+  ],
+  "strategy": "Stable noon alpha masks with RGB sampled from each authored phase reference.",
+  "invariants": [
+    "identical crop bounds and alpha geometry in every phase",
+    "no static scenery is regenerated or recolored",
+    "daylight crossfade changes color without changing plant silhouettes"
+  ],
+  "assets": {
+    "grass_archive_arch_base": {
+      "x": 974,
+      "y": 110,
+      "width": 317,
+      "height": 400
+    },
+    "grass_astrolabe_east": {
+      "x": 471,
+      "y": 262,
+      "width": 265,
+      "height": 289
+    },
+    "grass_astrolabe_west": {
+      "x": 307,
+      "y": 261,
+      "width": 164,
+      "height": 245
+    },
+    "grass_bridge_edge": {
+      "x": 1116,
+      "y": 466,
+      "width": 556,
+      "height": 385
+    },
+    "grass_center_path_east": {
+      "x": 846,
+      "y": 294,
+      "width": 270,
+      "height": 318
+    },
+    "grass_center_path_west": {
+      "x": 599,
+      "y": 402,
+      "width": 247,
+      "height": 200
+    },
+    "grass_left_ruins": {
+      "x": 15,
+      "y": 539,
+      "width": 316,
+      "height": 107
+    },
+    "grass_lower_left_stairs": {
+      "x": 0,
+      "y": 575,
+      "width": 723,
+      "height": 366
+    },
+    "grass_right_upper_path": {
+      "x": 1291,
+      "y": 0,
+      "width": 379,
+      "height": 466
+    },
+    "tree_canopy_bottom_foreground": {
+      "x": 700,
+      "y": 600,
+      "width": 972,
+      "height": 341
+    },
+    "tree_canopy_center": {
+      "x": 560,
+      "y": 70,
+      "width": 420,
+      "height": 410
+    },
+    "tree_canopy_left_foreground": {
+      "x": 0,
+      "y": 0,
+      "width": 500,
+      "height": 560
+    },
+    "tree_canopy_midleft": {
+      "x": 300,
+      "y": 44,
+      "width": 420,
+      "height": 396
+    },
+    "tree_canopy_right_foreground": {
+      "x": 1430,
+      "y": 420,
+      "width": 242,
+      "height": 440
+    },
+    "tree_canopy_upper_right": {
+      "x": 1260,
+      "y": 0,
+      "width": 325,
+      "height": 250
+    },
+    "vines_archive_arch": {
+      "x": 982,
+      "y": 108,
+      "width": 319,
+      "height": 593
+    },
+    "vines_astrolabe": {
+      "x": 361,
+      "y": 153,
+      "width": 348,
+      "height": 473
+    },
+    "vines_center_bridge": {
+      "x": 667,
+      "y": 250,
+      "width": 344,
+      "height": 661
+    },
+    "vines_east": {
+      "x": 1260,
+      "y": 29,
+      "width": 389,
+      "height": 762
+    },
+    "vines_lower_stairs": {
+      "x": 74,
+      "y": 626,
+      "width": 566,
+      "height": 315
+    },
+    "vines_west": {
+      "x": 67,
+      "y": 344,
+      "width": 294,
+      "height": 317
+    }
+  },
+  "meanVegetationColorError": {
+    "morning": 13.55461311340332,
+    "noon": 16.567237854003906,
+    "afternoon": 13.993661880493164,
+    "night": 8.590614318847656
+  }
+}

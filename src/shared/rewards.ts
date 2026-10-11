@@ -6,6 +6,6 @@ export function calculateLight(effectiveSeconds: number, minimumMinutes: number,
 }
 
 export function effectiveSeconds(startedAt: string, endedAt: string, pausedSeconds: number): number {
-  const elapsed = Math.floor((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000)
-  return Math.max(0, elapsed - pausedSeconds)
+  const elapsedMs = Date.parse(endedAt) - Date.parse(startedAt)
+  return Math.max(0, Math.floor((elapsedMs - Math.round(pausedSeconds * 1000)) / 1000))
 }

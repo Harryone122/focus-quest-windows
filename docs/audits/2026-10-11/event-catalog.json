@@ -1,0 +1,5165 @@
+{
+  "01 雲上遺庭": {
+    "source": "docs/area-01-cloud-ruins.scene.json",
+    "data": {
+      "events": [
+        {
+          "id": "ev_edge_clouds",
+          "spot": "a_edge",
+          "name": "站在島緣看雲海慢慢流過",
+          "anim": "gaze",
+          "dur": [
+            40,
+            90
+          ],
+          "weight": 3,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_blossom_watch",
+          "spot": "a_blossom",
+          "name": "抬頭看花瓣一片片落下",
+          "anim": "gaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 3,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_blossom_press",
+          "spot": "a_blossom",
+          "name": "撿起一片花瓣，夾進筆記本",
+          "anim": "pickup",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1.5,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_stele_read",
+          "spot": "a_stele",
+          "name": "讀著索引石碑上的字",
+          "anim": "inspect",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 3,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_stele_rubbing",
+          "spot": "a_stele",
+          "name": "蹲下來拓一段碑文",
+          "anim": "crouch",
+          "dur": [
+            60,
+            90
+          ],
+          "weight": 1,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pillar_marks",
+          "spot": "a_pillars",
+          "name": "查看斷柱上的刻痕",
+          "anim": "inspect",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2.5,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pillar_rest",
+          "spot": "a_pillars",
+          "name": "在斷柱旁坐下歇一會",
+          "anim": "sit",
+          "dur": [
+            45,
+            90
+          ],
+          "weight": 2,
+          "tags": [
+            "rest"
+          ],
+          "outcome": "ambient",
+          "face": "view"
+        },
+        {
+          "id": "ev_lake_reflection",
+          "spot": "b_lake",
+          "name": "蹲在湖邊看自己的倒影",
+          "anim": "crouch",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 3,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_lake_boat",
+          "spot": "b_lake",
+          "name": "折了一艘紙船放進湖裡",
+          "anim": "crouch",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 1.5,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient",
+          "effect": "paperBoat"
+        },
+        {
+          "id": "ev_falls_watch",
+          "spot": "b_falls",
+          "name": "站在瀑布邊，看水落進雲裡",
+          "anim": "gaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_chest_look",
+          "spot": "b_chest",
+          "name": "看了看半埋在土裡的箱匣",
+          "anim": "inspect",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.5,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_chest_open",
+          "spot": "b_chest",
+          "name": "拂去泥土，打開半埋的箱匣",
+          "anim": "crouch",
+          "dur": [
+            50,
+            80
+          ],
+          "weight": 0.8,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient",
+          "effect": "chestOpen"
+        },
+        {
+          "id": "ev_well_peek",
+          "spot": "b_well",
+          "name": "探頭往古井裡看",
+          "anim": "inspect",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 2.5,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_well_drink",
+          "spot": "b_well",
+          "name": "打了一瓢井水喝",
+          "anim": "drink",
+          "dur": [
+            35,
+            60
+          ],
+          "weight": 2,
+          "tags": [
+            "rest"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_tree_listen",
+          "spot": "b_tree",
+          "name": "站在大樹下聽葉子的聲音",
+          "anim": "gaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient",
+          "face": [
+            0.5,
+            2.3
+          ]
+        },
+        {
+          "id": "ev_meadow_lie",
+          "spot": "b_meadow",
+          "name": "躺在草地上吹一會風",
+          "anim": "lie",
+          "dur": [
+            60,
+            120
+          ],
+          "weight": 1.5,
+          "tags": [
+            "rest"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_arch_vines",
+          "spot": "b_arch",
+          "name": "伸手撫過拱門上的藤蔓",
+          "anim": "reach",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 2.5,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_arch_gap",
+          "spot": "b_arch",
+          "name": "在拱石的缺口摸到一枚舊銅扣",
+          "anim": "reach",
+          "dur": [
+            40,
+            60
+          ],
+          "weight": 0.6,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_sign_read",
+          "spot": "b_sign",
+          "name": "讀路標上褪色的字",
+          "anim": "inspect",
+          "dur": [
+            15,
+            30
+          ],
+          "weight": 2,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_astro_turn",
+          "spot": "e_astro",
+          "name": "輕輕轉動黃銅星盤的環",
+          "anim": "reach",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient",
+          "effect": "astroSpin"
+        },
+        {
+          "id": "ev_astro_chart",
+          "spot": "e_astro",
+          "name": "對著星盤記下幾顆星的位置",
+          "anim": "write",
+          "dur": [
+            60,
+            90
+          ],
+          "weight": 1.2,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient",
+          "time": [
+            "dusk",
+            "night"
+          ]
+        },
+        {
+          "id": "ev_edge_sit",
+          "spot": "e_edge",
+          "name": "坐在崖邊，看腳下的雲",
+          "anim": "sitEdge",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 2,
+          "tags": [
+            "rest"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pav_sit",
+          "spot": "c_pav",
+          "name": "在望亭裡坐一會",
+          "anim": "sit",
+          "dur": [
+            60,
+            120
+          ],
+          "weight": 2.5,
+          "tags": [
+            "rest"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_scope_look",
+          "spot": "c_scope",
+          "name": "用望遠鏡看遠方的島",
+          "anim": "inspect",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_shrine_stone",
+          "spot": "d_shrine",
+          "name": "在小石祠前放一顆小石頭",
+          "anim": "pickup",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 2,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient",
+          "effect": "pebble"
+        },
+        {
+          "id": "ev_shrine_bow",
+          "spot": "d_shrine",
+          "name": "在小石祠前靜靜站了一會",
+          "anim": "bow",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.5,
+          "tags": [
+            "ruins"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pines_cone",
+          "spot": "d_pines",
+          "name": "撿起一顆松果",
+          "anim": "pickup",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 2.5,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pines_breathe",
+          "spot": "d_pines",
+          "name": "在松樹間伸個懶腰，深呼吸",
+          "anim": "stretch",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 2,
+          "tags": [
+            "nature"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_falls_mist",
+          "spot": "b_falls",
+          "name": "伸手接住瀑布飄上來的水霧",
+          "anim": "reach",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 1.5,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_meadow_clover",
+          "spot": "b_meadow",
+          "name": "蹲在草地上找四葉草",
+          "anim": "crouch",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 1.5,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_edge_pebble",
+          "spot": "e_edge",
+          "name": "撿起一顆小石子，輕輕丟進雲海",
+          "anim": "pickup",
+          "dur": [
+            18,
+            30
+          ],
+          "weight": 1.2,
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_meadow_fireflies",
+          "spot": "b_meadow",
+          "name": "坐在草地上看螢火蟲",
+          "anim": "sitGaze",
+          "dur": [
+            60,
+            120
+          ],
+          "weight": 2,
+          "time": [
+            "dusk",
+            "night"
+          ],
+          "tags": [
+            "observation"
+          ],
+          "outcome": "ambient"
+        },
+        {
+          "id": "rare_well_wick",
+          "spot": "b_well",
+          "name": "打水時，桶裡撈上來一截用油布包著的舊燈芯",
+          "anim": "find",
+          "source": "well",
+          "dur": [
+            70,
+            100
+          ],
+          "rare": true,
+          "tags": [
+            "discovery"
+          ],
+          "outcome": "item",
+          "once": true,
+          "item": {
+            "id": "old_wick",
+            "name": "舊燈芯",
+            "kind": "relic",
+            "tags": [
+              "LIGHT"
+            ]
+          },
+          "tagGain": [
+            "LIGHT"
+          ],
+          "note": "找到遺物「舊燈芯」。",
+          "tier": "journey"
+        },
+        {
+          "id": "rare_lake_lens",
+          "spot": "b_lake",
+          "name": "看見淺水裡閃了一下，伸手撈起一片風化鏡片",
+          "anim": "find",
+          "source": "lake",
+          "dur": [
+            60,
+            90
+          ],
+          "rare": true,
+          "tags": [
+            "discovery"
+          ],
+          "outcome": "item",
+          "once": true,
+          "item": {
+            "id": "weathered_lens",
+            "name": "風化鏡片",
+            "kind": "relic",
+            "tags": [
+              "OBSERVATION"
+            ]
+          },
+          "tagGain": [
+            "OBSERVATION"
+          ],
+          "note": "找到遺物「風化鏡片」。",
+          "tier": "journey"
+        },
+        {
+          "id": "rare_astro_core",
+          "spot": "e_astro",
+          "name": "看著星盤的環慢慢對齊，中心升起一顆星盤核心",
+          "anim": "find",
+          "source": "astro",
+          "dur": [
+            70,
+            100
+          ],
+          "rare": true,
+          "tags": [
+            "discovery"
+          ],
+          "outcome": "item",
+          "once": true,
+          "item": {
+            "id": "astrolabe_core",
+            "name": "星盤核心",
+            "kind": "token",
+            "tags": [
+              "OBSERVATION"
+            ]
+          },
+          "tagGain": [
+            "OBSERVATION"
+          ],
+          "note": "找到信物「星盤核心」。",
+          "tier": "core"
+        }
+      ],
+      "anywhereEvents": [
+        {
+          "id": "amb_stretch",
+          "name": "伸個懶腰",
+          "anim": "stretch",
+          "dur": [
+            8,
+            15
+          ]
+        },
+        {
+          "id": "amb_clouds",
+          "name": "抬頭看雲",
+          "anim": "gaze",
+          "dur": [
+            10,
+            25
+          ]
+        },
+        {
+          "id": "amb_birds",
+          "name": "看遠方飛過的鳥",
+          "anim": "gaze",
+          "dur": [
+            10,
+            20
+          ],
+          "time": [
+            "dawn",
+            "day",
+            "dusk"
+          ]
+        },
+        {
+          "id": "amb_fireflies",
+          "name": "停下來看螢火蟲",
+          "anim": "gaze",
+          "dur": [
+            20,
+            40
+          ],
+          "time": [
+            "night"
+          ]
+        },
+        {
+          "id": "amb_pack",
+          "name": "蹲下來整理背包",
+          "anim": "crouch",
+          "dur": [
+            15,
+            25
+          ]
+        }
+      ],
+      "restActivities": [
+        {
+          "id": "rest_notes",
+          "node": "b_tree",
+          "name": "靠著大樹整理筆記",
+          "anim": "write",
+          "dur": [
+            180,
+            600
+          ],
+          "weight": 3
+        },
+        {
+          "id": "rest_lie",
+          "node": "b_meadow",
+          "name": "躺在大樹旁的草地上吹風",
+          "anim": "lie",
+          "dur": [
+            180,
+            600
+          ],
+          "weight": 2.5
+        },
+        {
+          "id": "rest_clouds",
+          "node": "b_tree",
+          "name": "坐在樹下看雲",
+          "anim": "sitGaze",
+          "dur": [
+            120,
+            300
+          ],
+          "weight": 1.5
+        },
+        {
+          "id": "rest_traces",
+          "node": "b_tree",
+          "name": "坐在樹下，看著旁邊那塊被壓平的草地出神",
+          "anim": "sitGaze",
+          "dur": [
+            90,
+            200
+          ],
+          "weight": 0.8,
+          "face": [
+            -0.92,
+            2.93
+          ]
+        }
+      ],
+      "extraRules": {
+        "worldMarks": {
+          "chestOpen": "ev_chest_open 或 rare_chest_key 之後箱匣保持打開",
+          "paperBoat": "ev_lake_boat 之後湖上留一艘紙船",
+          "shrinePebbles": "ev_shrine_stone 每次 +1（上限 15）",
+          "persist": "跨天保留（2026-09-25 使用者決定）",
+          "treeTraces": "rest_traces_first（大樹旁的舊痕跡）第一次看完後回報 tree_traces_seen，之後只保留 rest_traces 這個一般休息動作",
+          "coreTaken": "星盤核心已取得後，星盤中心換成空的黃銅托座，星環轉得更慢"
+        }
+      }
+    }
+  },
+  "02 苔痕驛站": {
+    "source": "docs/area-02-moss-station.scene.json",
+    "data": {
+      "events": [
+        {
+          "id": "ev_bench_chime",
+          "spot": "p_bench",
+          "name": "坐在長椅上聽風鈴",
+          "anim": "sitGaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_bench_notes",
+          "spot": "p_bench",
+          "name": "在長椅上整理筆記",
+          "anim": "write",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_door_peek",
+          "spot": "p_door",
+          "name": "探頭看候車室裡的木頭長椅和掛鐘",
+          "anim": "inspect",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_window_peek",
+          "spot": "p_window",
+          "name": "探頭看售票窗口裡",
+          "anim": "inspect",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_window_ledger",
+          "spot": "p_window",
+          "name": "翻開窗口上的住宿簿",
+          "anim": "inspect",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 1.6,
+          "outcome": "note",
+          "once": true,
+          "note": "住宿簿上的名字都被雨水暈開了，只有日期還看得清楚。",
+          "tagGain": [
+            "ARCHIVE",
+            "MEMORY"
+          ]
+        },
+        {
+          "id": "ev_sign_wipe",
+          "spot": "p_sign",
+          "name": "擦去站名牌上的青苔",
+          "anim": "reach",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 1.5,
+          "outcome": "note",
+          "once": true,
+          "note": "擦掉站名牌上的青苔，字已經褪到讀不出來。",
+          "tagGain": [
+            "MAP"
+          ]
+        },
+        {
+          "id": "ev_edge_sit",
+          "spot": "p_edge",
+          "name": "坐在月台邊晃腳，看著空鐵軌",
+          "anim": "sitEdge",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_bench2_sit",
+          "spot": "p_bench2",
+          "name": "在東側長椅坐一會",
+          "anim": "sit",
+          "dur": [
+            45,
+            90
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_cart_look",
+          "spot": "p_cart",
+          "name": "看行李推車上的舊皮箱",
+          "anim": "inspect",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_bede_water",
+          "spot": "p_bede",
+          "name": "拿起澆水壺替花澆水",
+          "anim": "water",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "weather": "dry",
+          "effect": "flowersWatered"
+        },
+        {
+          "id": "ev_bedw_look",
+          "spot": "p_bedw",
+          "name": "蹲下來看花圃裡的小花",
+          "anim": "crouch",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_post_look",
+          "spot": "p_post",
+          "name": "看郵筒上的收件時間",
+          "anim": "inspect",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_post_drop",
+          "spot": "p_post",
+          "name": "投一張明信片進郵筒",
+          "anim": "reach",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1,
+          "outcome": "note",
+          "once": true,
+          "note": "把一張寫給下一位旅人的明信片投進郵筒。",
+          "tagGain": [
+            "MEMORY"
+          ]
+        },
+        {
+          "id": "ev_jizo_stone",
+          "spot": "j_jizo",
+          "name": "在石地藏前放一顆小石頭",
+          "anim": "pickup",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "worldMark": "jizoPebbles"
+        },
+        {
+          "id": "ev_jizo_cup",
+          "spot": "j_jizo",
+          "name": "替石地藏換上乾淨的小杯",
+          "anim": "crouch",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1.2,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_jizo_rain",
+          "spot": "j_jizo",
+          "name": "看見石地藏前的杯子接滿了雨水",
+          "anim": "crouch",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 2.5,
+          "outcome": "note",
+          "once": true,
+          "weather": "afterRain",
+          "note": "地藏前的小杯接滿了雨水，水面上浮著一片葉子。",
+          "tagGain": [
+            "NATURE"
+          ]
+        },
+        {
+          "id": "ev_rail_listen",
+          "spot": "t_mid",
+          "name": "蹲下來把耳朵貼近鐵軌",
+          "anim": "crouch",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 1.2,
+          "outcome": "note",
+          "once": true,
+          "weather": "dry",
+          "note": "鐵軌很安靜，好像已經很久沒有車經過了。",
+          "tagGain": [
+            "OBSERVATION"
+          ]
+        },
+        {
+          "id": "ev_rail_walk",
+          "spot": "t_mid",
+          "name": "張開雙手，沿著一條鐵軌走平衡",
+          "anim": "balance",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 1.5,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_trestle_gaze",
+          "spot": "t_trestle",
+          "name": "站在鐵道棧橋上，看鐵軌消失在霧裡",
+          "anim": "gaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_signal_look",
+          "spot": "t_signal",
+          "name": "抬頭看生鏽的腕木號誌",
+          "anim": "gaze",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_signal_pull",
+          "spot": "t_signal",
+          "name": "試著扳動號誌，臂板吱一聲落下",
+          "anim": "reach",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 1,
+          "outcome": "note",
+          "once": true,
+          "weather": "dry",
+          "note": "扳了一下號誌，臂板落到「可通行」的位置。",
+          "tagGain": [
+            "MAP"
+          ],
+          "effect": "signalArm",
+          "worldMark": "signalLowered"
+        },
+        {
+          "id": "ev_tunnel_listen",
+          "spot": "t_portal",
+          "name": "站在隧道口聽自己的回聲",
+          "anim": "gaze",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_tunnel_wind",
+          "spot": "t_portal",
+          "name": "隧道深處吹出一陣涼風",
+          "anim": "idle",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 1.5,
+          "outcome": "note",
+          "once": true,
+          "note": "隧道深處吹出一陣風，帶著一點煤煙的味道。",
+          "tagGain": [
+            "UNDERGROUND"
+          ]
+        },
+        {
+          "id": "ev_wagon_look",
+          "spot": "s_wagon",
+          "name": "看貨車門上褪色的貨籤",
+          "anim": "inspect",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_wagon_shelter",
+          "spot": "s_wagon",
+          "name": "坐在貨車門口，聽雨打在車頂上",
+          "anim": "sitDoor",
+          "dur": [
+            60,
+            150
+          ],
+          "weight": 5,
+          "outcome": "ambient",
+          "weather": "rain",
+          "shelter": true
+        },
+        {
+          "id": "ev_wagon_label",
+          "spot": "s_wagon",
+          "name": "在貨車的乾草堆裡翻到一張舊貨籤",
+          "anim": "sitDoor",
+          "dur": [
+            40,
+            60
+          ],
+          "weight": 2,
+          "outcome": "note",
+          "once": true,
+          "weather": "rain",
+          "shelter": true,
+          "note": "在貨車的乾草堆裡翻到一張舊貨籤，上面寫著一個沒聽過的站名。",
+          "tagGain": [
+            "MAP"
+          ]
+        },
+        {
+          "id": "ev_spring_drink",
+          "spot": "s_spring",
+          "name": "在湧泉邊捧水喝",
+          "anim": "drink",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_boat_look",
+          "spot": "exit_boat",
+          "name": "蹲在棧橋上，看繫在旁邊的小舟輕輕搖晃",
+          "anim": "crouch",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pier_falls",
+          "spot": "exit_boat",
+          "name": "站在棧橋盡頭，聽溪水從崖邊落進霧裡",
+          "anim": "gaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_boat_bail",
+          "spot": "exit_boat",
+          "name": "把小舟裡的雨水舀出去",
+          "anim": "crouch",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 2.5,
+          "outcome": "ambient",
+          "weather": "afterRain"
+        },
+        {
+          "id": "ev_boulder_touch",
+          "spot": "f_boulder",
+          "name": "伸手摸苔石上的青苔",
+          "anim": "reach",
+          "dur": [
+            20,
+            40
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_boulder_stack",
+          "spot": "f_boulder",
+          "name": "在苔石頂上疊一顆小石頭",
+          "anim": "reach",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1.5,
+          "outcome": "ambient",
+          "worldMark": "boulderStones"
+        },
+        {
+          "id": "ev_boulder_snail",
+          "spot": "f_boulder",
+          "name": "看一隻蝸牛慢慢爬上苔石",
+          "anim": "crouch",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 3,
+          "outcome": "ambient",
+          "weather": "afterRain"
+        },
+        {
+          "id": "ev_tablet_read",
+          "spot": "f_tablet",
+          "name": "讀舊道標上的刻字",
+          "anim": "inspect",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_brook_look",
+          "spot": "f_brook",
+          "name": "蹲在溪邊看水流",
+          "anim": "crouch",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_brook_wash",
+          "spot": "f_brook",
+          "name": "在溪邊洗手",
+          "anim": "crouch",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_brook_high",
+          "spot": "f_brook",
+          "name": "看溪水漲起來，淹過了踏石",
+          "anim": "gaze",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2.5,
+          "outcome": "ambient",
+          "weather": "rain"
+        },
+        {
+          "id": "ev_log_mushroom",
+          "spot": "f_log_s",
+          "name": "蹲下來看倒木上的蕈菇",
+          "anim": "crouch",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_rim_gaze",
+          "spot": "r_rim",
+          "name": "站在崖邊，看霧海底下若隱若現的山",
+          "anim": "gaze",
+          "dur": [
+            50,
+            100
+          ],
+          "weight": 3,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_rim_sit",
+          "spot": "r_rim",
+          "name": "坐在崖邊晃腳",
+          "anim": "sitEdge",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_rim_note",
+          "spot": "r_rim",
+          "name": "對著霧海畫下遠方的稜線",
+          "anim": "write",
+          "dur": [
+            60,
+            90
+          ],
+          "weight": 1,
+          "outcome": "discovery",
+          "once": true,
+          "weather": "dry",
+          "note": "畫下霧海對面的稜線，其中一座山頂有個像塔的影子。",
+          "tagGain": [
+            "OBSERVATION"
+          ]
+        },
+        {
+          "id": "ev_falls_watch",
+          "spot": "r_falls",
+          "name": "看溪水落進霧裡",
+          "anim": "gaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_basin_drink",
+          "spot": "l_basin",
+          "name": "用竹杓舀水喝",
+          "anim": "drink",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 2.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_basin_fill",
+          "spot": "l_basin",
+          "name": "把水壺裝滿",
+          "anim": "crouch",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_arch_vines",
+          "spot": "l_arch",
+          "name": "在樹根拱下抬頭看垂下來的藤",
+          "anim": "gaze",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_arch_shelter",
+          "spot": "l_arch",
+          "name": "躲在樹根拱下等雨小一點",
+          "anim": "idle",
+          "dur": [
+            60,
+            120
+          ],
+          "weight": 3,
+          "outcome": "ambient",
+          "weather": "rain",
+          "shelter": true
+        },
+        {
+          "id": "ev_arch_fern",
+          "spot": "l_arch",
+          "name": "碰了一下蕨葉，水珠一顆顆灑下來",
+          "anim": "reach",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 2.5,
+          "outcome": "ambient",
+          "weather": "afterRain"
+        },
+        {
+          "id": "ev_hut_peek",
+          "spot": "l_hut",
+          "name": "從窗口往住宿小屋裡看",
+          "anim": "inspect",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_hut_bed",
+          "spot": "l_hut",
+          "name": "推開住宿小屋的門",
+          "anim": "inspect",
+          "dur": [
+            40,
+            60
+          ],
+          "weight": 1.2,
+          "outcome": "note",
+          "once": true,
+          "note": "小屋裡的床已經鋪好了，枕邊放著一包還溫溫的烤栗子。",
+          "tagGain": [
+            "MEMORY"
+          ]
+        },
+        {
+          "id": "ev_hut_eaves",
+          "spot": "l_hut",
+          "name": "站在小屋簷下看雨從蕨葉上滴下來",
+          "anim": "gaze",
+          "dur": [
+            60,
+            120
+          ],
+          "weight": 3,
+          "outcome": "ambient",
+          "weather": "rain",
+          "shelter": true
+        },
+        {
+          "id": "ev_wood_chop",
+          "spot": "l_wood",
+          "name": "劈幾塊柴，堆回柴堆",
+          "anim": "chop",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 1.5,
+          "outcome": "ambient",
+          "weather": "dry"
+        },
+        {
+          "id": "ev_door_rain",
+          "spot": "p_door",
+          "name": "站在候車室門口看雨",
+          "anim": "gaze",
+          "dur": [
+            60,
+            120
+          ],
+          "weight": 3,
+          "outcome": "ambient",
+          "weather": "rain",
+          "shelter": true
+        },
+        {
+          "id": "ev_bench_rain",
+          "spot": "p_bench",
+          "name": "坐在簷下的長椅上看雨",
+          "anim": "sitGaze",
+          "dur": [
+            60,
+            150
+          ],
+          "weight": 4,
+          "outcome": "ambient",
+          "weather": "rain",
+          "shelter": true
+        },
+        {
+          "id": "ev_umbrella_borrow",
+          "spot": "p_door",
+          "name": "從門口的傘架借了一把傘",
+          "anim": "reach",
+          "dur": [
+            15,
+            25
+          ],
+          "weight": 0,
+          "outcome": "note",
+          "once": true,
+          "weather": "rain",
+          "note": "候車室門口的傘架上，有人留了一把傘。",
+          "tagGain": [
+            "MEMORY"
+          ],
+          "effect": "umbrellaTake",
+          "system": "借傘：下雨時旅人要冒雨去點燈，先來這裡借"
+        },
+        {
+          "id": "ev_umbrella_return",
+          "spot": "p_door",
+          "name": "把傘掛回傘架，旁邊留一條擦乾的手巾",
+          "anim": "reach",
+          "dur": [
+            20,
+            30
+          ],
+          "weight": 0,
+          "outcome": "note",
+          "once": true,
+          "weather": "afterRain",
+          "note": "把傘掛回去，在旁邊留了一條擦乾的手巾，給下一個人。",
+          "effect": "umbrellaReturn",
+          "worldMark": "towelLeft",
+          "system": "還傘：雨停後有借傘時自動插入"
+        },
+        {
+          "id": "ev_drips_watch",
+          "spot": "p_mid",
+          "name": "看簷下的水珠一顆顆落下",
+          "anim": "gaze",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 3,
+          "outcome": "ambient",
+          "weather": "afterRain"
+        },
+        {
+          "id": "rare_cart_tag",
+          "spot": "p_cart",
+          "name": "翻看推車上的舊皮箱，解下掛在提把上的木牌",
+          "anim": "find",
+          "source": "cart",
+          "dur": [
+            70,
+            100
+          ],
+          "rare": true,
+          "outcome": "item",
+          "once": true,
+          "tier": "journey",
+          "item": {
+            "id": "old_luggage_tag",
+            "name": "舊荷札",
+            "kind": "journey",
+            "tags": [
+              "MAP"
+            ]
+          },
+          "tagGain": [
+            "MAP"
+          ],
+          "note": "取得旅程信物「舊荷札」：木牌上刻著一個站名和一組編號。"
+        },
+        {
+          "id": "rare_tablet_rubbing",
+          "spot": "f_tablet",
+          "name": "在舊道標上拓印，紙上浮現被磨掉的字",
+          "anim": "find",
+          "source": "tablet",
+          "dur": [
+            70,
+            100
+          ],
+          "rare": true,
+          "outcome": "item",
+          "once": true,
+          "tier": "journey",
+          "weather": "notRain",
+          "item": {
+            "id": "charcoal_rubbing",
+            "name": "炭印紙",
+            "kind": "journey",
+            "tags": [
+              "ARCHIVE"
+            ]
+          },
+          "tagGain": [
+            "ARCHIVE"
+          ],
+          "note": "取得旅程信物「炭印紙」：拓下道標上被磨掉的記號。"
+        },
+        {
+          "id": "rare_ledger_rubbing",
+          "spot": "p_window",
+          "name": "住宿簿裡夾著一張別人已經拓好的炭印紙",
+          "anim": "find",
+          "source": "ledger",
+          "dur": [
+            70,
+            100
+          ],
+          "rare": true,
+          "outcome": "item",
+          "once": true,
+          "tier": "journey",
+          "weather": "rain",
+          "rainVariantOf": "rare_tablet_rubbing",
+          "item": {
+            "id": "charcoal_rubbing",
+            "name": "炭印紙",
+            "kind": "journey",
+            "tags": [
+              "ARCHIVE"
+            ]
+          },
+          "tagGain": [
+            "ARCHIVE"
+          ],
+          "note": "取得旅程信物「炭印紙」：有人拓好了，夾在住宿簿裡。"
+        },
+        {
+          "id": "rare_drawer_compass",
+          "spot": "p_window",
+          "name": "拉開窗口下的遺失物抽屜，裡面有一個掛著行李牌的舊羅盤",
+          "anim": "find",
+          "source": "drawer",
+          "dur": [
+            80,
+            110
+          ],
+          "rare": true,
+          "outcome": "item",
+          "once": true,
+          "tier": "core",
+          "item": {
+            "id": "cracked_compass",
+            "name": "裂痕羅盤",
+            "kind": "core",
+            "tags": [
+              "MAP",
+              "MEMORY"
+            ]
+          },
+          "tagGain": [
+            "MAP",
+            "MEMORY"
+          ],
+          "note": "取得地圖核心「裂痕羅盤」：行李牌上寫著「給下一位旅人」。"
+        }
+      ],
+      "anywhereEvents": [
+        {
+          "id": "amb_stretch",
+          "name": "伸個懶腰",
+          "anim": "stretch",
+          "dur": [
+            8,
+            15
+          ],
+          "weather": "dry"
+        },
+        {
+          "id": "amb_clouds",
+          "name": "抬頭看霧慢慢飄過",
+          "anim": "gaze",
+          "dur": [
+            10,
+            25
+          ]
+        },
+        {
+          "id": "amb_pack",
+          "name": "蹲下來整理背包",
+          "anim": "crouch",
+          "dur": [
+            15,
+            25
+          ]
+        },
+        {
+          "id": "amb_fireflies",
+          "name": "停下來看溪邊的螢火蟲",
+          "anim": "gaze",
+          "dur": [
+            20,
+            40
+          ],
+          "time": [
+            "night"
+          ],
+          "weather": "dry"
+        },
+        {
+          "id": "amb_hat",
+          "name": "扶正帽子，抖掉帽簷上的雨水",
+          "anim": "shoulder",
+          "dur": [
+            8,
+            14
+          ],
+          "weather": "rain"
+        }
+      ],
+      "restActivities": [
+        {
+          "id": "rest_bench_first",
+          "node": "p_bench",
+          "name": "發現長椅上有人留下一條摺好的毯子和一壺熱茶",
+          "anim": "sequence",
+          "dur": [
+            46,
+            46
+          ],
+          "weight": 0,
+          "once": true,
+          "worldMark": "bench_tea_seen"
+        },
+        {
+          "id": "rest_notes",
+          "node": "p_bench",
+          "name": "坐在候車室長椅上整理筆記",
+          "anim": "write",
+          "dur": [
+            180,
+            600
+          ],
+          "weight": 3
+        },
+        {
+          "id": "rest_chime",
+          "node": "p_bench",
+          "name": "坐在長椅上聽風鈴",
+          "anim": "sitGaze",
+          "dur": [
+            120,
+            300
+          ],
+          "weight": 2,
+          "weather": "dry"
+        },
+        {
+          "id": "rest_tea",
+          "node": "p_bench",
+          "name": "倒一杯茶，看著月台",
+          "anim": "drinkSit",
+          "dur": [
+            90,
+            200
+          ],
+          "weight": 1.2,
+          "requires": "bench_tea_seen"
+        },
+        {
+          "id": "rest_edge",
+          "node": "p_edge",
+          "name": "坐在月台邊晃腳，看著空鐵軌",
+          "anim": "sitEdge",
+          "dur": [
+            120,
+            300
+          ],
+          "weight": 1.5,
+          "weather": "dry"
+        },
+        {
+          "id": "rest_rain",
+          "node": "p_bench",
+          "name": "坐在簷下看雨",
+          "anim": "sitGaze",
+          "dur": [
+            60,
+            300
+          ],
+          "weight": 6,
+          "weather": "rain"
+        }
+      ],
+      "storyEvents": [
+        {
+          "id": "story_open_carving",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  -16.0,
+                  -6.6,
+                  0.95
+                ],
+                "z": 1.5
+              },
+              {
+                "p": 0.1,
+                "at": [
+                  -16.0,
+                  -6.6,
+                  0.95
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 0.16,
+                "at": [
+                  -16.1,
+                  -6.5,
+                  0.95
+                ],
+                "z": 10
+              },
+              {
+                "p": 0.4,
+                "at": [
+                  -16.1,
+                  -6.5,
+                  0.95
+                ],
+                "z": 10
+              },
+              {
+                "p": 0.46,
+                "at": [
+                  -16.0,
+                  -6.6,
+                  0.95
+                ],
+                "z": 4
+              },
+              {
+                "p": 0.8,
+                "at": [
+                  -16.0,
+                  -6.6,
+                  0.95
+                ],
+                "z": 4
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "opening",
+          "name": "撥開第一盞燈燈柱上的青苔，讀到刻字",
+          "spot": "w_lamp1",
+          "face": [
+            -16.3,
+            -6.35
+          ],
+          "dur": [
+            40,
+            40
+          ],
+          "demoSeconds": 16,
+          "anim": "gaze",
+          "phases": [
+            [
+              0,
+              "gaze"
+            ],
+            [
+              0.1,
+              "reach"
+            ],
+            [
+              0.42,
+              "readBook"
+            ],
+            [
+              0.8,
+              "reach"
+            ],
+            [
+              0.92,
+              "idle"
+            ]
+          ],
+          "effect": "carving",
+          "worldMark": "carvingSeen",
+          "clue": "m02_open",
+          "status": [
+            [
+              0,
+              "旅人在第一盞燈的燈柱前停下來，柱子上長滿了青苔。"
+            ],
+            [
+              0.14,
+              "旅人伸手撥開青苔，下面刻著一行字。"
+            ],
+            [
+              0.42,
+              "旅人拿出筆記翻到第一頁。「從這裡開始。」字跡一模一樣。"
+            ],
+            [
+              0.8,
+              "旅人摸了一下燈柱，闔上筆記，繼續往上走。"
+            ]
+          ],
+          "requires": {
+            "firstExplorationOfGame": true
+          },
+          "visual": "刻字是永久場景物件，所有玩家都看得到；青苔墊在開場被撥掉（carvingSeen）。沒有看過開場的存檔，青苔保留，旅人不會停下來讀。"
+        },
+        {
+          "id": "story_first_lantern",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  15.6,
+                  -3.0,
+                  0.2
+                ],
+                "z": 1.6
+              },
+              {
+                "p": 0.1,
+                "at": [
+                  15.6,
+                  -3.0,
+                  0.2
+                ],
+                "z": 2.0
+              },
+              {
+                "p": 0.16,
+                "at": "lantern",
+                "z": 2.6
+              },
+              {
+                "p": 0.3,
+                "at": "lantern",
+                "z": 3.2
+              },
+              {
+                "p": 0.45,
+                "at": "lantern",
+                "z": 2.8
+              },
+              {
+                "p": 0.58,
+                "at": "lantern",
+                "z": 2.2
+              },
+              {
+                "p": 0.66,
+                "at": [
+                  17.0,
+                  -5.0,
+                  -3.5
+                ],
+                "z": 1.55
+              },
+              {
+                "p": 0.8,
+                "at": [
+                  17.0,
+                  -5.0,
+                  -3.5
+                ],
+                "z": 1.55
+              },
+              {
+                "p": 0.9,
+                "at": [
+                  17.9,
+                  -7.6,
+                  -6.5
+                ],
+                "z": 1.4
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "firstVisit",
+          "name": "看一盞熄掉的提燈漂過棧橋，落進霧瀑",
+          "spot": "exit_boat",
+          "face": [
+            16.3,
+            -3.4
+          ],
+          "weather": "notRain",
+          "rainVariant": "story_first_lantern_rain",
+          "dur": [
+            50,
+            50
+          ],
+          "demoSeconds": 18,
+          "anim": "crouch",
+          "phases": [
+            [
+              0,
+              "crouch"
+            ],
+            [
+              0.55,
+              "gaze"
+            ],
+            [
+              0.85,
+              "idle"
+            ]
+          ],
+          "effect": "drift",
+          "clue": "h1b",
+          "status": [
+            [
+              0,
+              "旅人蹲在溪尾的棧橋邊，看繫著的小舟輕輕晃。"
+            ],
+            [
+              0.12,
+              "上游漂下來一盞熄掉的提燈。"
+            ],
+            [
+              0.3,
+              "提燈碰了一下小舟，打了個轉。"
+            ],
+            [
+              0.55,
+              "它越過崖邊，順著霧瀑落進霧裡。旅人站起來目送它。"
+            ],
+            [
+              0.82,
+              "下游的霧裡，好像還有更多。"
+            ]
+          ],
+          "requires": {
+            "clueMissing": "h1b"
+          }
+        },
+        {
+          "id": "story_first_lantern_rain",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  11.2,
+                  -3.6,
+                  0.4
+                ],
+                "z": 1.5,
+                "el": 8,
+                "az": -30
+              },
+              {
+                "p": 0.12,
+                "at": [
+                  11.2,
+                  -3.6,
+                  0.4
+                ],
+                "z": 1.7,
+                "el": 8,
+                "az": -30
+              },
+              {
+                "p": 0.18,
+                "at": "lantern",
+                "z": 2.8,
+                "el": 8,
+                "az": -30
+              },
+              {
+                "p": 0.5,
+                "at": "lantern",
+                "z": 3.2,
+                "el": 8,
+                "az": -30
+              },
+              {
+                "p": 0.8,
+                "at": "lantern",
+                "z": 2.6,
+                "el": 8,
+                "az": -30
+              },
+              {
+                "p": 0.88,
+                "at": [
+                  6.3,
+                  -5.5,
+                  0.0
+                ],
+                "z": 1.8,
+                "el": 8,
+                "az": -30
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "firstVisit",
+          "name": "在貨車門口躲雨時，看漲起來的溪水沖走一盞熄燈",
+          "spot": "s_wagon",
+          "weather": "rain",
+          "shelter": true,
+          "rainVariantOf": "story_first_lantern",
+          "dur": [
+            50,
+            50
+          ],
+          "demoSeconds": 16,
+          "anim": "sitDoor",
+          "effect": "driftRain",
+          "clue": "h1b",
+          "status": [
+            [
+              0,
+              "旅人坐在貨車門口躲雨，溪水漲起來了。"
+            ],
+            [
+              0.15,
+              "漲起來的溪水沖來一盞熄掉的提燈。"
+            ],
+            [
+              0.5,
+              "提燈打著轉，被沖往下游，漂進霧裡。"
+            ],
+            [
+              0.82,
+              "下游的霧裡，好像還有更多。"
+            ]
+          ],
+          "requires": {
+            "clueMissing": "h1b"
+          }
+        },
+        {
+          "id": "story_second_sketch",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  -1.7,
+                  3.9,
+                  1.6
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 0.06,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 3.4,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.22,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 4.0,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.26,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 6.5,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.5,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 7.0,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.78,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 3.6,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.94,
+                "at": [
+                  -1.7,
+                  3.9,
+                  1.6
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "secondVisit",
+          "name": "住宿簿裡滑出一張畫",
+          "spot": "p_window",
+          "dur": [
+            45,
+            45
+          ],
+          "demoSeconds": 14,
+          "anim": "inspect",
+          "phases": [
+            [
+              0,
+              "inspect"
+            ],
+            [
+              0.24,
+              "hold"
+            ],
+            [
+              0.8,
+              "inspect"
+            ]
+          ],
+          "effect": "sketch",
+          "clue": "h1c",
+          "status": [
+            [
+              0,
+              "旅人翻開售票窗口上的住宿簿。"
+            ],
+            [
+              0.24,
+              "一張摺起的畫從書頁間滑出來：半沉在水裡的提燈。"
+            ],
+            [
+              0.5,
+              "畫的角落寫著一個字：「灣」。"
+            ],
+            [
+              0.8,
+              "旅人把畫夾回原來那一頁。"
+            ]
+          ],
+          "rainNote": "售票窗口有屋簷，晴雨同一版；雨天第二句改成「一張摺起的畫從書頁間滑出來，紙被濕氣弄得有點捲。」",
+          "requires": {
+            "clueOwned": "h1b",
+            "clueMissing": "h1c",
+            "notSameExplorationAs": "h1b"
+          }
+        },
+        {
+          "id": "story_core_newtag",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  -1.7,
+                  3.9,
+                  1.6
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 0.06,
+                "at": [
+                  -1.6,
+                  4.38,
+                  1.75
+                ],
+                "z": 3.6,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.2,
+                "at": [
+                  -1.6,
+                  4.38,
+                  1.75
+                ],
+                "z": 5.0,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.34,
+                "at": [
+                  -1.6,
+                  4.38,
+                  1.75
+                ],
+                "z": 6.0,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.78,
+                "at": [
+                  -1.6,
+                  4.38,
+                  1.75
+                ],
+                "z": 3.8,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.94,
+                "at": [
+                  -1.7,
+                  3.9,
+                  1.6
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "coreGated",
+          "name": "空抽屜裡多了一張新的行李牌",
+          "spot": "p_window",
+          "dur": [
+            45,
+            45
+          ],
+          "demoSeconds": 14,
+          "anim": "crouch",
+          "phases": [
+            [
+              0,
+              "crouch"
+            ],
+            [
+              0.3,
+              "hold"
+            ],
+            [
+              0.78,
+              "crouch"
+            ],
+            [
+              0.94,
+              "idle"
+            ]
+          ],
+          "effect": "newTag",
+          "worldMark": "drawerTagLeft",
+          "clue": "c02",
+          "status": [
+            [
+              0,
+              "旅人蹲下來，拉開窗口下的遺失物抽屜。"
+            ],
+            [
+              0.2,
+              "抽屜本來是空的，現在多了一張行李牌。"
+            ],
+            [
+              0.34,
+              "上面寫著：「燈點完再走。」和羅盤背面刻的字一樣。"
+            ],
+            [
+              0.78,
+              "旅人把行李牌放回抽屜，留給下一個人。"
+            ]
+          ],
+          "requires": {
+            "coreOwned": "cracked_compass",
+            "explorationStartedAfterCore": true,
+            "clueMissing": "c02"
+          }
+        },
+        {
+          "id": "story_core_ledger08",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  -1.7,
+                  3.9,
+                  1.6
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 0.06,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 3.4,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.35,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 4.6,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.6,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 5.4,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.88,
+                "at": [
+                  -1.8,
+                  4.18,
+                  2.1
+                ],
+                "z": 3.0,
+                "el": -14,
+                "az": 32
+              },
+              {
+                "p": 0.96,
+                "at": [
+                  -1.7,
+                  3.9,
+                  1.6
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "coreGated",
+          "name": "住宿簿上寫著自己住過的那一晚",
+          "spot": "p_window",
+          "dur": [
+            40,
+            40
+          ],
+          "demoSeconds": 12,
+          "anim": "inspect",
+          "effect": "ledger08",
+          "clue": "c08",
+          "status": [
+            [
+              0,
+              "旅人翻開住宿簿，一頁一頁往前找。"
+            ],
+            [
+              0.35,
+              "有一行寫著他住過的那一晚。"
+            ],
+            [
+              0.6,
+              "日期和那本日記裡寫的一樣。"
+            ],
+            [
+              0.88,
+              "旅人闔上住宿簿。"
+            ]
+          ],
+          "requires": {
+            "coreOwned": "08 未寫成的日記（id 待 08 設計時定）",
+            "clueMissing": "c08"
+          }
+        },
+        {
+          "id": "carry_old_wick",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  15.6,
+                  -3.0,
+                  0.2
+                ],
+                "z": 2.0
+              },
+              {
+                "p": 0.1,
+                "at": [
+                  15.6,
+                  -3.0,
+                  0.2
+                ],
+                "z": 3.0
+              },
+              {
+                "p": 0.2,
+                "at": "lantern",
+                "z": 2.6
+              },
+              {
+                "p": 0.5,
+                "at": "lantern",
+                "z": 2.4
+              },
+              {
+                "p": 0.62,
+                "at": [
+                  17.0,
+                  -5.0,
+                  -3.5
+                ],
+                "z": 1.55
+              },
+              {
+                "p": 0.84,
+                "at": [
+                  17.0,
+                  -5.0,
+                  -3.5
+                ],
+                "z": 1.55
+              },
+              {
+                "p": 0.9,
+                "at": [
+                  17.9,
+                  -7.6,
+                  -6.5
+                ],
+                "z": 1.4
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "itemCarry",
+          "name": "拿著舊燈芯，看熄燈漂過棧橋",
+          "spot": "exit_boat",
+          "face": [
+            16.3,
+            -3.4
+          ],
+          "weather": "notRain",
+          "dur": [
+            45,
+            45
+          ],
+          "demoSeconds": 18,
+          "anim": "crouch",
+          "phases": [
+            [
+              0,
+              "crouch"
+            ],
+            [
+              0.1,
+              "hold"
+            ],
+            [
+              0.6,
+              "gaze"
+            ],
+            [
+              0.88,
+              "idle"
+            ]
+          ],
+          "effect": "wick",
+          "status": [
+            [
+              0,
+              "旅人蹲在棧橋邊，拿出雲上遺庭帶來的舊燈芯。"
+            ],
+            [
+              0.2,
+              "一盞熄掉的提燈漂過去，裡面的燈芯和手上這根一模一樣。"
+            ],
+            [
+              0.6,
+              "提燈落進霧瀑。"
+            ],
+            [
+              0.86,
+              "旅人把燈芯收回行囊。"
+            ]
+          ],
+          "card": "一盞熄掉的提燈漂過棧橋，裡面的燈芯和舊燈芯一模一樣。",
+          "combo": {
+            "with": "old_luggage_tag",
+            "status": "旅人翻出舊荷札：編號旁邊，有人畫了一個小小的燈芯記號。",
+            "card": "舊荷札的編號旁邊，有人畫了一個小小的燈芯記號。"
+          },
+          "requires": {
+            "carrying": "old_wick"
+          },
+          "clue": "m02_wick",
+          "clueOnce": true
+        },
+        {
+          "id": "carry_weathered_lens",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": "traveller",
+                "z": 2.6,
+                "el": 28,
+                "az": 20
+              },
+              {
+                "p": 0.12,
+                "at": "traveller",
+                "z": 2.6,
+                "el": 28,
+                "az": 20
+              },
+              {
+                "p": 0.4,
+                "at": [
+                  1.0,
+                  17.5,
+                  1.5
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 0.85,
+                "at": [
+                  1.0,
+                  17.5,
+                  1.5
+                ],
+                "z": 1.8
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "itemCarry",
+          "name": "透過風化鏡片看霧那頭的塔",
+          "spot": "l_wood",
+          "face": [
+            5.5,
+            19.5
+          ],
+          "weather": "notRain",
+          "dur": [
+            40,
+            40
+          ],
+          "demoSeconds": 14,
+          "anim": "gaze",
+          "phases": [
+            [
+              0,
+              "gaze"
+            ],
+            [
+              0.12,
+              "lens"
+            ],
+            [
+              0.88,
+              "idle"
+            ]
+          ],
+          "effect": "lens",
+          "status": [
+            [
+              0,
+              "旅人走到柴堆後面，看著林外的霧。"
+            ],
+            [
+              0.14,
+              "他舉起風化鏡片。"
+            ],
+            [
+              0.35,
+              "霧那一頭的山頂上，有一座塔的輪廓慢慢清楚起來。"
+            ],
+            [
+              0.85,
+              "放下鏡片，塔又退回霧裡。"
+            ]
+          ],
+          "card": "透過風化鏡片，看得見霧那一頭山頂上的塔。",
+          "requires": {
+            "carrying": "weathered_lens"
+          },
+          "clue": "m02_lens",
+          "clueOnce": true
+        },
+        {
+          "id": "carry_charcoal_rubbing",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  -9.35,
+                  2.5,
+                  1.9
+                ],
+                "z": 2.4
+              },
+              {
+                "p": 0.1,
+                "at": [
+                  -9.35,
+                  2.5,
+                  1.9
+                ],
+                "z": 3.6
+              },
+              {
+                "p": 0.22,
+                "at": [
+                  -9.35,
+                  2.5,
+                  1.9
+                ],
+                "z": 4.4
+              },
+              {
+                "p": 0.6,
+                "at": [
+                  -9.35,
+                  2.5,
+                  1.9
+                ],
+                "z": 4.4
+              },
+              {
+                "p": 0.86,
+                "at": [
+                  -9.35,
+                  2.5,
+                  1.9
+                ],
+                "z": 2.4
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "itemCarry",
+          "name": "在褪色的站名牌上拓印",
+          "spot": "p_sign",
+          "weather": "notRain",
+          "dur": [
+            35,
+            35
+          ],
+          "demoSeconds": 12,
+          "anim": "reach",
+          "effect": "rubSign",
+          "status": [
+            [
+              0,
+              "旅人把炭印紙貼在褪色的站名牌上。"
+            ],
+            [
+              0.22,
+              "炭筆擦過，浮出兩個字：「苔痕」。"
+            ],
+            [
+              0.6,
+              "後面還有字，怎麼擦都拓不出來。"
+            ],
+            [
+              0.86,
+              "旅人把紙收起來。"
+            ]
+          ],
+          "card": "在站名牌上拓出「苔痕」兩個字，後面的拓不出來。",
+          "requires": {
+            "carrying": "charcoal_rubbing",
+            "note": "本圖的信物，同一次探索取得之後才可能發生"
+          },
+          "clue": "m02_sign",
+          "clueOnce": true
+        },
+        {
+          "id": "carry_mulch_cloth",
+          "camera": {
+            "keys": [
+              {
+                "p": 0,
+                "at": [
+                  -15.3,
+                  3.4,
+                  0.35
+                ],
+                "z": 2.6
+              },
+              {
+                "p": 0.2,
+                "at": [
+                  -15.3,
+                  3.4,
+                  0.35
+                ],
+                "z": 7,
+                "az": 28
+              },
+              {
+                "p": 0.55,
+                "at": [
+                  -15.3,
+                  3.4,
+                  0.35
+                ],
+                "z": 7,
+                "az": 28
+              },
+              {
+                "p": 0.85,
+                "at": [
+                  -15.3,
+                  3.4,
+                  0.35
+                ],
+                "z": 2.6
+              },
+              {
+                "p": 1.0,
+                "at": "home",
+                "z": 1
+              }
+            ]
+          },
+          "kind": "itemCarry",
+          "name": "用護根布包起地藏小杯裡的幼苗",
+          "spot": "j_jizo",
+          "dur": [
+            40,
+            40
+          ],
+          "demoSeconds": 12,
+          "anim": "crouch",
+          "effect": "mulch",
+          "worldMarkThisExploration": "saplingWrapped",
+          "status": [
+            [
+              0,
+              "地藏前的小杯裡長出了一株幼苗。"
+            ],
+            [
+              0.2,
+              "旅人拿出護根布，把幼苗的根輕輕包好。"
+            ],
+            [
+              0.55,
+              "他沒有把它拔起來，只是先包著。"
+            ],
+            [
+              0.85,
+              "要不要帶走，等這段專注結束再說。"
+            ]
+          ],
+          "card": "地藏的小杯裡長出一株幼苗，根已經用護根布包好。",
+          "lobbyChoice": "草案：專注結束後在大廳問「要帶走這株幼苗嗎？」帶走後接照料者支線（§46.7）；內容等玻璃苗圃設計時定。Focus 中不做選擇。",
+          "requires": {
+            "carrying": "護根布（07 玻璃苗圃，id 待定）"
+          },
+          "clue": "m02_sapling",
+          "clueOnce": true
+        }
+      ],
+      "specialFinds": {
+        "journey": [
+          "rare_cart_tag",
+          "rare_tablet_rubbing"
+        ],
+        "journeyRainVariants": {
+          "rare_tablet_rubbing": "rare_ledger_rubbing"
+        },
+        "core": [
+          "rare_drawer_compass"
+        ],
+        "note": "§46：每次完整探索必得兩種旅程信物之一（可落在任一盞燈）；核心每盞 5%、第五次保底。抽中炭印紙時，若旅人出發去取得的當下正在下雨，改播 rare_ledger_rubbing（同一件物品、同一筆保存結果，只換取得地點）。"
+      },
+      "extraRules": {
+        "weather": {
+          "clock": "與日夜循環相同的有效專注秒數；暫停時凍結",
+          "rollEverySeconds": 180,
+          "rainChance": 0.15,
+          "rainSeconds": 300,
+          "cooldownSeconds": 900,
+          "fadeInSeconds": 30,
+          "fadeOutSeconds": 30,
+          "afterRainSeconds": 240,
+          "overcastWhileRain": true,
+          "affectsRewards": false,
+          "note": "天氣只影響畫面、旅人行為與可抽選的事件（weather 欄位：dry = 沒下雨、rain = 雨中、afterRain = 雨停後 240 秒內、notRain = 雨中以外皆可）。不影響點燈時間、信物、核心與保底。"
+        },
+        "worldMarks": {
+          "boulderStones": "ev_boulder_stack 每次 +1（上限 8）：苔石頂上的小石堆",
+          "jizoPebbles": "ev_jizo_stone 每次 +1（上限 12）：地藏前的小石頭",
+          "signalLowered": "ev_signal_pull 之後：號誌臂板停在「可通行」",
+          "towelLeft": "ev_umbrella_return 之後：傘架旁掛著一條手巾",
+          "bench_tea_seen": "rest_bench_first 播完：之後長椅上一直有毯子與茶壺，並開放 rest_tea",
+          "coreTaken": "裂痕羅盤取得後，遺失物抽屜保持半開、裡面是空的",
+          "persist": "跨天保留",
+          "carvingSeen": "story_open_carving 之後：第一盞燈燈柱上的青苔被撥掉，刻字露出來",
+          "drawerTagLeft": "story_core_newtag 之後：半開的遺失物抽屜裡放著那張新的行李牌"
+        }
+      }
+    }
+  },
+  "03 倒影湖畔": {
+    "source": "docs/area03/area-03-reflection-lake.scene.json",
+    "data": {
+      "events": [
+        {
+          "id": "ev_gauge_read",
+          "spot": "r_gauge",
+          "name": "數標尺上露出水面的刻線",
+          "anim": "inspect",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_gauge_wipe",
+          "spot": "r_gauge",
+          "name": "擦去標尺上的濕泥",
+          "anim": "reach",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 1.2,
+          "outcome": "note",
+          "tide": "low",
+          "once": true,
+          "note": "標尺最高那道刻線，比見過的任何一次潮水都高。",
+          "tagGain": [
+            "MAP"
+          ]
+        },
+        {
+          "id": "ev_boat_look",
+          "spot": "r_boat",
+          "name": "看船裡的積水和撐篙",
+          "anim": "inspect",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_boat_bail",
+          "spot": "r_boat",
+          "name": "用手舀出船底的積水",
+          "anim": "crouch",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 1,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_pool_fish",
+          "spot": "r_pool",
+          "name": "蹲在潮池邊看小魚",
+          "anim": "crouch",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2.5,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_pool_shell",
+          "spot": "r_pool",
+          "name": "撿一枚貝殼，排到小船的船舷上",
+          "anim": "pickup",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.5,
+          "outcome": "ambient",
+          "tide": "low",
+          "worldMark": "boatShells"
+        },
+        {
+          "id": "ev_reeds_egret",
+          "spot": "r_reeds",
+          "name": "安靜地看白鷺",
+          "anim": "gaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "callEgret": true
+        },
+        {
+          "id": "ev_reeds_wind",
+          "spot": "r_reeds",
+          "name": "聽風吹過蘆葦",
+          "anim": "gaze",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pillar_touch",
+          "spot": "c_pillar",
+          "name": "摸斷柱上的水痕",
+          "anim": "reach",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pillar_sit",
+          "spot": "c_pillar",
+          "name": "坐在斷柱腳下休息",
+          "anim": "sitGaze",
+          "dur": [
+            45,
+            90
+          ],
+          "weight": 1.5,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_stele_wipe",
+          "spot": "c_stele",
+          "name": "擦去石面水痕",
+          "anim": "reach",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 1.6,
+          "outcome": "note",
+          "tide": "low",
+          "once": true,
+          "effect": "steleWipe",
+          "note": "水痕擦掉了，底下沒有字，只有更舊的水痕。",
+          "tagGain": [
+            "ARCHIVE"
+          ]
+        },
+        {
+          "id": "ev_stele_look",
+          "spot": "c_stele",
+          "name": "端詳石碑",
+          "anim": "inspect",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_column_sit",
+          "spot": "c_column",
+          "name": "靠著倒柱坐下看湖",
+          "anim": "sitGaze",
+          "dur": [
+            45,
+            90
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_breach_look",
+          "spot": "c_breach",
+          "name": "蹲下看水下沉著的石板",
+          "anim": "crouch",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_breach_pebble",
+          "spot": "c_breach",
+          "name": "往破口丟一顆小石子",
+          "anim": "pickup",
+          "dur": [
+            15,
+            25
+          ],
+          "weight": 1,
+          "outcome": "ambient",
+          "tide": "low",
+          "effect": "pebble"
+        },
+        {
+          "id": "ev_stair_notes",
+          "spot": "c_stair",
+          "name": "坐在石階上整理筆記",
+          "anim": "write",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 1.5,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_steps_sit",
+          "spot": "c_steps",
+          "name": "坐著看石階一階一階沉進水裡",
+          "anim": "sitEdge",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_steps_count",
+          "spot": "c_steps",
+          "name": "數露出水面的台階",
+          "anim": "gaze",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.2,
+          "outcome": "note",
+          "tide": "low",
+          "once": true,
+          "note": "退潮時沉階露出四階，下面還有很多。",
+          "tagGain": [
+            "MAP"
+          ]
+        },
+        {
+          "id": "ev_seat_sit",
+          "spot": "p_seat",
+          "name": "在亭台南緣的石凳上坐一會",
+          "anim": "sitGaze",
+          "dur": [
+            40,
+            80
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_mirror_look",
+          "spot": "p_mirror",
+          "name": "看破掉的鏡框",
+          "anim": "inspect",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_mirror_wipe",
+          "spot": "p_mirror",
+          "name": "用袖子擦那一角鏡片",
+          "anim": "reach",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1,
+          "outcome": "note",
+          "once": true,
+          "requires": "shardPresent",
+          "note": "鏡片照出來的亭子，好像比現在新。",
+          "tagGain": [
+            "MEMORY"
+          ]
+        },
+        {
+          "id": "ev_roots_sit",
+          "spot": "k_roots",
+          "name": "坐在松根上",
+          "anim": "sitGaze",
+          "dur": [
+            45,
+            90
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_roots_cone",
+          "spot": "k_roots",
+          "name": "撿一顆松果，放到第四盞燈旁的岩石上",
+          "anim": "pickup",
+          "dur": [
+            15,
+            30
+          ],
+          "weight": 1.2,
+          "outcome": "ambient",
+          "worldMark": "pineCones"
+        },
+        {
+          "id": "ev_branch_gaze",
+          "spot": "k_branch",
+          "name": "看長枝的枝尖垂向水面",
+          "anim": "gaze",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 1.5,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_ring_look",
+          "spot": "s_ring",
+          "name": "蹲在石環邊看靜止的水",
+          "anim": "crouch",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_ring_count",
+          "spot": "s_ring",
+          "name": "一顆一顆數環上的石頭",
+          "anim": "inspect",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 1,
+          "outcome": "note",
+          "once": true,
+          "noteAfterCore": "石環有十四顆石頭。圈裡的水會動了。",
+          "note": "石環有十四顆石頭。圈裡的水連風都吹不動。",
+          "tagGain": [
+            "MEMORY"
+          ]
+        },
+        {
+          "id": "ev_pier_sit",
+          "spot": "n_pier",
+          "name": "坐在燈旁的棧道上歇腳",
+          "anim": "sitGaze",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_arch_look",
+          "spot": "a_arch",
+          "name": "看遠方踏石淡進薄霞",
+          "anim": "gaze",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_stones_hop",
+          "spot": "a_stones",
+          "name": "跳一顆踏石再跳回來",
+          "anim": "hopStones",
+          "dur": [
+            15,
+            25
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_far_gaze",
+          "spot": "b_far",
+          "name": "看東方的薄霞",
+          "anim": "gaze",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pond_watch",
+          "spot": "leaf_watch",
+          "name": "蹲著看睡蓮葉",
+          "anim": "crouch",
+          "dur": [
+            30,
+            50
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_pond_touch",
+          "spot": "leaf_watch",
+          "name": "輕撥腳邊的葉片",
+          "anim": "leafTouch",
+          "dur": [
+            25,
+            40
+          ],
+          "weight": 1.5,
+          "outcome": "ambient",
+          "tide": "high"
+        },
+        {
+          "id": "ev_pond_bloom",
+          "spot": "leaf_watch",
+          "name": "看睡蓮一朵一朵打開",
+          "anim": "gaze",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 3,
+          "outcome": "note",
+          "tide": "high",
+          "once": true,
+          "requires": "flowersOpen",
+          "note": "水漲上來，池裡的睡蓮一朵一朵開了。",
+          "tagGain": [
+            "MEMORY"
+          ]
+        },
+        {
+          "id": "ev_seat_rest",
+          "spot": "leaf_seat",
+          "name": "坐在池邊的石板上",
+          "anim": "sitGaze",
+          "dur": [
+            45,
+            90
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_moon_look",
+          "spot": "moon_watch",
+          "name": "看著橋洞",
+          "anim": "gazeDown",
+          "dur": [
+            30,
+            60
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_moon_full",
+          "spot": "moon_watch",
+          "name": "看橋洞和倒影合成一輪滿月",
+          "anim": "gaze",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 3,
+          "outcome": "note",
+          "tide": "high",
+          "once": true,
+          "note": "水漲到拱腳，橋洞和倒影合成一輪滿月。圓裡是晚上。",
+          "tagGain": [
+            "MEMORY"
+          ]
+        },
+        {
+          "id": "ev_crown_stand",
+          "spot": "moon_crown",
+          "name": "站在橋頂看水",
+          "anim": "gazeDown",
+          "dur": [
+            25,
+            45
+          ],
+          "weight": 2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "ev_crown_night",
+          "spot": "moon_crown",
+          "name": "低頭看腳下圓裡的月亮",
+          "anim": "gazeDown",
+          "dur": [
+            40,
+            70
+          ],
+          "weight": 2.5,
+          "outcome": "ambient",
+          "tide": "high",
+          "time": [
+            "night"
+          ]
+        },
+        {
+          "id": "ev_bank_sit",
+          "spot": "moon_bank",
+          "name": "坐在岸邊，看著橋",
+          "anim": "sitGaze",
+          "dur": [
+            60,
+            100
+          ],
+          "weight": 2,
+          "outcome": "ambient",
+          "tide": "low"
+        },
+        {
+          "id": "ev_banyan_root",
+          "spot": "moon_bank",
+          "name": "摸垂下來的氣根",
+          "anim": "reach",
+          "dur": [
+            20,
+            35
+          ],
+          "weight": 1.2,
+          "outcome": "ambient"
+        },
+        {
+          "id": "rare_gauge_plate",
+          "rare": true,
+          "tier": "journey",
+          "spot": "r_gauge",
+          "name": "在標尺腳邊撬下一片銅片",
+          "anim": "reachDown",
+          "weight": 0,
+          "tide": "low",
+          "source": "gauge",
+          "demoSeconds": 16,
+          "item": {
+            "id": "tide_gauge_plate",
+            "name": "水位刻片",
+            "kind": "journey"
+          },
+          "outcome": "find"
+        },
+        {
+          "id": "rare_boat_plate",
+          "rare": true,
+          "tier": "journey",
+          "spot": "r_boat",
+          "name": "從小船座板下抽出一片銅片",
+          "anim": "reachDown",
+          "weight": 0,
+          "tide": "high",
+          "source": "boat",
+          "demoSeconds": 16,
+          "item": {
+            "id": "tide_gauge_plate",
+            "name": "水位刻片",
+            "kind": "journey"
+          },
+          "variantOf": "rare_gauge_plate",
+          "outcome": "find"
+        },
+        {
+          "id": "rare_mirror_shard",
+          "rare": true,
+          "tier": "journey",
+          "spot": "p_mirror",
+          "name": "取下鏡框角落的鏡片",
+          "anim": "reach",
+          "weight": 0,
+          "source": "frame",
+          "demoSeconds": 16,
+          "item": {
+            "id": "silvered_shard",
+            "name": "背銀鏡片",
+            "kind": "journey"
+          },
+          "outcome": "find"
+        },
+        {
+          "id": "rare_ring_mirror",
+          "rare": true,
+          "tier": "core",
+          "spot": "s_ring",
+          "name": "碰石環裡的水",
+          "anim": "crouch",
+          "weight": 0,
+          "source": "ring",
+          "demoSeconds": 32,
+          "item": {
+            "id": "lake_mirror",
+            "name": "湖鏡",
+            "kind": "core"
+          },
+          "outcome": "find"
+        }
+      ],
+      "anywhereEvents": [
+        {
+          "id": "amb_stretch",
+          "name": "伸個懶腰",
+          "anim": "stretch",
+          "durationAppSeconds": [
+            8,
+            15
+          ],
+          "condition": "any"
+        },
+        {
+          "id": "amb_pack",
+          "name": "蹲下來整理背包",
+          "anim": "crouch",
+          "durationAppSeconds": [
+            15,
+            25
+          ],
+          "condition": "low tide (feet dry)"
+        },
+        {
+          "id": "amb_watch_water",
+          "name": "蹲在水邊看水",
+          "anim": "crouch",
+          "durationAppSeconds": [
+            15,
+            25
+          ],
+          "condition": "low tide; faces the nearest water or puddle"
+        },
+        {
+          "id": "amb_clouds",
+          "name": "低頭看水裡的雲慢慢飄過",
+          "anim": "gazeDown",
+          "durationAppSeconds": [
+            10,
+            25
+          ],
+          "condition": "dawn, day, dusk"
+        },
+        {
+          "id": "amb_reflection",
+          "name": "低頭看自己的倒影，輕輕晃一下身體",
+          "anim": "lookDown",
+          "durationAppSeconds": [
+            12,
+            20
+          ],
+          "condition": "high tide"
+        },
+        {
+          "id": "amb_spin",
+          "name": "張開手慢慢轉一圈",
+          "anim": "spin",
+          "durationAppSeconds": [
+            10,
+            14
+          ],
+          "condition": "high tide; 0.45 free around the body (node.spin)"
+        },
+        {
+          "id": "amb_fireflies",
+          "name": "停下來看螢火蟲",
+          "anim": "gaze",
+          "durationAppSeconds": [
+            20,
+            40
+          ],
+          "condition": "night; lamp 1 or lamp 4"
+        }
+      ],
+      "restActivities": [
+        {
+          "id": "rest_cup_first",
+          "node": "p_seat",
+          "name": "在石凳上坐下，翻開身旁倒扣的杯子，倒茶慢慢喝",
+          "anim": "sequence",
+          "dur": [
+            46,
+            46
+          ],
+          "weight": 0,
+          "once": true,
+          "worldMark": "cupLeft"
+        },
+        {
+          "id": "rest_notes",
+          "node": "p_seat",
+          "name": "坐著整理筆記",
+          "anim": "write",
+          "dur": [
+            180,
+            600
+          ],
+          "weight": 3
+        },
+        {
+          "id": "rest_lake",
+          "node": "p_seat",
+          "name": "坐著看湖",
+          "anim": "sitGaze",
+          "dur": [
+            120,
+            300
+          ],
+          "weight": 2
+        },
+        {
+          "id": "rest_tea",
+          "node": "p_seat",
+          "name": "再倒一杯茶，看著湖",
+          "anim": "drinkSit",
+          "dur": [
+            90,
+            200
+          ],
+          "weight": 1.2,
+          "requires": "cupLeft"
+        },
+        {
+          "id": "rest_mirror",
+          "node": "p_seat",
+          "name": "坐著看整片湖變成鏡子",
+          "anim": "sitGaze",
+          "dur": [
+            120,
+            300
+          ],
+          "weight": 4,
+          "tide": "high",
+          "preferred": true
+        }
+      ],
+      "storyEvents": [
+        {
+          "id": "story_open_gauge",
+          "kind": "opening",
+          "name": "擦掉標尺頂上的泥痕，露出「從這裡開始。」",
+          "spot": "r_gauge",
+          "tide": "low",
+          "setTime": "day",
+          "dur": [
+            40,
+            40
+          ],
+          "demoSeconds": 18,
+          "anim": "reach",
+          "phases": [
+            [
+              0,
+              "walk"
+            ],
+            [
+              0.15,
+              "gaze"
+            ],
+            [
+              0.25,
+              "reach"
+            ],
+            [
+              0.5,
+              "idle"
+            ],
+            [
+              0.62,
+              "book"
+            ],
+            [
+              0.85,
+              "walk"
+            ]
+          ],
+          "effect": "gaugeCarving",
+          "clue": "m03_open",
+          "worldMark": "gaugeCarving",
+          "status": [
+            [
+              0,
+              "旅人走到水位標尺前。"
+            ],
+            [
+              0.15,
+              "標尺最高那道刻線旁邊，有一塊被泥水糊住的光滑石面。"
+            ],
+            [
+              0.27,
+              "旅人踮起腳，用袖子把泥擦掉。"
+            ],
+            [
+              0.42,
+              "泥痕下面刻著一行字：從這裡開始。"
+            ],
+            [
+              0.62,
+              "旅人拿出筆記翻到第一頁，第一頁上是同一句話、同樣的字跡。"
+            ],
+            [
+              0.86,
+              "旅人把筆記收好。"
+            ]
+          ],
+          "requires": {
+            "firstExplorationOfGame": true
+          }
+        },
+        {
+          "id": "story_first_lag",
+          "kind": "firstVisit",
+          "name": "轉身要走時，腳下的倒影還望著亭子",
+          "spot": "c_home",
+          "face": [
+            2.0,
+            11.0
+          ],
+          "tide": "high",
+          "dur": [
+            30,
+            30
+          ],
+          "demoSeconds": 30,
+          "anim": "gaze",
+          "phases": [
+            [
+              0,
+              "gaze"
+            ],
+            [
+              0.25,
+              "turn"
+            ],
+            [
+              0.33,
+              "gazeDown"
+            ],
+            [
+              0.62,
+              "lookBack"
+            ],
+            [
+              0.7,
+              "idle"
+            ]
+          ],
+          "effect": "reflectionLag",
+          "reflectionHeading": [
+            [
+              0,
+              "toPavilion"
+            ],
+            [
+              0.48,
+              "catchUp"
+            ],
+            [
+              0.55,
+              "withTraveller"
+            ]
+          ],
+          "push": {
+            "at": [
+              -0.8,
+              0.6,
+              -0.2
+            ],
+            "zoom": 6.5,
+            "outAt": 0.82
+          },
+          "clue": "m03_lag",
+          "status": [
+            [
+              0,
+              "水漫過石庭。旅人站在淹水的上層，望著半沉亭。"
+            ],
+            [
+              0.25,
+              "旅人轉身要走。"
+            ],
+            [
+              0.33,
+              "……腳下的倒影沒有跟著轉身，它還望著亭子。"
+            ],
+            [
+              0.48,
+              "過了一會兒，倒影才慢慢轉過來，跟上他。"
+            ],
+            [
+              0.62,
+              "旅人回頭看了亭子一眼。這次倒影跟著一起回頭。"
+            ],
+            [
+              0.8,
+              "旅人低頭看了看自己的倒影，然後繼續往前走。"
+            ]
+          ],
+          "requires": {
+            "clueMissing": "m03_lag"
+          }
+        },
+        {
+          "id": "story_second_cup",
+          "kind": "secondVisit",
+          "name": "沉階上只有他的杯子，倒影裡卻有兩只",
+          "spot": "c_steps",
+          "tide": "high",
+          "dur": [
+            45,
+            45
+          ],
+          "demoSeconds": 45,
+          "anim": "sitEdge",
+          "phases": [
+            [
+              0,
+              "walk"
+            ],
+            [
+              0.06,
+              "sitEdge"
+            ],
+            [
+              0.15,
+              "pour"
+            ],
+            [
+              0.22,
+              "placeCup"
+            ],
+            [
+              0.3,
+              "sitGaze"
+            ],
+            [
+              0.55,
+              "reachWater"
+            ],
+            [
+              0.7,
+              "ripple"
+            ],
+            [
+              0.78,
+              "drink"
+            ],
+            [
+              0.94,
+              "sitGaze"
+            ]
+          ],
+          "effect": "secondCup",
+          "props": {
+            "myCup": [
+              3.73,
+              -4.026,
+              0.34
+            ],
+            "reflectionCup": [
+              3.529,
+              -4.157,
+              0.34
+            ],
+            "seat": [
+              3.971,
+              -3.809,
+              0.34
+            ]
+          },
+          "push": {
+            "at": [
+              3.695,
+              -4.192,
+              0.25
+            ],
+            "zoom": 12.0,
+            "outAt": 0.84
+          },
+          "clue": "c03",
+          "status": [
+            [
+              0,
+              "滿潮。沉階只剩最上面一階露出水面，旅人在階緣坐下。"
+            ],
+            [
+              0.15,
+              "旅人從行囊拿出自己的杯子，倒了茶，放在身旁的台階上。"
+            ],
+            [
+              0.32,
+              "旅人看著湖。水裡的倒影，杯子旁邊多了一只杯子，冒著熱氣。"
+            ],
+            [
+              0.55,
+              "旅人低頭看水，發現了，伸手去碰倒影裡那只杯子。"
+            ],
+            [
+              0.7,
+              "水面一晃。晃完之後，倒影裡只剩一只杯子。"
+            ],
+            [
+              0.8,
+              "旅人拿起自己的杯子，慢慢喝了一口。"
+            ]
+          ],
+          "requires": {
+            "clueHas": "m03_lag",
+            "clueMissing": "c03"
+          }
+        },
+        {
+          "id": "story_core_ring",
+          "kind": "coreGated",
+          "name": "石環的水又靜了一下，倒影裡環上放著一雙舊靴子",
+          "spot": "s_ring",
+          "tide": "high",
+          "dur": [
+            30,
+            30
+          ],
+          "demoSeconds": 16,
+          "anim": "crouch",
+          "phases": [
+            [
+              0,
+              "crouch"
+            ],
+            [
+              0.2,
+              "watch"
+            ],
+            [
+              0.65,
+              "idle"
+            ]
+          ],
+          "effect": "bootsInReflection",
+          "clue": "c03b",
+          "status": [
+            [
+              0,
+              "旅人蹲在石環邊，伸手碰了碰會起漣漪的水。"
+            ],
+            [
+              0.2,
+              "環裡的水忽然又靜了下來。"
+            ],
+            [
+              0.26,
+              "倒影裡，環上最遠那顆石頭放著一雙磨舊的靴子，倒影正好落在靜止的環裡。"
+            ],
+            [
+              0.46,
+              "旅人看看真的石頭：上面什麼也沒有。"
+            ],
+            [
+              0.64,
+              "水又起了漣漪，靴子跟著淡掉了。"
+            ]
+          ],
+          "requires": {
+            "hasCore": "rare_ring_mirror",
+            "exploredAfterCore": true,
+            "clueMissing": "c03b"
+          },
+          "push": {
+            "at": [
+              -1.15,
+              -7.95,
+              0.3
+            ],
+            "zoom": 11.0,
+            "outAt": 0.8
+          }
+        },
+        {
+          "id": "carry_old_wick",
+          "kind": "itemCarry",
+          "carry": "old_wick",
+          "carryFrom": "m01",
+          "name": "拿出舊燈芯，看見沉階下沉著一盞提燈",
+          "spot": "c_steps",
+          "tide": "low",
+          "dur": [
+            30,
+            30
+          ],
+          "demoSeconds": 14,
+          "anim": "crouch",
+          "clue": "m03_wick",
+          "status": [
+            [
+              0,
+              "旅人拿出舊燈芯。"
+            ],
+            [
+              0.35,
+              "沉階最下面幾階的水裡，倒著一盞舊提燈。"
+            ],
+            [
+              0.76,
+              "旅人看了很久，把燈芯收好。"
+            ]
+          ],
+          "push": {
+            "at": [
+              4.33,
+              -4.3,
+              0.1
+            ],
+            "zoom": 2.8,
+            "outAt": 0.76
+          }
+        },
+        {
+          "id": "carry_weathered_lens",
+          "kind": "itemCarry",
+          "carry": "weathered_lens",
+          "carryFrom": "m01",
+          "name": "透過風化鏡片，橋的倒影裡橋頂放著一盞提燈",
+          "spot": "moon_watch",
+          "tide": "high",
+          "dur": [
+            30,
+            30
+          ],
+          "demoSeconds": 14,
+          "anim": "reach",
+          "clue": "m03_lens",
+          "status": [
+            [
+              0,
+              "旅人拿出風化鏡片，對著疊月橋。"
+            ],
+            [
+              0.3,
+              "透過鏡片，橋的倒影裡，橋頂上放著一盞亮著的提燈。"
+            ],
+            [
+              0.6,
+              "真的橋頂上什麼也沒有。"
+            ],
+            [
+              0.82,
+              "旅人放下鏡片，倒影裡的提燈也不見了。"
+            ]
+          ],
+          "props": {
+            "reflectionLamp": [
+              -7.1,
+              7.0,
+              2.14
+            ]
+          },
+          "push": {
+            "at": [
+              -7.9,
+              6.0,
+              0.4
+            ],
+            "zoom": 2.4,
+            "outAt": 0.76
+          }
+        },
+        {
+          "id": "carry_old_luggage_tag",
+          "kind": "itemCarry",
+          "carry": "old_luggage_tag",
+          "carryFrom": "m02",
+          "name": "船頭刻著和荷札同一種寫法的編號",
+          "spot": "r_boat",
+          "tide": "low",
+          "dur": [
+            30,
+            30
+          ],
+          "demoSeconds": 14,
+          "anim": "crouch",
+          "clue": "m03_tag",
+          "status": [
+            [
+              0,
+              "旅人拿出舊荷札，蹲在船邊。"
+            ],
+            [
+              0.35,
+              "船頭刻著幾道記號，寫法和荷札上的一樣。"
+            ],
+            [
+              0.82,
+              "旅人把荷札收好。"
+            ]
+          ],
+          "props": {
+            "crouchAt": [
+              -14.7,
+              0.2
+            ],
+            "marks": [
+              -15.2,
+              0.56,
+              0.2
+            ]
+          },
+          "push": {
+            "at": [
+              -14.95,
+              0.4,
+              0.25
+            ],
+            "zoom": 3.0,
+            "outAt": 0.76
+          }
+        },
+        {
+          "id": "carry_tide_plate",
+          "kind": "itemCarry",
+          "carry": "rare_gauge_plate",
+          "carryFrom": "m03",
+          "name": "把水位刻片對著橋墩的潮痕比",
+          "spot": "moon_bank",
+          "tide": "low",
+          "dur": [
+            30,
+            30
+          ],
+          "demoSeconds": 14,
+          "anim": "hold",
+          "clue": "m03_plate",
+          "props": {
+            "standAt": [
+              -5.1,
+              6.7
+            ],
+            "plateOnAbutment": [
+              -5.42,
+              6.915,
+              0.5
+            ],
+            "tideLine": [
+              -5.62,
+              6.92,
+              0.5
+            ]
+          },
+          "status": [
+            [
+              0,
+              "旅人拿著水位刻片走到岸邊。"
+            ],
+            [
+              0.2,
+              "他把刻片豎起來，對著橋墩上那道舊潮痕。"
+            ],
+            [
+              0.5,
+              "刻片最高的那道線，比橋墩的潮痕還高一格。"
+            ],
+            [
+              0.86,
+              "旅人收起刻片。"
+            ]
+          ],
+          "push": {
+            "at": [
+              -5.3,
+              6.8,
+              0.45
+            ],
+            "zoom": 3.0,
+            "outAt": 0.76
+          }
+        },
+        {
+          "id": "carry_silvered_shard",
+          "kind": "itemCarry",
+          "carry": "rare_mirror_shard",
+          "carryFrom": "m03",
+          "name": "用背銀鏡片把光照到石凳上，照出兩個杯印",
+          "spot": "p_seat",
+          "tide": "any",
+          "dur": [
+            30,
+            30
+          ],
+          "demoSeconds": 14,
+          "anim": "hold",
+          "clue": "m03_shard",
+          "props": {
+            "rings": [
+              [
+                1.22,
+                9.285
+              ],
+              [
+                1.5,
+                9.27
+              ]
+            ],
+            "spotFrom": [
+              1.72,
+              9.28
+            ],
+            "spotTo": [
+              1.08,
+              9.28
+            ]
+          },
+          "status": [
+            [
+              0,
+              "旅人拿出背銀鏡片。"
+            ],
+            [
+              0.22,
+              "他用鏡片的背面把光反照到石凳上，一小塊光在凳面上慢慢移動。"
+            ],
+            [
+              0.45,
+              "光照到的地方，浮出兩個杯子壓出的圓印，一個舊、一個比較新。"
+            ],
+            [
+              0.86,
+              "旅人收起鏡片。"
+            ]
+          ],
+          "push": {
+            "at": [
+              1.3,
+              9.15,
+              0.45
+            ],
+            "zoom": 3.0,
+            "outAt": 0.76
+          }
+        }
+      ],
+      "specialFinds": {
+        "journey": [
+          "rare_gauge_plate",
+          "rare_mirror_shard"
+        ],
+        "journeyTideVariants": {
+          "rare_gauge_plate": "rare_boat_plate"
+        },
+        "core": [
+          "rare_ring_mirror"
+        ],
+        "note": "每次完整探索必得兩種旅程信物之一（可落在第 1–4 盞燈之間）；核心每盞燈 5%、第五次保底（保底由 App 做）。抽中水位刻片時，若旅人出發去取得的當下是滿潮，改播 rare_boat_plate（同一件物品、同一筆保存結果，只換取得地點）。"
+      },
+      "extraRules": {
+        "worldMarks": {
+          "gaugeCarving": "story_open_gauge 播完：標尺最高刻線旁的泥痕擦掉，刻字「從這裡開始。」永久露出",
+          "cupLeft": "rest_cup_first 播完：之後亭台南緣的石凳上一直放著那只杯子（正放），並開放 rest_tea",
+          "ringStill": "true = 石環裡的水永遠靜止；取得湖鏡後永久改為 false（石環裡的水會起漣漪）",
+          "boatShells": "ev_pool_shell 每次 +1（上限 10）：船舷上的貝殼",
+          "pineCones": "ev_roots_cone 每次 +1（上限 6）：第四盞燈旁岩上的松果",
+          "steleWiped": "ev_stele_wipe 之後：石碑水痕消失，到下一次滿潮結束才回來（不跨天）",
+          "persist": "gaugeCarving、cupLeft、ringStill、boatShells、pineCones 跨天保留"
+        }
+      }
+    }
+  },
+  "07 玻璃苗圃": {
+    "source": "docs/area07/area-07-glass-nursery.scene.json",
+    "data": {
+      "storyEvents": [
+        {
+          "id": "story_first_tray",
+          "rule": "no clue m07_tray",
+          "standNode": "MT",
+          "pose": "crouch",
+          "sec": 14,
+          "discGoal": -1.396,
+          "camera": {
+            "at": [
+              2.7,
+              0.8,
+              1.1
+            ],
+            "zoom": 3.0
+          },
+          "clue": "m07_tray"
+        },
+        {
+          "id": "story_second_chart",
+          "rule": "has m07_tray, no m07_chart",
+          "standNode": "B",
+          "pose": "trace",
+          "sec": 12,
+          "camera": {
+            "at": [
+              -10.6,
+              2.2,
+              6.0
+            ],
+            "zoom": 2.6
+          },
+          "clue": "m07_chart"
+        },
+        {
+          "id": "carry_silvered_shard",
+          "rule": "carrying silvered_shard (03); forces heavy-fog look",
+          "standNode": "WL",
+          "pose": "reach",
+          "sec": 11,
+          "camera": {
+            "at": [
+              -11.0,
+              2.2,
+              -1.0
+            ],
+            "zoom": 2.6
+          },
+          "clue": "m07_glass (first time only)"
+        },
+        {
+          "id": "carry_sapling",
+          "rule": "carrying the wrapped sapling in the luggage (taken at 02 in any earlier journey, kept until planted); not yet planted",
+          "standNode": "MT",
+          "pose": "crouch",
+          "sec": 12,
+          "discGoal": -1.396,
+          "camera": {
+            "at": [
+              2.7,
+              0.8,
+              1.1
+            ],
+            "zoom": 3.0
+          },
+          "clue": "m07_planted",
+          "worldMark": "saplingStage = 0 (planted in tray 6); +1 on each later visit to 07, max 2"
+        },
+        {
+          "id": "caretaker_transplant",
+          "kind": "branch ending (照料者支線結局)",
+          "rule": "saplingStage == 2 (planted, then 2 later visits) and not transplanted; after that focus the lobby asks 「要把它移出苗盤嗎？」 / 「再讓它長一陣子」; plays only if the player chooses to move it; the journey continues normally afterwards",
+          "playsIn": "lobby, at this map's rest point (after the choice), never auto-played during focus",
+          "beats": [
+            {
+              "standNode": "MT",
+              "pose": "crouch",
+              "sec": 6.5,
+              "discGoal": -1.396,
+              "camera": {
+                "at": [
+                  2.6,
+                  0.9,
+                  1.0
+                ],
+                "zoom": 2.7
+              },
+              "what": "dig the young tree out of tray 6 with its soil ball; picked up at 60%"
+            },
+            {
+              "walkTo": "SP",
+              "carry": true,
+              "camera": {
+                "at": [
+                  -2.4,
+                  0.9,
+                  -0.6
+                ],
+                "zoom": 1.6
+              },
+              "what": "walk carrying it in front of the chest (pose carry)"
+            },
+            {
+              "standNode": "SP",
+              "pose": "crouch",
+              "sec": 8,
+              "camera": {
+                "at": [
+                  -4.7,
+                  0.8,
+                  -1.9
+                ],
+                "zoom": 2.7
+              },
+              "plantAt": [
+                -5.0,
+                0.12,
+                -2.3
+              ],
+              "what": "lower into the ground where the old tree's root broke the tiles, mound of soil grows"
+            },
+            {
+              "walkTo": "B",
+              "standNode": "B",
+              "pose": "trace",
+              "sec": 8,
+              "camera": {
+                "at": [
+                  -10.95,
+                  2.2,
+                  6.35
+                ],
+                "zoom": 4.2
+              },
+              "what": "draw 3 new ticks beside the stopped ones, widely spaced (y 1.92/2.24/2.56, z 6.62)"
+            },
+            {
+              "pose": "idle",
+              "sec": 6,
+              "discGoal": -1.396,
+              "drip": true,
+              "camera": {
+                "at": [
+                  2.4,
+                  0.9,
+                  1.0
+                ],
+                "zoom": 2.4
+              },
+              "what": "tray 6 is empty again and the arm still waters it"
+            }
+          ],
+          "clue": "m07_transplant",
+          "notebookPage": "兩棵樹的素描；「第六盤又空了。機器照樣澆它。」",
+          "worldMark": "saplingTransplanted"
+        }
+      ],
+      "ambient": {
+        "machineWalk": {
+          "node": "MT",
+          "durSec": 4,
+          "pose": "look",
+          "text": "旅人沿著育苗機外圈慢慢走了半圈，停下來低頭看苗盤。",
+          "arc": true
+        },
+        "wipe": {
+          "node": "WL",
+          "durSec": 5,
+          "pose": "wipe",
+          "text": "玻璃起了霧，旅人用袖子擦出一塊，看看外面。",
+          "arc": false
+        },
+        "potRight": {
+          "node": "RP",
+          "durSec": 7,
+          "pose": "crouch",
+          "text": "旅人蹲下來，把倒在地上的盆栽慢慢扶正，再把撒出來的土一把一把撥回盆裡。",
+          "arc": false
+        },
+        "pool": {
+          "node": "P",
+          "durSec": 5,
+          "pose": "crouch",
+          "text": "旅人蹲在積水池邊，看浮葉慢慢轉。",
+          "arc": false
+        },
+        "lean": {
+          "node": "CRL",
+          "durSec": 6,
+          "pose": "look",
+          "text": "旅人在空中走道上靠著欄杆，往下看整座苗圃。",
+          "arc": false
+        },
+        "valve": {
+          "node": "PV",
+          "durSec": 5,
+          "pose": "turn",
+          "text": "旅人轉了一下幫浦的閥門，灑水臂噴出一陣水霧。",
+          "arc": false
+        },
+        "trough": {
+          "node": "TR",
+          "durSec": 4.5,
+          "pose": "crouch",
+          "text": "旅人用手指撥了一下育苗水槽的水。",
+          "arc": false
+        },
+        "stairSit": {
+          "node": "G2",
+          "durSec": 5,
+          "pose": "sit",
+          "text": "旅人在螺旋梯下坐了一會兒。",
+          "arc": false
+        },
+        "tree": {
+          "node": "G",
+          "durSec": 5,
+          "pose": "up",
+          "text": "旅人停下來，抬頭看伸進玻璃裡的那棵大樹。",
+          "arc": false
+        }
+      },
+      "specialFinds": [
+        {
+          "id": "find_pressed_leaf",
+          "tier": "journey",
+          "itemKey": "pressed_leaf",
+          "label": "壓葉標本",
+          "standNode": "T",
+          "pose": "read",
+          "sec": 4,
+          "where": "specimen table book (-4.4, 0.9, 6.8)"
+        },
+        {
+          "id": "find_mulch_cloth",
+          "tier": "journey",
+          "itemKey": "mulch_cloth",
+          "label": "護根布",
+          "standNode": "B",
+          "pose": "reach",
+          "sec": 4,
+          "where": "workbench corner"
+        },
+        {
+          "id": "find_core",
+          "tier": "core",
+          "itemKey": "sealed_seed_pod",
+          "label": "封存種莢",
+          "sequence": [
+            "B: take key from chart nail (3 s)",
+            "walk to K",
+            "K: unlock cage, door opens, jar glows blue, jar rises and shrinks into the luggage (11 s)"
+          ],
+          "afterTaken": "empty plinth + open cage stay (world mark coreTaken)"
+        }
+      ],
+      "extraRules": {
+        "weather": {
+          "kind": "nightFog",
+          "everyNight": "glass condensation (glass opacity ~0.35)",
+          "heavyFogChance": 0.5,
+          "rollAt": "each time the day/night line enters night; seeded per focus",
+          "buildSec": 120,
+          "clearAtDawnSec": [
+            60,
+            90
+          ],
+          "clear": "vortex from the machine outward; window-frame shadows appear behind it; light shafts only after a heavy-fog night",
+          "affectsLampsOrRewards": false
+        },
+        "worldMarks": {
+          "potUpright": "potRight ambient (7 s animation) then stays upright",
+          "glassWiped": "wipe ambient; covered again by the next heavy fog",
+          "shardPile": "pile of glass by the corridor door",
+          "saplingPlanted": "m07_planted; young tree in tray 6, size by saplingStage (0 sapling, 1 scale 0.13, 2 scale 0.20; trunk scaled x0.8 xz / x1.25 y)",
+          "coreTaken": "empty plinth + open cage",
+          "saplingTransplanted": "young tree on the floor at (-5.0,-2.3), scale 0.28, soil mound, root from the old bed, 3 new chart ticks; tray 6 empty again (machine timer unchanged)"
+        },
+        "caretakerState": {
+          "saplingInLuggage": "set when the player takes the sapling at 02 (lobby choice); persists across journeys until planted at 07; shown in the collection room as a cloth-wrapped cup",
+          "saplingStage": "-1 none, 0 planted, 1 one later visit, 2 two later visits (outgrown, transplant offered)",
+          "saplingTransplanted": "permanent"
+        },
+        "rest": {
+          "boardPoint": [
+            1.813,
+            0.12,
+            2.99
+          ],
+          "seatRadius": 2.12,
+          "seatY": 0.42,
+          "seatGapsDiscFrame": "30° + 60°·k (between trays)",
+          "boardSec": 1.1,
+          "poseCycleSec": 36,
+          "cycle": [
+            "sitEdge 0–40%",
+            "write 40–75%",
+            "sitGaze 75–100%"
+          ]
+        }
+      }
+    }
+  },
+  "05 藏聲秋谷（獨立試玩／草案）": {
+    "source": "docs/area05/area-05-echo-quarry.scene.json",
+    "data": {
+      "storyEvents": [
+        {
+          "id": "story_first_two_notes",
+          "type": "firstVisit",
+          "when": "no m05_two_notes clue",
+          "spot": 1,
+          "traveller": "reach (strike the stone chime), then listen",
+          "visual": "one strike; the echo comes back as two waves (warm, then a cool one 1.2 s later) — prototype actFx(1)",
+          "clue": "m05_two_notes"
+        },
+        {
+          "id": "story_second_wall_voice",
+          "type": "secondVisit",
+          "when": "has m05_two_notes, no h2c, not the exploration that gave m05_two_notes",
+          "spot": 12,
+          "cave": true,
+          "traveller": "walk in to fork J, pause, walk branch to sealed-wall ledge WL, listen",
+          "visual": "faint warm wave from the wall, subtitle 「……柴都濕了。」",
+          "camera": "entrance follow → fork mid → close on wall+traveller (vh 8.5) → home",
+          "clue": "h2c (already in collectionRoom.ts)",
+          "prototype": "CAVE.evSecond()"
+        },
+        {
+          "id": "core_voice_stone",
+          "type": "core",
+          "when": "core roll hits (5% per lamp, pity by 5th exploration, §46.4)",
+          "spot": 12,
+          "cave": true,
+          "traveller": "walk J→B3→islet→dais, reach",
+          "visual": "three quickening hums; warm light dims, blue rises; stone lifts and spins, motes drawn in; big blue wave R15 + R22, screen blue flash; stone shrinks along an arc into the backpack; pedestal empty, hum stops for good",
+          "camera": "mid → dais close (vh 7.5) → slight pull back (vh 9) → home",
+          "prototype": "CAVE.evCore()"
+        },
+        {
+          "id": "carry_charcoal_rubbing",
+          "type": "carryItem",
+          "when": "carrying charcoal_rubbing (02)",
+          "spot": 10,
+          "visual": "rubs the worn marks",
+          "clueOnce": "m05_rubbing",
+          "clueText": "刻痕排起來，像石磬的長短。"
+        },
+        {
+          "id": "carry_copper_wind_whistle",
+          "type": "carryItem",
+          "when": "carrying copper_wind_whistle (04)",
+          "spot": 6,
+          "visual": "blows the whistle at the wind-hole crag; then cut to the cave: the sealed wall hums four times, shivers, grit falls from the seams",
+          "prototype": "CAVE.evWhistle()",
+          "clueOnce": "m05_whistle",
+          "clueText": "風哨一響，洞裡有一面牆跟著嗡，那後面是空的。"
+        },
+        {
+          "id": "ambient_first_wind",
+          "type": "ambientFirst",
+          "when": "first mountain wind (山風石歌)",
+          "visual": "nobody strikes it: the great bell rings 13 times",
+          "clue": "m05_thirteen",
+          "clueText": "沒有人敲，鐘樓的大鐘自己響了十三下。",
+          "note": "feeds 09 clock face 看懂; wording still to be confirmed by the user"
+        },
+        {
+          "id": "echo_visit",
+          "type": "ambientVisit",
+          "when": "see echoVisit rules",
+          "spot": 12,
+          "cave": true,
+          "visual": "cave mouth lets out the sound he made once; he walks in to fork J, the stone plays the sound back, he walks out",
+          "clue": null,
+          "rewards": "none (purely visual)"
+        }
+      ],
+      "specialFinds": [
+        {
+          "key": "tuning_fork",
+          "label": "調音叉",
+          "kind": "journeyItem",
+          "spot": 1,
+          "reveal": "敲石磬時調音叉共振發亮，旅人取下（琥珀色小演出，比照其他地圖信物）",
+          "use": "停擺鐘樓分辨真正的報時聲"
+        },
+        {
+          "key": "mica_flake",
+          "label": "薄雲母片",
+          "kind": "journeyItem",
+          "spot": 7,
+          "reveal": "方石鋸開露出雲母層，旅人剝下一片折出光斑",
+          "use": "折光觀測台分離重疊光線"
+        },
+        {
+          "key": "voice_stone",
+          "label": "藏聲石",
+          "kind": "core",
+          "spot": 12,
+          "where": "cave dais lotus pedestal",
+          "reveal": "cave event core_voice_stone (blue light, stone shrinks into the luggage)"
+        }
+      ],
+      "extraRules": {
+        "echoVisit": {
+          "maxPerExploration": 1,
+          "requiresSoundThisExploration": [
+            "chime",
+            "echo",
+            "bell",
+            "wind",
+            "wall"
+          ],
+          "mouthEchoOnce": true,
+          "chooseProbability": 0.6,
+          "notBeforeSeconds": 300,
+          "notAfterRest": true,
+          "visitEffectiveSeconds": 200,
+          "lampBufferSeconds": 60,
+          "fadeSeconds": 0.7,
+          "rule": "walkToMouthEff + visitEff + lampEtaFromCaveEff + 60 < nextLampDue - now (checked when choosing and again on arrival)"
+        },
+        "wind": {
+          "rollEverySeconds": 240,
+          "chance": 0.08,
+          "durationSeconds": 60,
+          "firstTimeBellStrikes": 13
+        }
+      },
+      "interactionSpots": [
+        {
+          "id": 1,
+          "name": "石磬架",
+          "marker": [
+            0.9,
+            1.344,
+            -1.5
+          ],
+          "standTarget": [
+            1.5,
+            -0.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            0.9,
+            -1.5
+          ],
+          "pose": "reach",
+          "blurb": "旅人敲了敲石磬，站著聽它的回聲。",
+          "makesSound": "chime"
+        },
+        {
+          "id": 2,
+          "name": "聽音喇叭",
+          "marker": [
+            14.6,
+            1.674,
+            0.2
+          ],
+          "standTarget": [
+            15.5,
+            0
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            14.6,
+            0.2
+          ],
+          "pose": "listen",
+          "blurb": "旅人把耳朵湊近銅喇叭，聽見遠處的水聲被放大了。",
+          "makesSound": null
+        },
+        {
+          "id": 3,
+          "name": "回音巨石",
+          "marker": [
+            -4.6,
+            3.525,
+            3.4
+          ],
+          "standTarget": [
+            -3,
+            4.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            -4.6,
+            3.4
+          ],
+          "pose": "call",
+          "blurb": "旅人對著巨石的凹洞喊了一聲，回聲慢了一拍才回來。",
+          "makesSound": "echo"
+        },
+        {
+          "id": 4,
+          "name": "觀景平台（休息點）",
+          "marker": [
+            4.349,
+            0.618,
+            19.009
+          ],
+          "standTarget": [
+            3.5,
+            20
+          ],
+          "approachAfter": [
+            [
+              3.39,
+              19.887
+            ],
+            [
+              3.115,
+              19.216
+            ],
+            [
+              3.89,
+              18.507
+            ],
+            [
+              4.29,
+              19.063
+            ]
+          ],
+          "leaveVia": [
+            [
+              3.89,
+              18.507
+            ],
+            [
+              3.115,
+              19.216
+            ],
+            [
+              3.39,
+              19.887
+            ]
+          ],
+          "look": [
+            7.888,
+            15.766
+          ],
+          "pose": "sitGaze",
+          "blurb": "旅人在觀景平台坐下，看雲海慢慢流過。",
+          "makesSound": null
+        },
+        {
+          "id": 5,
+          "name": "吊橋與鐘樓",
+          "marker": [
+            7.6,
+            3,
+            9.6
+          ],
+          "standTarget": [
+            24,
+            10.5
+          ],
+          "approachAfter": [
+            [
+              23.4,
+              10.25
+            ],
+            [
+              11.52,
+              10.25
+            ],
+            [
+              8.55,
+              12.62
+            ]
+          ],
+          "leaveVia": [
+            [
+              11.52,
+              10.25
+            ],
+            [
+              23.4,
+              10.25
+            ]
+          ],
+          "look": [
+            7.6,
+            12.6
+          ],
+          "pose": "reach",
+          "blurb": "旅人走過吊橋登上鐘樓，拉動撞木。大鐘的聲音一路滾過雲海。",
+          "makesSound": "bell"
+        },
+        {
+          "id": 6,
+          "name": "風孔岩",
+          "marker": [
+            0.6,
+            3.464,
+            21.8
+          ],
+          "standTarget": [
+            2.5,
+            22
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            0.6,
+            21.8
+          ],
+          "pose": "listen",
+          "blurb": "風從岩壁的孔洞吹過，發出低低的嗚嗚聲。",
+          "makesSound": "wind"
+        },
+        {
+          "id": 7,
+          "name": "水車鋸石坊",
+          "marker": [
+            -7.85,
+            5.556,
+            12.05
+          ],
+          "standTarget": [
+            -7.5,
+            8.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            -7.85,
+            11.6
+          ],
+          "pose": "inspect",
+          "blurb": "水車一圈一圈地轉，鋸子慢慢切開石塊。",
+          "makesSound": null
+        },
+        {
+          "id": 8,
+          "name": "石拱橋",
+          "marker": [
+            -4,
+            1.765,
+            12.85
+          ],
+          "standTarget": [
+            -3.5,
+            10.5
+          ],
+          "approachAfter": [
+            [
+              -3.746,
+              10.967
+            ],
+            [
+              -4,
+              12.85
+            ]
+          ],
+          "leaveVia": [
+            [
+              -3.746,
+              10.967
+            ]
+          ],
+          "look": [
+            -1.027,
+            13.252
+          ],
+          "pose": "look",
+          "blurb": "旅人站在橋頂，看溪水一路流向瀑布。",
+          "makesSound": null
+        },
+        {
+          "id": 9,
+          "name": "瀑布口",
+          "marker": [
+            0.582,
+            0.982,
+            15.303
+          ],
+          "standTarget": [
+            0.5,
+            16
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            12,
+            12
+          ],
+          "pose": "gaze",
+          "blurb": "旅人靠在欄繩旁，看水落進深淵。",
+          "makesSound": null
+        },
+        {
+          "id": 10,
+          "name": "風化記號石",
+          "marker": [
+            6.2,
+            2.046,
+            0.4
+          ],
+          "standTarget": [
+            7,
+            1
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            6.2,
+            0.4
+          ],
+          "pose": "crouch",
+          "blurb": "旅人蹲下來，用指尖摸石面上磨平的刻痕。",
+          "makesSound": null
+        },
+        {
+          "id": 11,
+          "name": "纜車站",
+          "marker": [
+            9.8,
+            4.054,
+            -2
+          ],
+          "standTarget": [
+            9,
+            -1.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            9.8,
+            -2
+          ],
+          "pose": "gaze",
+          "blurb": "旅人看著纜車慢慢滑進遠處的霧裡。",
+          "makesSound": null
+        },
+        {
+          "id": 12,
+          "name": "共鳴洞",
+          "marker": [
+            11.4,
+            4.3,
+            -9
+          ],
+          "standTarget": [
+            11.5,
+            -6.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            11.4,
+            -8.4
+          ],
+          "pose": "listen",
+          "blurb": "洞口傳來很輕的嗡聲，像有人在深處哼歌。",
+          "makesSound": null
+        },
+        {
+          "id": 13,
+          "name": "聲壁",
+          "marker": [
+            15.6,
+            4.6,
+            -9
+          ],
+          "standTarget": [
+            16,
+            -8
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            15.6,
+            -9.2
+          ],
+          "pose": "reach",
+          "blurb": "旅人輕敲聲壁，整面岩壁都跟著嗡了一下。",
+          "makesSound": "wall"
+        },
+        {
+          "id": 14,
+          "name": "石材推車",
+          "marker": [
+            14.6,
+            2.9,
+            -7.2
+          ],
+          "standTarget": [
+            14.5,
+            -5.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            14.6,
+            -7.2
+          ],
+          "pose": "inspect",
+          "blurb": "旅人摸了摸推車上的方石，還帶著涼意。",
+          "makesSound": null
+        },
+        {
+          "id": 15,
+          "name": "起重架與方石",
+          "marker": [
+            14.2,
+            3.968,
+            -4
+          ],
+          "standTarget": [
+            14,
+            -5.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            14.2,
+            -4
+          ],
+          "pose": "gaze",
+          "blurb": "旅人抬頭看起重架，鐵鏈偶爾輕輕作響。",
+          "makesSound": null
+        },
+        {
+          "id": 16,
+          "name": "鋸切壁鷹架",
+          "marker": [
+            17.6,
+            4.7,
+            -8.6
+          ],
+          "standTarget": [
+            17.5,
+            -8
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            17.6,
+            -9.1
+          ],
+          "pose": "gaze",
+          "blurb": "旅人看著鋸切壁上排得整整齊齊的鑽孔。",
+          "makesSound": null
+        },
+        {
+          "id": 17,
+          "name": "絞盤吊籠",
+          "marker": [
+            22.615,
+            2.222,
+            4.422
+          ],
+          "standTarget": [
+            23.5,
+            3.5
+          ],
+          "approachAfter": [],
+          "leaveVia": [],
+          "look": [
+            12,
+            12
+          ],
+          "pose": "reach",
+          "blurb": "旅人轉了轉絞盤，吊籠在霧裡晃了晃。",
+          "makesSound": null
+        }
+      ]
+    }
+  }
+}

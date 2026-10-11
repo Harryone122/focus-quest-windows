@@ -1,0 +1,2045 @@
+{
+  "areaId": "area-01-cloud-ruins",
+  "title": "雲上遺庭",
+  "coordinates": "u = 畫面右方, v = 畫面深處, y = 高度；世界座標 x = (u - v) / √2, z = -(u + v) / √2。旅人身高約 0.95。",
+  "plannedMinutes": 25,
+  "islands": [
+    {
+      "id": "A",
+      "name": "入口庭園",
+      "u": -13,
+      "v": -5.5,
+      "y": 0,
+      "r": 4.4,
+      "depth": 4.8
+    },
+    {
+      "id": "B",
+      "name": "中央庭園",
+      "u": 0,
+      "v": 1,
+      "y": 0.8,
+      "r": 6.6,
+      "depth": 6.4
+    },
+    {
+      "id": "C",
+      "name": "望亭高台",
+      "u": 12.5,
+      "v": 9,
+      "y": 3.4,
+      "r": 4.0,
+      "depth": 4.6
+    },
+    {
+      "id": "D",
+      "name": "松林小島",
+      "u": 12,
+      "v": -7.5,
+      "y": 0.2,
+      "r": 3.4,
+      "depth": 3.9
+    },
+    {
+      "id": "E",
+      "name": "星盤小島",
+      "u": -9,
+      "v": 10,
+      "y": 2.0,
+      "r": 3.2,
+      "depth": 3.8
+    }
+  ],
+  "nodes": [
+    {
+      "id": "entry0",
+      "u": -19.2,
+      "v": -9.0,
+      "y": -1.1,
+      "island": null,
+      "kind": "entry",
+      "label": "霧中踏石（入口）",
+      "world": [
+        -7.2125,
+        -1.1,
+        19.9404
+      ]
+    },
+    {
+      "id": "a_gate",
+      "u": -15.4,
+      "v": -6.6,
+      "y": 0,
+      "island": "A",
+      "kind": "path",
+      "label": "入口石徑",
+      "world": [
+        -6.2225,
+        0,
+        15.5563
+      ]
+    },
+    {
+      "id": "a_mid",
+      "u": -13.3,
+      "v": -5.3,
+      "y": 0,
+      "island": "A",
+      "kind": "path",
+      "label": "庭園岔路",
+      "world": [
+        -5.6569,
+        0,
+        13.1522
+      ]
+    },
+    {
+      "id": "a_edge",
+      "u": -16.3,
+      "v": -5.4,
+      "y": 0,
+      "island": "A",
+      "kind": "spot",
+      "label": "入口島緣",
+      "world": [
+        -7.7075,
+        0,
+        15.3442
+      ]
+    },
+    {
+      "id": "a_blossom",
+      "u": -14.5,
+      "v": -3.9,
+      "y": 0,
+      "island": "A",
+      "kind": "spot",
+      "label": "花樹下",
+      "world": [
+        -7.4953,
+        0,
+        13.0108
+      ]
+    },
+    {
+      "id": "a_stele",
+      "u": -11.8,
+      "v": -6.9,
+      "y": 0,
+      "island": "A",
+      "kind": "spot",
+      "label": "索引石碑",
+      "world": [
+        -3.4648,
+        0,
+        13.2229
+      ]
+    },
+    {
+      "id": "a_lamp",
+      "u": -12.4,
+      "v": -4.2,
+      "y": 0,
+      "island": "A",
+      "kind": "lamp",
+      "label": "第一盞燈",
+      "world": [
+        -5.7983,
+        0,
+        11.738
+      ]
+    },
+    {
+      "id": "a_pillars",
+      "u": -13.0,
+      "v": -2.6,
+      "y": 0,
+      "island": "A",
+      "kind": "spot",
+      "label": "斷柱",
+      "world": [
+        -7.3539,
+        0,
+        11.0309
+      ]
+    },
+    {
+      "id": "a_bridge",
+      "u": -9.3,
+      "v": -2.8,
+      "y": 0,
+      "island": "A",
+      "kind": "path",
+      "label": "石拱橋頭",
+      "world": [
+        -4.5962,
+        0,
+        8.556
+      ]
+    },
+    {
+      "id": "b_in",
+      "u": -5.9,
+      "v": -1.1,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "石拱橋尾",
+      "world": [
+        -3.3941,
+        0.8,
+        4.9497
+      ]
+    },
+    {
+      "id": "b_w",
+      "u": -4.0,
+      "v": -0.3,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "西側草坪",
+      "world": [
+        -2.6163,
+        0.8,
+        3.0406
+      ]
+    },
+    {
+      "id": "b_wl",
+      "u": -4.8,
+      "v": 1.0,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "西側小徑",
+      "world": [
+        -4.1012,
+        0.8,
+        2.687
+      ]
+    },
+    {
+      "id": "b_nw",
+      "u": -4.6,
+      "v": 5.0,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "踏石起點",
+      "world": [
+        -6.7882,
+        0.8,
+        -0.2828
+      ]
+    },
+    {
+      "id": "b_lake",
+      "u": -0.5,
+      "v": -1.8,
+      "y": 0.8,
+      "island": "B",
+      "kind": "spot",
+      "label": "湖邊",
+      "world": [
+        0.9192,
+        0.8,
+        1.6263
+      ]
+    },
+    {
+      "id": "b_falls",
+      "u": -1.0,
+      "v": -4.3,
+      "y": 0.8,
+      "island": "B",
+      "kind": "spot",
+      "label": "瀑布邊",
+      "world": [
+        2.3335,
+        0.8,
+        3.7477
+      ]
+    },
+    {
+      "id": "b_chest",
+      "u": -2.9,
+      "v": 2.8,
+      "y": 0.8,
+      "island": "B",
+      "kind": "spot",
+      "label": "半埋的箱匣",
+      "world": [
+        -4.0305,
+        0.8,
+        0.0707
+      ]
+    },
+    {
+      "id": "b_hub",
+      "u": -0.8,
+      "v": 0.2,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "大樹前廣場",
+      "world": [
+        -0.7071,
+        0.8,
+        0.4243
+      ]
+    },
+    {
+      "id": "b_tree",
+      "u": 0.5,
+      "v": 1.5,
+      "y": 0.8,
+      "island": "B",
+      "kind": "rest",
+      "label": "中央大樹",
+      "world": [
+        -0.7071,
+        0.8,
+        -1.4142
+      ]
+    },
+    {
+      "id": "b_meadow",
+      "u": 1.9,
+      "v": 0.5,
+      "y": 0.8,
+      "island": "B",
+      "kind": "rest",
+      "label": "大樹旁的草地",
+      "world": [
+        0.9899,
+        0.8,
+        -1.6971
+      ]
+    },
+    {
+      "id": "b_well",
+      "u": 1.3,
+      "v": -3.2,
+      "y": 0.8,
+      "island": "B",
+      "kind": "spot",
+      "label": "古井",
+      "world": [
+        3.182,
+        0.8,
+        1.3435
+      ]
+    },
+    {
+      "id": "b_e",
+      "u": 2.4,
+      "v": -0.8,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "東側岔路",
+      "world": [
+        2.2627,
+        0.8,
+        -1.1314
+      ]
+    },
+    {
+      "id": "b_lamp",
+      "u": 2.0,
+      "v": -1.7,
+      "y": 0.8,
+      "island": "B",
+      "kind": "lamp",
+      "label": "第三盞燈",
+      "world": [
+        2.6163,
+        0.8,
+        -0.2121
+      ]
+    },
+    {
+      "id": "b_sign",
+      "u": 4.0,
+      "v": -1.9,
+      "y": 0.8,
+      "island": "B",
+      "kind": "spot",
+      "label": "路標",
+      "world": [
+        4.1719,
+        0.8,
+        -1.4849
+      ]
+    },
+    {
+      "id": "b_rope",
+      "u": 5.14,
+      "v": -2.64,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "吊橋頭",
+      "world": [
+        5.5013,
+        0.8,
+        -1.7678
+      ]
+    },
+    {
+      "id": "b_arch",
+      "u": 3.9,
+      "v": 1.3,
+      "y": 0.8,
+      "island": "B",
+      "kind": "spot",
+      "label": "藤蔓拱門",
+      "world": [
+        1.8385,
+        0.8,
+        -3.677
+      ]
+    },
+    {
+      "id": "b_ne",
+      "u": 4.9,
+      "v": 3.4,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "東北坡",
+      "world": [
+        1.0607,
+        0.8,
+        -5.869
+      ]
+    },
+    {
+      "id": "b_cbr",
+      "u": 5.6,
+      "v": 4.3,
+      "y": 0.8,
+      "island": "B",
+      "kind": "path",
+      "label": "木梯橋頭",
+      "world": [
+        0.9192,
+        0.8,
+        -7.0004
+      ]
+    },
+    {
+      "id": "e_in",
+      "u": -7.2,
+      "v": 7.9,
+      "y": 2.0,
+      "island": "E",
+      "kind": "path",
+      "label": "星盤島入口",
+      "world": [
+        -10.6773,
+        2.0,
+        -0.495
+      ]
+    },
+    {
+      "id": "e_lamp",
+      "u": -7.9,
+      "v": 8.9,
+      "y": 2.0,
+      "island": "E",
+      "kind": "lamp",
+      "label": "第二盞燈",
+      "world": [
+        -11.8794,
+        2.0,
+        -0.7071
+      ]
+    },
+    {
+      "id": "e_astro",
+      "u": -9.3,
+      "v": 9.4,
+      "y": 2.0,
+      "island": "E",
+      "kind": "spot",
+      "label": "黃銅星盤",
+      "world": [
+        -13.2229,
+        2.0,
+        -0.0707
+      ]
+    },
+    {
+      "id": "e_edge",
+      "u": -11.3,
+      "v": 9.3,
+      "y": 2.0,
+      "island": "E",
+      "kind": "spot",
+      "label": "星盤島崖邊",
+      "world": [
+        -14.5664,
+        2.0,
+        1.4142
+      ]
+    },
+    {
+      "id": "c_in",
+      "u": 9.4,
+      "v": 6.9,
+      "y": 3.4,
+      "island": "C",
+      "kind": "path",
+      "label": "木梯橋尾",
+      "world": [
+        1.7678,
+        3.4,
+        -11.5258
+      ]
+    },
+    {
+      "id": "c_lamp",
+      "u": 11.0,
+      "v": 8.0,
+      "y": 3.4,
+      "island": "C",
+      "kind": "lamp",
+      "label": "第四盞燈",
+      "world": [
+        2.1213,
+        3.4,
+        -13.435
+      ]
+    },
+    {
+      "id": "c_pav",
+      "u": 12.3,
+      "v": 9.05,
+      "y": 3.4,
+      "island": "C",
+      "kind": "spot",
+      "label": "望亭",
+      "world": [
+        2.2981,
+        3.4,
+        -15.0967
+      ]
+    },
+    {
+      "id": "c_scope",
+      "u": 13.9,
+      "v": 7.3,
+      "y": 3.4,
+      "island": "C",
+      "kind": "spot",
+      "label": "銅製望遠鏡",
+      "world": [
+        4.6669,
+        3.4,
+        -14.9907
+      ]
+    },
+    {
+      "id": "c_exit",
+      "u": 15.8,
+      "v": 11.7,
+      "y": 3.4,
+      "island": "C",
+      "kind": "exit",
+      "label": "高台出口",
+      "world": [
+        2.8991,
+        3.4,
+        -19.4454
+      ]
+    },
+    {
+      "id": "d_in",
+      "u": 9.25,
+      "v": -5.5,
+      "y": 0.2,
+      "island": "D",
+      "kind": "path",
+      "label": "吊橋尾",
+      "world": [
+        10.4298,
+        0.2,
+        -2.6517
+      ]
+    },
+    {
+      "id": "d_mid",
+      "u": 11.6,
+      "v": -7.1,
+      "y": 0.2,
+      "island": "D",
+      "kind": "path",
+      "label": "松林岔路",
+      "world": [
+        13.2229,
+        0.2,
+        -3.182
+      ]
+    },
+    {
+      "id": "d_shrine",
+      "u": 12.5,
+      "v": -6.2,
+      "y": 0.2,
+      "island": "D",
+      "kind": "spot",
+      "label": "小石祠",
+      "world": [
+        13.2229,
+        0.2,
+        -4.4548
+      ]
+    },
+    {
+      "id": "d_lamp",
+      "u": 11.1,
+      "v": -8.1,
+      "y": 0.2,
+      "island": "D",
+      "kind": "lamp",
+      "label": "第五盞燈",
+      "world": [
+        13.5765,
+        0.2,
+        -2.1213
+      ]
+    },
+    {
+      "id": "d_pines",
+      "u": 13.2,
+      "v": -8.2,
+      "y": 0.2,
+      "island": "D",
+      "kind": "spot",
+      "label": "松樹間",
+      "world": [
+        15.1321,
+        0.2,
+        -3.5355
+      ]
+    },
+    {
+      "id": "d_exit",
+      "u": 14.9,
+      "v": -9.5,
+      "y": 0.2,
+      "island": "D",
+      "kind": "exit",
+      "label": "松林出口",
+      "world": [
+        17.2534,
+        0.2,
+        -3.8184
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "a": "entry0",
+      "b": "a_gate",
+      "kind": "steps",
+      "via": [
+        [
+          -17.4,
+          -7.9,
+          -0.35
+        ]
+      ],
+      "length": 4.65
+    },
+    {
+      "a": "a_gate",
+      "b": "a_mid",
+      "kind": "path",
+      "length": 2.47
+    },
+    {
+      "a": "a_gate",
+      "b": "a_edge",
+      "kind": "path",
+      "length": 1.5
+    },
+    {
+      "a": "a_mid",
+      "b": "a_blossom",
+      "kind": "path",
+      "length": 1.84
+    },
+    {
+      "a": "a_mid",
+      "b": "a_stele",
+      "kind": "path",
+      "length": 2.19
+    },
+    {
+      "a": "a_mid",
+      "b": "a_lamp",
+      "kind": "path",
+      "length": 1.42
+    },
+    {
+      "a": "a_lamp",
+      "b": "a_pillars",
+      "kind": "path",
+      "length": 1.71
+    },
+    {
+      "a": "a_blossom",
+      "b": "a_pillars",
+      "kind": "path",
+      "length": 1.98
+    },
+    {
+      "a": "a_lamp",
+      "b": "a_bridge",
+      "kind": "path",
+      "length": 3.4
+    },
+    {
+      "a": "a_bridge",
+      "b": "b_in",
+      "kind": "stoneBridge",
+      "via": [
+        [
+          -7.6,
+          -1.95,
+          0.95
+        ]
+      ],
+      "length": 4.03
+    },
+    {
+      "a": "b_in",
+      "b": "b_w",
+      "kind": "path",
+      "length": 2.06
+    },
+    {
+      "a": "b_w",
+      "b": "b_wl",
+      "kind": "path",
+      "length": 1.53
+    },
+    {
+      "a": "b_wl",
+      "b": "b_nw",
+      "kind": "path",
+      "length": 4.0
+    },
+    {
+      "a": "b_w",
+      "b": "b_hub",
+      "kind": "path",
+      "length": 3.24
+    },
+    {
+      "a": "b_hub",
+      "b": "b_lake",
+      "kind": "path",
+      "length": 2.02
+    },
+    {
+      "a": "b_lake",
+      "b": "b_well",
+      "kind": "path",
+      "via": [[1.3, -2.35, 0.8]],
+      "length": 2.28
+    },
+    {
+      "a": "b_lake",
+      "b": "b_falls",
+      "kind": "path",
+      "length": 2.55
+    },
+    {
+      "a": "b_wl",
+      "b": "b_chest",
+      "kind": "path",
+      "length": 2.62
+    },
+    {
+      "a": "b_hub",
+      "b": "b_chest",
+      "kind": "path",
+      "length": 3.34
+    },
+    {
+      "a": "b_chest",
+      "b": "b_nw",
+      "kind": "path",
+      "via": [[-4.8, 2.2, 0.8]],
+      "length": 2.78
+    },
+    {
+      "a": "b_hub",
+      "b": "b_tree",
+      "kind": "path",
+      "length": 1.84
+    },
+    {
+      "a": "b_hub",
+      "b": "b_well",
+      "kind": "path",
+      "length": 4.0
+    },
+    {
+      "a": "b_hub",
+      "b": "b_e",
+      "kind": "path",
+      "length": 3.35
+    },
+    {
+      "a": "b_well",
+      "b": "b_lamp",
+      "kind": "path",
+      "length": 1.66
+    },
+    {
+      "a": "b_e",
+      "b": "b_lamp",
+      "kind": "path",
+      "length": 0.98
+    },
+    {
+      "a": "b_e",
+      "b": "b_meadow",
+      "kind": "path",
+      "length": 1.39
+    },
+    {
+      "a": "b_meadow",
+      "b": "b_tree",
+      "kind": "path",
+      "length": 1.72
+    },
+    {
+      "a": "b_e",
+      "b": "b_sign",
+      "kind": "path",
+      "length": 1.94
+    },
+    {
+      "a": "b_sign",
+      "b": "b_rope",
+      "kind": "path",
+      "length": 1.36
+    },
+    {
+      "a": "b_e",
+      "b": "b_arch",
+      "kind": "path",
+      "length": 2.58
+    },
+    {
+      "a": "b_arch",
+      "b": "b_ne",
+      "kind": "path",
+      "length": 2.33
+    },
+    {
+      "a": "b_ne",
+      "b": "b_cbr",
+      "kind": "path",
+      "length": 1.14
+    },
+    {
+      "a": "b_nw",
+      "b": "e_in",
+      "kind": "steps",
+      "via": [
+        [
+          -5.6,
+          6.2,
+          1.1
+        ],
+        [
+          -6.5,
+          7.2,
+          1.5
+        ]
+      ],
+      "length": 4.1
+    },
+    {
+      "a": "e_in",
+      "b": "e_lamp",
+      "kind": "path",
+      "length": 1.22
+    },
+    {
+      "a": "e_lamp",
+      "b": "e_astro",
+      "kind": "path",
+      "length": 1.49
+    },
+    {
+      "a": "e_astro",
+      "b": "e_edge",
+      "kind": "path",
+      "length": 2.0
+    },
+    {
+      "a": "b_cbr",
+      "b": "c_in",
+      "kind": "timberStairs",
+      "via": [
+        [
+          7.5,
+          5.6,
+          2.1
+        ]
+      ],
+      "length": 5.29
+    },
+    {
+      "a": "c_in",
+      "b": "c_lamp",
+      "kind": "path",
+      "length": 1.94
+    },
+    {
+      "a": "c_lamp",
+      "b": "c_pav",
+      "kind": "path",
+      "length": 1.67
+    },
+    {
+      "a": "c_lamp",
+      "b": "c_scope",
+      "kind": "path",
+      "length": 2.98
+    },
+    {
+      "a": "c_pav",
+      "b": "c_exit",
+      "kind": "path",
+      "length": 4.39
+    },
+    {
+      "a": "b_rope",
+      "b": "d_in",
+      "kind": "ropeBridge",
+      "via": [
+        [
+          7.2,
+          -4.07,
+          -0.05
+        ]
+      ],
+      "length": 5.16
+    },
+    {
+      "a": "d_in",
+      "b": "d_mid",
+      "kind": "path",
+      "length": 2.84
+    },
+    {
+      "a": "d_mid",
+      "b": "d_shrine",
+      "kind": "path",
+      "length": 1.27
+    },
+    {
+      "a": "d_mid",
+      "b": "d_lamp",
+      "kind": "path",
+      "length": 1.12
+    },
+    {
+      "a": "d_mid",
+      "b": "d_pines",
+      "kind": "path",
+      "length": 1.94
+    },
+    {
+      "a": "d_lamp",
+      "b": "d_pines",
+      "kind": "path",
+      "length": 2.1
+    },
+    {
+      "a": "d_pines",
+      "b": "d_exit",
+      "kind": "path",
+      "length": 2.14
+    }
+  ],
+  "ports": {
+    "entry": "entry0",
+    "exits": [
+      {
+        "id": "exit_high",
+        "node": "c_exit",
+        "label": "高台出口"
+      },
+      {
+        "id": "exit_pines",
+        "node": "d_exit",
+        "label": "松林出口"
+      }
+    ]
+  },
+  "lamps": [
+    {
+      "index": 1,
+      "node": "a_lamp",
+      "prop": [
+        -12.0,
+        -3.5
+      ],
+      "dueAt": 0.2,
+      "propWorld": [
+        -6.0104,
+        0,
+        10.9602
+      ]
+    },
+    {
+      "index": 2,
+      "node": "e_lamp",
+      "prop": [
+        -7.4,
+        9.7
+      ],
+      "dueAt": 0.4,
+      "propWorld": [
+        -12.0915,
+        2.0,
+        -1.6263
+      ]
+    },
+    {
+      "index": 3,
+      "node": "b_lamp",
+      "prop": [
+        2.3,
+        -2.4
+      ],
+      "dueAt": 0.6,
+      "propWorld": [
+        3.3234,
+        0.8,
+        0.0707
+      ]
+    },
+    {
+      "index": 4,
+      "node": "c_lamp",
+      "prop": [
+        10.45,
+        9.05
+      ],
+      "dueAt": 0.8,
+      "propWorld": [
+        0.9899,
+        3.4,
+        -13.7886
+      ]
+    },
+    {
+      "index": 5,
+      "node": "d_lamp",
+      "prop": [
+        10.7,
+        -8.8
+      ],
+      "dueAt": 1.0,
+      "propWorld": [
+        13.7886,
+        0.2,
+        -1.3435
+      ]
+    }
+  ],
+  "spots": [
+    {
+      "id": "a_edge",
+      "name": "入口島緣",
+      "face": [
+        -19.5,
+        -5.6
+      ]
+    },
+    {
+      "id": "a_blossom",
+      "name": "花樹下",
+      "face": [
+        -15.3,
+        -3.0
+      ]
+    },
+    {
+      "id": "a_stele",
+      "name": "索引石碑",
+      "face": [
+        -11.2,
+        -6.3
+      ]
+    },
+    {
+      "id": "a_pillars",
+      "name": "斷柱",
+      "face": [
+        -12.5,
+        -1.8
+      ]
+    },
+    {
+      "id": "b_lake",
+      "name": "湖邊",
+      "face": [
+        -2.5,
+        -2.3
+      ]
+    },
+    {
+      "id": "b_falls",
+      "name": "瀑布邊",
+      "face": [
+        -2.4,
+        -7.2
+      ]
+    },
+    {
+      "id": "b_chest",
+      "name": "半埋的箱匣",
+      "face": [
+        -3.4,
+        3.6
+      ]
+    },
+    {
+      "id": "b_tree",
+      "name": "中央大樹",
+      "face": "view"
+    },
+    {
+      "id": "b_meadow",
+      "name": "大樹旁的草地",
+      "face": "view"
+    },
+    {
+      "id": "b_well",
+      "name": "古井",
+      "face": [
+        0.5,
+        -3.45
+      ]
+    },
+    {
+      "id": "b_arch",
+      "name": "藤蔓拱門",
+      "face": [
+        2.95,
+        1.86
+      ]
+    },
+    {
+      "id": "b_sign",
+      "name": "路標",
+      "face": [
+        4.45,
+        -1.45
+      ]
+    },
+    {
+      "id": "e_astro",
+      "name": "黃銅星盤",
+      "face": [
+        -9.7,
+        10.3
+      ]
+    },
+    {
+      "id": "e_edge",
+      "name": "星盤島崖邊",
+      "face": [
+        -14.5,
+        9.0
+      ]
+    },
+    {
+      "id": "c_pav",
+      "name": "望亭",
+      "face": "view",
+      "seat": "bench"
+    },
+    {
+      "id": "c_scope",
+      "name": "銅製望遠鏡",
+      "face": [
+        14.5,
+        6.9
+      ]
+    },
+    {
+      "id": "d_shrine",
+      "name": "小石祠",
+      "face": [
+        13.0,
+        -5.7
+      ]
+    },
+    {
+      "id": "d_pines",
+      "name": "松樹間",
+      "face": [
+        13.9,
+        -8.7
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "ev_edge_clouds",
+      "spot": "a_edge",
+      "name": "站在島緣看雲海慢慢流過",
+      "anim": "gaze",
+      "dur": [
+        40,
+        90
+      ],
+      "weight": 3,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_blossom_watch",
+      "spot": "a_blossom",
+      "name": "抬頭看花瓣一片片落下",
+      "anim": "gaze",
+      "dur": [
+        40,
+        80
+      ],
+      "weight": 3,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_blossom_press",
+      "spot": "a_blossom",
+      "name": "撿起一片花瓣，夾進筆記本",
+      "anim": "pickup",
+      "dur": [
+        25,
+        40
+      ],
+      "weight": 1.5,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_stele_read",
+      "spot": "a_stele",
+      "name": "讀著索引石碑上的字",
+      "anim": "inspect",
+      "dur": [
+        40,
+        70
+      ],
+      "weight": 3,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_stele_rubbing",
+      "spot": "a_stele",
+      "name": "蹲下來拓一段碑文",
+      "anim": "crouch",
+      "dur": [
+        60,
+        90
+      ],
+      "weight": 1,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_pillar_marks",
+      "spot": "a_pillars",
+      "name": "查看斷柱上的刻痕",
+      "anim": "inspect",
+      "dur": [
+        30,
+        60
+      ],
+      "weight": 2.5,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_pillar_rest",
+      "spot": "a_pillars",
+      "name": "在斷柱旁坐下歇一會",
+      "anim": "sit",
+      "dur": [
+        45,
+        90
+      ],
+      "weight": 2,
+      "tags": [
+        "rest"
+      ],
+      "outcome": "ambient",
+      "face": "view"
+    },
+    {
+      "id": "ev_lake_reflection",
+      "spot": "b_lake",
+      "name": "蹲在湖邊看自己的倒影",
+      "anim": "crouch",
+      "dur": [
+        40,
+        80
+      ],
+      "weight": 3,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_lake_boat",
+      "spot": "b_lake",
+      "name": "折了一艘紙船放進湖裡",
+      "anim": "crouch",
+      "dur": [
+        30,
+        50
+      ],
+      "weight": 1.5,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient",
+      "effect": "paperBoat"
+    },
+    {
+      "id": "ev_falls_watch",
+      "spot": "b_falls",
+      "name": "站在瀑布邊，看水落進雲裡",
+      "anim": "gaze",
+      "dur": [
+        40,
+        80
+      ],
+      "weight": 2.5,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_chest_look",
+      "spot": "b_chest",
+      "name": "看了看半埋在土裡的箱匣",
+      "anim": "inspect",
+      "dur": [
+        20,
+        35
+      ],
+      "weight": 1.5,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_chest_open",
+      "spot": "b_chest",
+      "name": "拂去泥土，打開半埋的箱匣",
+      "anim": "crouch",
+      "dur": [
+        50,
+        80
+      ],
+      "weight": 0.8,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient",
+      "effect": "chestOpen"
+    },
+    {
+      "id": "ev_well_peek",
+      "spot": "b_well",
+      "name": "探頭往古井裡看",
+      "anim": "inspect",
+      "dur": [
+        30,
+        50
+      ],
+      "weight": 2.5,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_well_drink",
+      "spot": "b_well",
+      "name": "打了一瓢井水喝",
+      "anim": "drink",
+      "dur": [
+        35,
+        60
+      ],
+      "weight": 2,
+      "tags": [
+        "rest"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_tree_listen",
+      "spot": "b_tree",
+      "name": "站在大樹下聽葉子的聲音",
+      "anim": "gaze",
+      "dur": [
+        40,
+        80
+      ],
+      "weight": 2.5,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient",
+      "face": [
+        0.5,
+        2.3
+      ]
+    },
+    {
+      "id": "ev_meadow_lie",
+      "spot": "b_meadow",
+      "name": "躺在草地上吹一會風",
+      "anim": "lie",
+      "dur": [
+        60,
+        120
+      ],
+      "weight": 1.5,
+      "tags": [
+        "rest"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_arch_vines",
+      "spot": "b_arch",
+      "name": "伸手撫過拱門上的藤蔓",
+      "anim": "reach",
+      "dur": [
+        20,
+        40
+      ],
+      "weight": 2.5,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_arch_gap",
+      "spot": "b_arch",
+      "name": "在拱石的缺口摸到一枚舊銅扣",
+      "anim": "reach",
+      "dur": [
+        40,
+        60
+      ],
+      "weight": 0.6,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_sign_read",
+      "spot": "b_sign",
+      "name": "讀路標上褪色的字",
+      "anim": "inspect",
+      "dur": [
+        15,
+        30
+      ],
+      "weight": 2,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_astro_turn",
+      "spot": "e_astro",
+      "name": "輕輕轉動黃銅星盤的環",
+      "anim": "reach",
+      "dur": [
+        40,
+        80
+      ],
+      "weight": 2.5,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient",
+      "effect": "astroSpin"
+    },
+    {
+      "id": "ev_astro_chart",
+      "spot": "e_astro",
+      "name": "對著星盤記下幾顆星的位置",
+      "anim": "write",
+      "dur": [
+        60,
+        90
+      ],
+      "weight": 1.2,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient",
+      "time": [
+        "dusk",
+        "night"
+      ]
+    },
+    {
+      "id": "ev_edge_sit",
+      "spot": "e_edge",
+      "name": "坐在崖邊，看腳下的雲",
+      "anim": "sitEdge",
+      "dur": [
+        60,
+        100
+      ],
+      "weight": 2,
+      "tags": [
+        "rest"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_pav_sit",
+      "spot": "c_pav",
+      "name": "在望亭裡坐一會",
+      "anim": "sit",
+      "dur": [
+        60,
+        120
+      ],
+      "weight": 2.5,
+      "tags": [
+        "rest"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_scope_look",
+      "spot": "c_scope",
+      "name": "用望遠鏡看遠方的島",
+      "anim": "inspect",
+      "dur": [
+        40,
+        80
+      ],
+      "weight": 2.5,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_shrine_stone",
+      "spot": "d_shrine",
+      "name": "在小石祠前放一顆小石頭",
+      "anim": "pickup",
+      "dur": [
+        20,
+        40
+      ],
+      "weight": 2,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient",
+      "effect": "pebble"
+    },
+    {
+      "id": "ev_shrine_bow",
+      "spot": "d_shrine",
+      "name": "在小石祠前靜靜站了一會",
+      "anim": "bow",
+      "dur": [
+        20,
+        35
+      ],
+      "weight": 1.5,
+      "tags": [
+        "ruins"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_pines_cone",
+      "spot": "d_pines",
+      "name": "撿起一顆松果",
+      "anim": "pickup",
+      "dur": [
+        20,
+        40
+      ],
+      "weight": 2.5,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_pines_breathe",
+      "spot": "d_pines",
+      "name": "在松樹間伸個懶腰，深呼吸",
+      "anim": "stretch",
+      "dur": [
+        20,
+        35
+      ],
+      "weight": 2,
+      "tags": [
+        "nature"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_falls_mist",
+      "spot": "b_falls",
+      "name": "伸手接住瀑布飄上來的水霧",
+      "anim": "reach",
+      "dur": [
+        25,
+        45
+      ],
+      "weight": 1.5,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_meadow_clover",
+      "spot": "b_meadow",
+      "name": "蹲在草地上找四葉草",
+      "anim": "crouch",
+      "dur": [
+        30,
+        60
+      ],
+      "weight": 1.5,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_edge_pebble",
+      "spot": "e_edge",
+      "name": "撿起一顆小石子，輕輕丟進雲海",
+      "anim": "pickup",
+      "dur": [
+        18,
+        30
+      ],
+      "weight": 1.2,
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "ev_meadow_fireflies",
+      "spot": "b_meadow",
+      "name": "坐在草地上看螢火蟲",
+      "anim": "sitGaze",
+      "dur": [
+        60,
+        120
+      ],
+      "weight": 2,
+      "time": [
+        "dusk",
+        "night"
+      ],
+      "tags": [
+        "observation"
+      ],
+      "outcome": "ambient"
+    },
+    {
+      "id": "rare_well_wick",
+      "spot": "b_well",
+      "name": "打水時，桶裡撈上來一截用油布包著的舊燈芯",
+      "anim": "find",
+      "source": "well",
+      "dur": [
+        70,
+        100
+      ],
+      "rare": true,
+      "tags": [
+        "discovery"
+      ],
+      "outcome": "item",
+      "once": true,
+      "item": {
+        "id": "old_wick",
+        "name": "舊燈芯",
+        "kind": "relic",
+        "tags": [
+          "LIGHT"
+        ]
+      },
+      "tagGain": [
+        "LIGHT"
+      ],
+      "note": "找到遺物「舊燈芯」。",
+      "tier": "journey"
+    },
+    {
+      "id": "rare_lake_lens",
+      "spot": "b_lake",
+      "name": "看見淺水裡閃了一下，伸手撈起一片風化鏡片",
+      "anim": "find",
+      "source": "lake",
+      "dur": [
+        60,
+        90
+      ],
+      "rare": true,
+      "tags": [
+        "discovery"
+      ],
+      "outcome": "item",
+      "once": true,
+      "item": {
+        "id": "weathered_lens",
+        "name": "風化鏡片",
+        "kind": "relic",
+        "tags": [
+          "OBSERVATION"
+        ]
+      },
+      "tagGain": [
+        "OBSERVATION"
+      ],
+      "note": "找到遺物「風化鏡片」。",
+      "tier": "journey"
+    },
+    {
+      "id": "rare_astro_core",
+      "spot": "e_astro",
+      "name": "看著星盤的環慢慢對齊，中心升起一顆星盤核心",
+      "anim": "find",
+      "source": "astro",
+      "dur": [
+        70,
+        100
+      ],
+      "rare": true,
+      "tags": [
+        "discovery"
+      ],
+      "outcome": "item",
+      "once": true,
+      "item": {
+        "id": "astrolabe_core",
+        "name": "星盤核心",
+        "kind": "token",
+        "tags": [
+          "OBSERVATION"
+        ]
+      },
+      "tagGain": [
+        "OBSERVATION"
+      ],
+      "note": "找到信物「星盤核心」。",
+      "tier": "core"
+    }
+  ],
+  "anywhereEvents": [
+    {
+      "id": "amb_stretch",
+      "name": "伸個懶腰",
+      "anim": "stretch",
+      "dur": [
+        8,
+        15
+      ]
+    },
+    {
+      "id": "amb_clouds",
+      "name": "抬頭看雲",
+      "anim": "gaze",
+      "dur": [
+        10,
+        25
+      ]
+    },
+    {
+      "id": "amb_birds",
+      "name": "看遠方飛過的鳥",
+      "anim": "gaze",
+      "dur": [
+        10,
+        20
+      ],
+      "time": [
+        "dawn",
+        "day",
+        "dusk"
+      ]
+    },
+    {
+      "id": "amb_fireflies",
+      "name": "停下來看螢火蟲",
+      "anim": "gaze",
+      "dur": [
+        20,
+        40
+      ],
+      "time": [
+        "night"
+      ]
+    },
+    {
+      "id": "amb_pack",
+      "name": "蹲下來整理背包",
+      "anim": "crouch",
+      "dur": [
+        15,
+        25
+      ]
+    }
+  ],
+  "restActivities": [
+    {
+      "id": "rest_notes",
+      "node": "b_tree",
+      "name": "靠著大樹整理筆記",
+      "anim": "write",
+      "dur": [
+        180,
+        600
+      ],
+      "weight": 3
+    },
+    {
+      "id": "rest_lie",
+      "node": "b_meadow",
+      "name": "躺在大樹旁的草地上吹風",
+      "anim": "lie",
+      "dur": [
+        180,
+        600
+      ],
+      "weight": 2.5
+    },
+    {
+      "id": "rest_clouds",
+      "node": "b_tree",
+      "name": "坐在樹下看雲",
+      "anim": "sitGaze",
+      "dur": [
+        120,
+        300
+      ],
+      "weight": 1.5
+    },
+    {
+      "id": "rest_traces",
+      "node": "b_tree",
+      "name": "坐在樹下，看著旁邊那塊被壓平的草地出神",
+      "anim": "sitGaze",
+      "dur": [
+        90,
+        200
+      ],
+      "weight": 0.8,
+      "face": [
+        -0.92,
+        2.93
+      ]
+    }
+  ],
+  "water": {
+    "lake": {
+      "center": [
+        -2.5,
+        -2.3
+      ],
+      "radius": 1.85,
+      "note": "不規則湖面，最大半徑約 2.1；旅人不可進入"
+    },
+    "stream": {
+      "from": [
+        -2.35,
+        -4.1
+      ],
+      "to": [
+        -2.25,
+        -5.5
+      ]
+    },
+    "waterfall": {
+      "lip": [
+        -2.25,
+        -5.5
+      ],
+      "note": "從中央庭園前緣流進雲海，純視覺"
+    }
+  },
+  "worldMarks": {
+    "chestOpen": "ev_chest_open 或 rare_chest_key 之後箱匣保持打開",
+    "paperBoat": "ev_lake_boat 之後湖上留一艘紙船",
+    "shrinePebbles": "ev_shrine_stone 每次 +1（上限 15）",
+    "persist": "跨天保留（2026-09-25 使用者決定）",
+    "treeTraces": "rest_traces_first（大樹旁的舊痕跡）第一次看完後回報 tree_traces_seen，之後只保留 rest_traces 這個一般休息動作",
+    "coreTaken": "星盤核心已取得後，星盤中心換成空的黃銅托座，星環轉得更慢"
+  },
+  "specialFindsPerArea": 3,
+  "departures": [
+    {
+      "id": "depart_exit_high",
+      "exit": "exit_high",
+      "exitNode": "c_exit",
+      "label": "高台出口",
+      "style": "stairs",
+      "offMap": [
+        [
+          16.8,
+          12.5,
+          3.85
+        ],
+        [
+          17.8,
+          13.3,
+          4.35
+        ],
+        [
+          18.8,
+          14.1,
+          4.9
+        ],
+        [
+          19.7,
+          14.8,
+          5.45
+        ]
+      ],
+      "leaveMsg": "旅人穿過石門，踏上往雲裡去的浮空石階，身影慢慢沒入霧中。"
+    },
+    {
+      "id": "depart_exit_pines",
+      "exit": "exit_pines",
+      "exitNode": "d_exit",
+      "label": "松林出口",
+      "style": "steps",
+      "offMap": [
+        [
+          15.9,
+          -10.3,
+          -0.25
+        ],
+        [
+          16.9,
+          -11.1,
+          -0.8
+        ],
+        [
+          17.9,
+          -11.9,
+          -1.45
+        ],
+        [
+          18.8,
+          -12.6,
+          -2.2
+        ]
+      ],
+      "leaveMsg": "旅人穿過松林邊的木柱，沿著往下的踏石走進低處的雲霧裡。"
+    }
+  ],
+  "departureDurationMs": 5000,
+  "appPacing": {
+    "walkUnitsPerSecond": 0.35,
+    "note": "建議的正式 App 步行速度（旅人身高約 0.95）。事件時長 dur 以正式 App 秒數表示。"
+  },
+  "lampLegs": [
+    {
+      "from": "entry0",
+      "to": "a_lamp",
+      "distance": 8.5,
+      "walkSecondsAtAppPace": 24
+    },
+    {
+      "from": "a_lamp",
+      "to": "e_lamp",
+      "distance": 20.3,
+      "walkSecondsAtAppPace": 58
+    },
+    {
+      "from": "e_lamp",
+      "to": "b_lamp",
+      "distance": 15.8,
+      "walkSecondsAtAppPace": 45
+    },
+    {
+      "from": "b_lamp",
+      "to": "c_lamp",
+      "distance": 14.3,
+      "walkSecondsAtAppPace": 41
+    },
+    {
+      "from": "c_lamp",
+      "to": "d_lamp",
+      "distance": 25.7,
+      "walkSecondsAtAppPace": 73
+    },
+    {
+      "from": "d_lamp",
+      "to": "b_tree",
+      "distance": 15.5,
+      "walkSecondsAtAppPace": 44
+    }
+  ],
+  "journeyTiers": {
+    "note": "§46：tier journey = 旅程信物（每次完整探索必得其一，可在任一盞燈出現，琥珀色小型演出）；tier core = 永久核心（每盞 5%／第五次保底，藍光與星點大型演出）。後端抽選與保存以 Codex 為準，前端只依 tier 決定演出。",
+    "journey": [
+      "rare_well_wick",
+      "rare_lake_lens"
+    ],
+    "core": [
+      "rare_astro_core"
+    ]
+  }
+}

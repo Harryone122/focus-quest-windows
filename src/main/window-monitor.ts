@@ -48,9 +48,15 @@ export class WindowMonitor {
       this.stop()
       return
     }
+    if (snapshot.activeSession.suspendedAt) {
+      this.overlayWindow()?.hide()
+      return
+    }
     try {
       const { activeWindow } = await import('get-windows')
       const active = await activeWindow()
+      const current = this.database.getSnapshot().activeSession
+      if (!current || current.id !== snapshot.activeSession.id || current.suspendedAt) return
       const processName = active?.owner?.name?.toLowerCase() ?? ''
       if (!processName || NEVER_BLOCK.has(processName)) return
       const rule = snapshot.blockRules.find((entry) => entry.enabled && entry.processName.toLowerCase() === processName)

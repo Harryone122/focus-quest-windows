@@ -1,0 +1,1266 @@
+{
+ "generated": "2026-09-30",
+ "tool": "docs/area03/qa/check.js (BVH ray casts against the final reflection-lake.html)",
+ "params": {
+  "stepAlongEdge": 0.1,
+  "bodyRadius": 0.27,
+  "bodyHeightsAboveFoot": [
+   0.08,
+   0.25,
+   0.45,
+   0.65,
+   0.8
+  ],
+  "brimRadius": 0.36,
+  "brimHeightsAboveFoot": [
+   1.05,
+   1.12,
+   1.2
+  ],
+  "reedMin": 0.45,
+  "floorLikeFaceNormalY": 0.5,
+  "ignoreBelowFootPlus": 0.05,
+  "rockLumpStepMax": 0.15
+ },
+ "result": {
+  "edges": 46,
+  "stations": 43,
+  "minBodyClearance": 0.04,
+  "minBrimClearance": 0.021,
+  "minReedDistance": 0.519,
+  "failing": []
+ },
+ "movedNodes": [
+  {
+   "id": "c_lamp2",
+   "spec": [
+    -5.15,
+    0.65
+   ],
+   "final": [
+    -5.15,
+    0.6
+   ],
+   "distance": 0.05
+  },
+  {
+   "id": "c_pillar",
+   "spec": [
+    -2.4,
+    2.05
+   ],
+   "final": [
+    -2.4,
+    2.0
+   ],
+   "distance": 0.05
+  },
+  {
+   "id": "k_shelf",
+   "spec": [
+    8.45,
+    3.2
+   ],
+   "final": [
+    8.49,
+    3.2
+   ],
+   "distance": 0.04
+  },
+  {
+   "id": "k_roots",
+   "spec": [
+    11.2,
+    2.7
+   ],
+   "final": [
+    11.25,
+    2.75
+   ],
+   "distance": 0.07
+  },
+  {
+   "id": "p_bench",
+   "spec": [
+    1.5,
+    11.6
+   ],
+   "final": [
+    1.5,
+    11.5
+   ],
+   "distance": 0.1
+  },
+  {
+   "id": "s_isle",
+   "spec": [
+    -1.35,
+    -6.75
+   ],
+   "final": [
+    -1.35,
+    -6.7
+   ],
+   "distance": 0.05
+  }
+ ],
+ "nodes": [
+  {
+   "id": "entry0",
+   "u": -20.34,
+   "v": -4.29,
+   "surfaceY": 0.166,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 4.113
+  },
+  {
+   "id": "r_landing",
+   "u": -16.9,
+   "v": -3.45,
+   "surfaceY": 0.038,
+   "minBodyClearance": 0.101,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 0.868
+  },
+  {
+   "id": "r_reeds",
+   "u": -15.0,
+   "v": -3.25,
+   "surfaceY": 0.156,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 0.558
+  },
+  {
+   "id": "r_south",
+   "u": -13.0,
+   "v": -3.75,
+   "surfaceY": 0.161,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 0.762
+  },
+  {
+   "id": "r_pool",
+   "u": -10.95,
+   "v": -3.2,
+   "surfaceY": 0.123,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 1.56
+  },
+  {
+   "id": "r_box",
+   "u": -11.9,
+   "v": -2.0,
+   "surfaceY": 0.194,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 1.035
+  },
+  {
+   "id": "r_gauge",
+   "u": -11.45,
+   "v": -1.05,
+   "surfaceY": 0.177,
+   "minBodyClearance": 0.388,
+   "minBrimClearance": 0.319,
+   "spinClearance": 0.229,
+   "reedDistance": 0.998
+  },
+  {
+   "id": "r_lamp1",
+   "u": -10.95,
+   "v": 0.35,
+   "surfaceY": 0.116,
+   "minBodyClearance": 0.31,
+   "minBrimClearance": 0.22,
+   "spinClearance": 0.13,
+   "reedDistance": 1.393
+  },
+  {
+   "id": "r_boat",
+   "u": -14.25,
+   "v": 0.95,
+   "surfaceY": 0.085,
+   "minBodyClearance": 0.313,
+   "minBrimClearance": null,
+   "spinClearance": 0.118,
+   "reedDistance": 1.798
+  },
+  {
+   "id": "r_cw",
+   "u": -9.3,
+   "v": -1.17,
+   "surfaceY": 0.176,
+   "minBodyClearance": 0.663,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 1.026
+  },
+  {
+   "id": "c_west",
+   "u": -5.45,
+   "v": -0.3,
+   "surfaceY": 0.108,
+   "minBodyClearance": 0.869,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": 4.476
+  },
+  {
+   "id": "c_lamp2",
+   "u": -5.15,
+   "v": 0.6,
+   "surfaceY": 0.108,
+   "minBodyClearance": 0.277,
+   "minBrimClearance": 0.076,
+   "spinClearance": -0.014,
+   "reedDistance": 5.172
+  },
+  {
+   "id": "c_stair",
+   "u": -1.2,
+   "v": -0.55,
+   "surfaceY": 0.16,
+   "minBodyClearance": 0.583,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "c_home",
+   "u": -0.8,
+   "v": 0.6,
+   "surfaceY": 0.201,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "c_pillar",
+   "u": -2.4,
+   "v": 2.0,
+   "surfaceY": 0.298,
+   "minBodyClearance": 0.399,
+   "minBrimClearance": 0.332,
+   "spinClearance": 0.23,
+   "reedDistance": null
+  },
+  {
+   "id": "c_north",
+   "u": 0.45,
+   "v": 3.85,
+   "surfaceY": 0.188,
+   "minBodyClearance": 0.992,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "c_estair",
+   "u": 1.45,
+   "v": 0.6,
+   "surfaceY": 0.16,
+   "minBodyClearance": 0.446,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "c_column",
+   "u": 2.85,
+   "v": 1.3,
+   "surfaceY": 0.126,
+   "minBodyClearance": 0.202,
+   "minBrimClearance": null,
+   "spinClearance": 0.069,
+   "reedDistance": null
+  },
+  {
+   "id": "c_stele",
+   "u": 0.65,
+   "v": -1.9,
+   "surfaceY": 0.124,
+   "minBodyClearance": 0.565,
+   "minBrimClearance": 0.384,
+   "spinClearance": 0.294,
+   "reedDistance": null
+  },
+  {
+   "id": "c_breach",
+   "u": 0.7,
+   "v": -2.8,
+   "surfaceY": 0.108,
+   "minBodyClearance": 1.095,
+   "minBrimClearance": null,
+   "spinClearance": 0.915,
+   "reedDistance": null
+  },
+  {
+   "id": "c_south",
+   "u": -0.9,
+   "v": -3.85,
+   "surfaceY": 0.117,
+   "minBodyClearance": 0.675,
+   "minBrimClearance": null,
+   "spinClearance": 0.495,
+   "reedDistance": null
+  },
+  {
+   "id": "c_steps",
+   "u": 3.9,
+   "v": -3.7,
+   "surfaceY": 0.34,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "c_east",
+   "u": 5.3,
+   "v": 0.5,
+   "surfaceY": 0.108,
+   "minBodyClearance": 1.048,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "e_cw",
+   "u": 7.1,
+   "v": 1.2,
+   "surfaceY": 0.176,
+   "minBodyClearance": 0.454,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "k_lamp4",
+   "u": 8.4,
+   "v": 2.0,
+   "surfaceY": 0.647,
+   "minBodyClearance": 0.255,
+   "minBrimClearance": 0.376,
+   "spinClearance": 0.065,
+   "reedDistance": null
+  },
+  {
+   "id": "k_shelf",
+   "u": 8.49,
+   "v": 3.2,
+   "surfaceY": 0.553,
+   "minBodyClearance": 0.089,
+   "minBrimClearance": null,
+   "spinClearance": 0.346,
+   "reedDistance": null
+  },
+  {
+   "id": "k_top",
+   "u": 9.7,
+   "v": 2.2,
+   "surfaceY": 1.245,
+   "minBodyClearance": 0.459,
+   "minBrimClearance": 0.38,
+   "spinClearance": 0.29,
+   "reedDistance": null
+  },
+  {
+   "id": "k_branch",
+   "u": 9.35,
+   "v": 1.85,
+   "surfaceY": 1.178,
+   "minBodyClearance": 0.534,
+   "minBrimClearance": 0.224,
+   "spinClearance": 0.134,
+   "reedDistance": null
+  },
+  {
+   "id": "k_roots",
+   "u": 11.25,
+   "v": 2.75,
+   "surfaceY": 1.079,
+   "minBodyClearance": 0.041,
+   "minBrimClearance": 0.246,
+   "spinClearance": 0.05,
+   "reedDistance": null
+  },
+  {
+   "id": "k_east",
+   "u": 12.3,
+   "v": 3.0,
+   "surfaceY": 0.76,
+   "minBodyClearance": 1.005,
+   "minBrimClearance": 1.173,
+   "spinClearance": 0.959,
+   "reedDistance": null
+  },
+  {
+   "id": "b_far",
+   "u": 14.01,
+   "v": 3.31,
+   "surfaceY": 0.167,
+   "minBodyClearance": 0.918,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "n_lamp3",
+   "u": 1.0,
+   "v": 6.55,
+   "surfaceY": 0.176,
+   "minBodyClearance": 0.222,
+   "minBrimClearance": null,
+   "spinClearance": 0.297,
+   "reedDistance": null
+  },
+  {
+   "id": "n_pier",
+   "u": 1.1,
+   "v": 6.95,
+   "surfaceY": 0.176,
+   "minBodyClearance": 0.22,
+   "minBrimClearance": null,
+   "spinClearance": 0.385,
+   "reedDistance": null
+  },
+  {
+   "id": "p_lamp5",
+   "u": 1.85,
+   "v": 8.65,
+   "surfaceY": 0.176,
+   "minBodyClearance": 1.018,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "p_entry",
+   "u": 2.1,
+   "v": 9.9,
+   "surfaceY": 0.126,
+   "minBodyClearance": 0.483,
+   "minBrimClearance": 0.493,
+   "spinClearance": 0.346,
+   "reedDistance": null
+  },
+  {
+   "id": "p_mirror",
+   "u": 1.38,
+   "v": 10.64,
+   "surfaceY": 0.123,
+   "minBodyClearance": 0.119,
+   "minBrimClearance": 0.636,
+   "spinClearance": 0.267,
+   "reedDistance": null
+  },
+  {
+   "id": "p_table",
+   "u": 2.75,
+   "v": 10.7,
+   "surfaceY": 0.126,
+   "minBodyClearance": 0.199,
+   "minBrimClearance": null,
+   "spinClearance": 0.127,
+   "reedDistance": null
+  },
+  {
+   "id": "p_bench",
+   "u": 1.5,
+   "v": 11.5,
+   "surfaceY": 0.149,
+   "minBodyClearance": 0.057,
+   "minBrimClearance": 0.532,
+   "spinClearance": 0.248,
+   "reedDistance": null
+  },
+  {
+   "id": "p_west",
+   "u": 1.15,
+   "v": 11.45,
+   "surfaceY": 0.164,
+   "minBodyClearance": 0.107,
+   "minBrimClearance": 0.518,
+   "spinClearance": 0.428,
+   "reedDistance": null
+  },
+  {
+   "id": "a_stones",
+   "u": -1.9,
+   "v": 13.0,
+   "surfaceY": 0.155,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "a_arch",
+   "u": -3.4,
+   "v": 13.8,
+   "surfaceY": 0.169,
+   "minBodyClearance": 0.39,
+   "minBrimClearance": 0.311,
+   "spinClearance": 0.221,
+   "reedDistance": null
+  },
+  {
+   "id": "s_isle",
+   "u": -1.35,
+   "v": -6.7,
+   "surfaceY": 0.144,
+   "minBodyClearance": 0.04,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  },
+  {
+   "id": "s_ring",
+   "u": 0.15,
+   "v": -8.2,
+   "surfaceY": 0.122,
+   "minBodyClearance": 0.159,
+   "minBrimClearance": null,
+   "spinClearance": null,
+   "reedDistance": null
+  }
+ ],
+ "edges": [
+  {
+   "a": "entry0",
+   "b": "r_landing",
+   "kind": "stones",
+   "length": 3.587,
+   "minSurfaceY": 0.005,
+   "maxSlope": 0.05,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.75,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "minReedDistance": 0.868,
+   "minHeadroomVsHat1.40": null,
+   "hops": [
+    [
+     3,
+     11,
+     0.75
+    ],
+    [
+     18,
+     26,
+     0.75
+    ]
+   ]
+  },
+  {
+   "a": "r_landing",
+   "b": "r_reeds",
+   "kind": "mud",
+   "length": 1.91,
+   "minSurfaceY": 0.038,
+   "maxSlope": 0.154,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.291,
+   "minBrimClearance": null,
+   "minReedDistance": 0.558,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_reeds",
+   "b": "r_south",
+   "kind": "mud",
+   "length": 2.098,
+   "minSurfaceY": 0.083,
+   "maxSlope": 0.202,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.15,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "minReedDistance": 0.524,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_south",
+   "b": "r_pool",
+   "kind": "mud",
+   "length": 2.122,
+   "minSurfaceY": 0.123,
+   "maxSlope": 0.062,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "minReedDistance": 0.762,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_south",
+   "b": "r_box",
+   "kind": "mud",
+   "length": 2.067,
+   "minSurfaceY": 0.161,
+   "maxSlope": 0.034,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": null,
+   "minBrimClearance": null,
+   "minReedDistance": 0.658,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_pool",
+   "b": "r_cw",
+   "kind": "mud",
+   "length": 2.685,
+   "minSurfaceY": 0.123,
+   "maxSlope": 0.126,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.663,
+   "minBrimClearance": 1.014,
+   "minReedDistance": 0.519,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_box",
+   "b": "r_gauge",
+   "kind": "mud",
+   "length": 1.051,
+   "minSurfaceY": 0.177,
+   "maxSlope": 0.029,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.388,
+   "minBrimClearance": 0.319,
+   "minReedDistance": 0.935,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_gauge",
+   "b": "r_cw",
+   "kind": "mud",
+   "length": 2.18,
+   "minSurfaceY": 0.136,
+   "maxSlope": 0.126,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.242,
+   "minBrimClearance": 0.154,
+   "minReedDistance": 0.919,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_gauge",
+   "b": "r_lamp1",
+   "kind": "mud",
+   "length": 3.043,
+   "minSurfaceY": 0.11,
+   "maxSlope": 0.039,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.261,
+   "minBrimClearance": 0.176,
+   "minReedDistance": 0.998,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_lamp1",
+   "b": "r_boat",
+   "kind": "mud",
+   "length": 4.142,
+   "minSurfaceY": -0.144,
+   "maxSlope": 0.319,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.196,
+   "minBrimClearance": 0.163,
+   "minReedDistance": 1.128,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "r_cw",
+   "b": "c_west",
+   "kind": "causeway",
+   "length": 3.947,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.23,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.177,
+   "minBrimClearance": 1.159,
+   "minReedDistance": 1.026,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_west",
+   "b": "c_lamp2",
+   "kind": "court",
+   "length": 0.949,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.061,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.148,
+   "minBrimClearance": 0.076,
+   "minReedDistance": 4.476,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_west",
+   "b": "c_stair",
+   "kind": "court",
+   "length": 4.377,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.174,
+   "maxDrop": 0.082,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.378,
+   "minBrimClearance": 0.879,
+   "minReedDistance": 4.476,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_stair",
+   "b": "c_home",
+   "kind": "stair",
+   "length": 1.218,
+   "minSurfaceY": 0.16,
+   "maxSlope": 0.134,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.583,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_home",
+   "b": "c_pillar",
+   "kind": "court",
+   "length": 2.19,
+   "minSurfaceY": 0.188,
+   "maxSlope": 0.056,
+   "maxDrop": 0.093,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.399,
+   "minBrimClearance": 0.332,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_home",
+   "b": "c_north",
+   "kind": "court",
+   "length": 3.482,
+   "minSurfaceY": 0.188,
+   "maxSlope": 0.06,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.992,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_pillar",
+   "b": "c_north",
+   "kind": "court",
+   "length": 3.825,
+   "minSurfaceY": 0.188,
+   "maxSlope": 0.057,
+   "maxDrop": 0.072,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.227,
+   "minBrimClearance": 0.327,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_home",
+   "b": "c_estair",
+   "kind": "stair",
+   "length": 2.25,
+   "minSurfaceY": 0.16,
+   "maxSlope": 0.095,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.446,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_estair",
+   "b": "c_column",
+   "kind": "court",
+   "length": 1.614,
+   "minSurfaceY": 0.119,
+   "maxSlope": 0.143,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.119,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_estair",
+   "b": "c_east",
+   "kind": "court",
+   "length": 3.852,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.145,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.093,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_estair",
+   "b": "c_stele",
+   "kind": "court",
+   "length": 3.015,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.178,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.363,
+   "minBrimClearance": 0.212,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_stair",
+   "b": "c_stele",
+   "kind": "court",
+   "length": 2.291,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.174,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.254,
+   "minBrimClearance": 0.271,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_stele",
+   "b": "c_breach",
+   "kind": "court",
+   "length": 0.901,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.058,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.565,
+   "minBrimClearance": 0.384,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_breach",
+   "b": "c_south",
+   "kind": "court",
+   "length": 1.931,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.032,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.15,
+   "minBodyClearance": 0.339,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_breach",
+   "b": "c_steps",
+   "kind": "court",
+   "length": 3.454,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.057,
+   "maxDrop": 0.215,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.14,
+   "minBrimClearance": 1.099,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_steps",
+   "b": "c_east",
+   "kind": "court",
+   "length": 4.506,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.052,
+   "maxDrop": 0.221,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.249,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_south",
+   "b": "s_isle",
+   "kind": "stones",
+   "length": 2.897,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.142,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.35,
+   "minBodyClearance": 0.04,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": [
+    [
+     19,
+     23,
+     0.35
+    ]
+   ]
+  },
+  {
+   "a": "s_isle",
+   "b": "s_ring",
+   "kind": "court",
+   "length": 2.77,
+   "minSurfaceY": 0.11,
+   "maxSlope": 0.143,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.04,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "c_east",
+   "b": "e_cw",
+   "kind": "causeway",
+   "length": 1.931,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.235,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.168,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "e_cw",
+   "b": "k_lamp4",
+   "kind": "stones",
+   "length": 1.531,
+   "minSurfaceY": 0.149,
+   "maxSlope": 0.552,
+   "maxDrop": 0.167,
+   "maxStoneGap": 0.43,
+   "minBodyClearance": 0.255,
+   "minBrimClearance": 0.351,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": [
+    [
+     1,
+     6,
+     0.43
+    ]
+   ]
+  },
+  {
+   "a": "k_lamp4",
+   "b": "k_shelf",
+   "kind": "rock",
+   "length": 1.207,
+   "minSurfaceY": 0.553,
+   "maxSlope": 0.241,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.1,
+   "minBrimClearance": 0.376,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "k_shelf",
+   "b": "k_top",
+   "kind": "rock",
+   "length": 2.074,
+   "minSurfaceY": 0.553,
+   "maxSlope": 0.48,
+   "maxDrop": 0.147,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.211,
+   "minBrimClearance": 0.021,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": 0.137,
+   "hops": []
+  },
+  {
+   "a": "k_top",
+   "b": "k_branch",
+   "kind": "rock",
+   "length": 0.495,
+   "minSurfaceY": 1.178,
+   "maxSlope": 0.186,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.534,
+   "minBrimClearance": 0.224,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": 0.657,
+   "hops": []
+  },
+  {
+   "a": "k_top",
+   "b": "k_roots",
+   "kind": "rock",
+   "length": 1.801,
+   "minSurfaceY": 1.079,
+   "maxSlope": 0.283,
+   "maxDrop": 0.073,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.172,
+   "minBrimClearance": 0.079,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": 0.593,
+   "hops": []
+  },
+  {
+   "a": "k_roots",
+   "b": "k_east",
+   "kind": "rock",
+   "length": 1.079,
+   "minSurfaceY": 0.76,
+   "maxSlope": 0.397,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.076,
+   "minBrimClearance": 0.246,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "k_east",
+   "b": "b_far",
+   "kind": "stones",
+   "length": 1.738,
+   "minSurfaceY": 0.167,
+   "maxSlope": 0.621,
+   "maxDrop": 0.271,
+   "maxStoneGap": 0.82,
+   "minBodyClearance": 0.236,
+   "minBrimClearance": 1.173,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": [
+    [
+     5,
+     14,
+     0.82
+    ]
+   ]
+  },
+  {
+   "a": "c_north",
+   "b": "n_lamp3",
+   "kind": "causeway",
+   "length": 3.941,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.039,
+   "maxDrop": 0.08,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.222,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "n_lamp3",
+   "b": "n_pier",
+   "kind": "causeway",
+   "length": 0.412,
+   "minSurfaceY": 0.176,
+   "maxSlope": 0.0,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.201,
+   "minBrimClearance": null,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "n_pier",
+   "b": "p_lamp5",
+   "kind": "causeway",
+   "length": 1.858,
+   "minSurfaceY": 0.176,
+   "maxSlope": 0.022,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.168,
+   "minBrimClearance": 0.761,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": 0.645,
+   "hops": []
+  },
+  {
+   "a": "p_lamp5",
+   "b": "p_entry",
+   "kind": "pavilion",
+   "length": 1.275,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.16,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.448,
+   "minBrimClearance": 0.344,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": -0.049,
+   "hops": []
+  },
+  {
+   "a": "p_entry",
+   "b": "p_mirror",
+   "kind": "pavilion",
+   "length": 1.068,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.053,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.119,
+   "minBrimClearance": 0.442,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "p_entry",
+   "b": "p_table",
+   "kind": "pavilion",
+   "length": 1.031,
+   "minSurfaceY": 0.126,
+   "maxSlope": 0.0,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.199,
+   "minBrimClearance": 0.437,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "p_mirror",
+   "b": "p_bench",
+   "kind": "pavilion",
+   "length": 0.965,
+   "minSurfaceY": 0.123,
+   "maxSlope": 0.057,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.057,
+   "minBrimClearance": 0.451,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "p_bench",
+   "b": "p_west",
+   "kind": "pavilion",
+   "length": 0.359,
+   "minSurfaceY": 0.149,
+   "maxSlope": 0.046,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.0,
+   "minBodyClearance": 0.057,
+   "minBrimClearance": 0.509,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  },
+  {
+   "a": "p_west",
+   "b": "a_stones",
+   "kind": "stones",
+   "length": 3.468,
+   "minSurfaceY": 0.108,
+   "maxSlope": 0.063,
+   "maxDrop": 0.096,
+   "maxStoneGap": 0.35,
+   "minBodyClearance": 0.107,
+   "minBrimClearance": 0.18,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": [
+    [
+     11,
+     15,
+     0.35
+    ]
+   ]
+  },
+  {
+   "a": "a_stones",
+   "b": "a_arch",
+   "kind": "stones",
+   "length": 1.7,
+   "minSurfaceY": 0.155,
+   "maxSlope": 0.023,
+   "maxDrop": 0.0,
+   "maxStoneGap": 0.15,
+   "minBodyClearance": 0.359,
+   "minBrimClearance": 0.311,
+   "minReedDistance": null,
+   "minHeadroomVsHat1.40": null,
+   "hops": []
+  }
+ ]
+}

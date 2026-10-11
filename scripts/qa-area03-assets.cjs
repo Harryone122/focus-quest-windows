@@ -1,0 +1,9 @@
+// Run with Electron in application mode so its ASAR filesystem is available.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto')
+const root=path.resolve(__dirname,'..'),version=require('../package.json').version,bundle=process.env.FOCUSQUEST_QA_BUNDLE||path.join(root,`release-v${version}/win-unpacked/resources/app.asar`),assets=path.join(bundle,'out/renderer/assets'),source=path.join(root,'src/renderer/src/reflectionLake/audio'),out=process.env.FOCUSQUEST_QA_OUT||path.join(root,'previews/area03-stage5-integration/shipped')
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex'),report={version:require(path.join(bundle,'package.json')).version,recordings:[],production:[]}
+assert.equal(report.version,version)
+for(const file of fs.readdirSync(source)){const stem=file.replace(/\.wav$/,''),packed=fs.readdirSync(assets).find(f=>f.startsWith(stem+'-')&&f.endsWith('.wav'));assert(packed,file);const data=fs.readFileSync(path.join(source,file));assert.equal(hash(data),hash(fs.readFileSync(path.join(assets,packed))),file);report.recordings.push({file,packed,sha256:hash(data)})}
+assert.equal(report.recordings.length,28)
+for(const file of ['out/main/index.js','out/preload/index.js','out/renderer/index.html',...fs.readdirSync(path.join(root,'out/renderer/assets')).map(f=>'out/renderer/assets/'+f)]){const expected=hash(fs.readFileSync(path.join(root,file)));assert.equal(expected,hash(fs.readFileSync(path.join(bundle,file))),file);report.production.push(file)}
+report.asarSha256=hash(require('original-fs').readFileSync(bundle));fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'assets.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({version:report.version,recordings:28,productionFiles:report.production.length,asar:report.asarSha256}));require('electron').app.exit(0)

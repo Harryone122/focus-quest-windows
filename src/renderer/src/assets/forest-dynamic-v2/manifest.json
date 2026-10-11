@@ -1,0 +1,262 @@
+{
+  "version": 2,
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "phases": [
+    "morning",
+    "noon",
+    "afternoon",
+    "night"
+  ],
+  "vegetation": {
+    "grass_center.png": {
+      "bbox": [
+        288,
+        276,
+        1455,
+        863
+      ],
+      "width": 1167,
+      "height": 587
+    },
+    "grass_left.png": {
+      "bbox": [
+        0,
+        250,
+        754,
+        941
+      ],
+      "width": 754,
+      "height": 691
+    },
+    "grass_right.png": {
+      "bbox": [
+        802,
+        0,
+        1672,
+        917
+      ],
+      "width": 870,
+      "height": 917
+    },
+    "tree_canopy_bottom_foreground.png": {
+      "bbox": [
+        700,
+        600,
+        1672,
+        941
+      ],
+      "width": 972,
+      "height": 341
+    },
+    "tree_canopy_center.png": {
+      "bbox": [
+        560,
+        70,
+        980,
+        480
+      ],
+      "width": 420,
+      "height": 410
+    },
+    "tree_canopy_left_foreground.png": {
+      "bbox": [
+        0,
+        0,
+        500,
+        560
+      ],
+      "width": 500,
+      "height": 560
+    },
+    "tree_canopy_midleft.png": {
+      "bbox": [
+        300,
+        44,
+        720,
+        440
+      ],
+      "width": 420,
+      "height": 396
+    },
+    "tree_canopy_right_foreground.png": {
+      "bbox": [
+        1430,
+        420,
+        1672,
+        860
+      ],
+      "width": 242,
+      "height": 440
+    },
+    "tree_canopy_upper_right.png": {
+      "bbox": [
+        1260,
+        0,
+        1585,
+        250
+      ],
+      "width": 325,
+      "height": 250
+    },
+    "vines_all.png": {
+      "bbox": [
+        53,
+        9,
+        1672,
+        941
+      ],
+      "width": 1619,
+      "height": 932
+    },
+    "fog_far.png": {
+      "bbox": [
+        0,
+        0,
+        1672,
+        941
+      ],
+      "width": 1672,
+      "height": 941
+    },
+    "fog_near.png": {
+      "bbox": [
+        0,
+        303,
+        1672,
+        941
+      ],
+      "width": 1672,
+      "height": 638
+    }
+  },
+  "leafAtlas": {
+    "file": "leaf_atlas.png",
+    "cellSize": 96,
+    "cells": 16,
+    "sourceBoxes": [
+      [
+        211,
+        239,
+        293,
+        315
+      ],
+      [
+        355,
+        137,
+        433,
+        215
+      ],
+      [
+        391,
+        41,
+        469,
+        109
+      ],
+      [
+        45,
+        395,
+        119,
+        473
+      ],
+      [
+        17,
+        59,
+        85,
+        137
+      ],
+      [
+        23,
+        571,
+        103,
+        651
+      ],
+      [
+        463,
+        271,
+        543,
+        339
+      ],
+      [
+        1465,
+        11,
+        1541,
+        81
+      ],
+      [
+        111,
+        135,
+        181,
+        195
+      ],
+      [
+        703,
+        39,
+        775,
+        101
+      ],
+      [
+        559,
+        517,
+        633,
+        579
+      ],
+      [
+        89,
+        483,
+        145,
+        563
+      ],
+      [
+        1093,
+        13,
+        1163,
+        73
+      ],
+      [
+        1295,
+        61,
+        1359,
+        123
+      ],
+      [
+        743,
+        203,
+        823,
+        257
+      ],
+      [
+        259,
+        87,
+        343,
+        139
+      ]
+    ]
+  },
+  "shadows": {
+    "shadow_architecture.png": {
+      "bbox": [
+        0,
+        41,
+        1672,
+        941
+      ],
+      "width": 1672,
+      "height": 900
+    },
+    "shadow_foliage.png": {
+      "bbox": [
+        0,
+        21,
+        1672,
+        941
+      ],
+      "width": 1672,
+      "height": 920
+    }
+  },
+  "sourceManifest": "C:/Users/User/Downloads/map/asset-manifest.json",
+  "alphaPreserved": true
+}

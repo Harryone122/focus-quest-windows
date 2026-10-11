@@ -1,0 +1,113 @@
+const { app, BrowserWindow, screen } = require('electron')
+const fs = require('node:fs'), path = require('node:path'), os = require('node:os'), assert = require('node:assert/strict'), crypto = require('node:crypto')
+const root = path.resolve(__dirname, '..'), bundle = process.env.FOCUSQUEST_QA_BUNDLE ? path.resolve(process.env.FOCUSQUEST_QA_BUNDLE) : root
+const out = path.join(root, 'previews', bundle === root ? 'moss-audio-integration-qa' : 'moss-audio-integration-qa-shipped')
+fs.mkdirSync(out, { recursive: true })
+const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'focusquest-moss-sound-app-'))
+process.env.FOCUSQUEST_QA_USER_DATA = profile
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+const Database = require(path.join(bundle, 'node_modules/better-sqlite3'))
+const report = { profile, bundle, checks: [], errors: [] }
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+let win, sql
+const js = source => win.webContents.executeJavaScript(source, true)
+const call = (method, ...args) => js(`window.focusQuest[${JSON.stringify(method)}](...${JSON.stringify(args)})`)
+async function shot(name) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { await delay(1000); fs.writeFileSync(path.join(out, name), (await win.webContents.capturePage()).toPNG()); return }
+    catch (error) { if (attempt === 2) throw error }
+  }
+}
+async function until(check, label) { const end = Date.now() + 30000; while (Date.now() < end) { if (await check()) return; await delay(100) }; throw Error(`Timeout: ${label}`) }
+require(path.join(bundle, 'out/main/index.js'))
+;(async () => {
+  await app.whenReady()
+  await until(() => { win = BrowserWindow.getAllWindows().find(w => w.getTitle() === 'Focus Quest'); return !!win }, 'main window')
+  const primary = screen.getPrimaryDisplay(), display = screen.getAllDisplays().find(d => d.id !== primary.id) || primary
+  report.display = { id: display.id, secondary: display.id !== primary.id }
+  win.setBounds({ x: display.workArea.x + 10, y: display.workArea.y + 10, width: Math.min(1400, display.workArea.width - 20), height: Math.min(850, display.workArea.height - 20) })
+  win.webContents.on('console-message', (_e, level, message) => { if (level >= 3) report.errors.push(message) })
+  win.show()
+  await until(() => js('Boolean(window.focusQuest && document.querySelector(".sidebar"))'), 'app ready')
+  if (bundle !== root) {
+    const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')
+    assert.equal(hash(path.join(bundle, 'out/main/index.js')), hash(path.join(root, 'out/main/index.js')))
+    const renderer = JSON.parse(fs.readFileSync(path.join(bundle, 'package.json'))).version
+    assert.equal(renderer, require(path.join(root, 'package.json')).version)
+    report.checks.push('Packaged main and version match the tested build')
+  }
+  await js(`window.qaAudio=[];const RealAudio=window.AudioContext;window.AudioContext=class extends RealAudio{constructor(...args){super(...args);window.qaAudio.push(this)}};true`)
+  await js('document.querySelector(`.sidebar nav button[aria-label="設定"]`).click();true')
+  await until(() => js('Boolean(document.querySelector(`input[aria-label="環境音音量"]`))'), 'sound settings')
+  assert.equal(await js('document.querySelector(`input[aria-label="環境音音量"]`).value'), '35')
+  assert.equal(await js('document.querySelector(`input[aria-label="背景音音量"]`).value'), '12')
+  report.phase = 'idle-settings'; await shot('settings.png')
+  await js('document.querySelector(`button[aria-label="關閉面板"]`).click();true')
+  const task = await call('addListTask', { title: '苔痕音效實測' })
+  let s = await call('startDailyRun', task.taskList.nextTaskId)
+  const node = s.expeditionNodes.find(n => n.areaId === 'area-02-moss-station')
+  assert(node)
+  await call('selectExpeditionNode', s.todayRun.id, node.id)
+  s = await call('startListFocus', { minimumMinutes: 5, blockedProcessNames: [], runId: s.todayRun.id, nodeId: node.id, plannedMinutes: 50 })
+  const session = s.activeSession.id
+  report.phase = 'moss-focus'
+  await until(() => js('!!document.querySelector(`button[aria-label="專注設定"]`) && window.qaAudio.length===1 && qaAudio[0].state==="running"'), 'Moss sound running')
+  await until(() => js('!document.querySelector(`.app-shell.is-departing`) && Boolean(document.querySelector(`.focus-active .biome-moss-station canvas`))'), 'visible Moss destination')
+  report.gearWidth = await js('document.querySelector(`button[aria-label="專注設定"]`).getBoundingClientRect().width')
+  assert(report.gearWidth <= 56)
+  report.gearHeight = await js('document.querySelector(`button[aria-label="專注設定"]`).getBoundingClientRect().height')
+  assert(report.gearHeight >= 44 && report.gearHeight <= 50)
+  await delay(1000)
+  await js('document.querySelector(`button[aria-label="專注設定"]`).click();true')
+  await until(() => js('Boolean(document.querySelector(`.focus-settings-sheet input[aria-label="全部靜音"]`))'), 'shared focus settings')
+  const before = await js('document.querySelector(`.focus-adventure-clock time`).textContent')
+  await delay(2100)
+  assert.notEqual(await js('document.querySelector(`.focus-adventure-clock time`).textContent'), before)
+  assert.equal((await call('getSnapshot')).activeSession.suspendedAt, null)
+  assert(await js('getComputedStyle(document.querySelector(`.focus-settings-sheet`)).backdropFilter.includes("blur")'))
+  await shot('focus-settings.png')
+  await js('document.querySelector(`.focus-settings-sheet input[aria-label="全部靜音"]`).click();true')
+  await until(() => js('qaAudio[0].state==="suspended"'), 'mute')
+  assert.equal((await call('getSnapshot')).settings.audioMuted, true)
+  await js('document.querySelector(`.focus-settings-sheet input[aria-label="全部靜音"]`).click();true')
+  await until(() => js('qaAudio[0].state==="running"'), 'unmute')
+  await js('document.querySelector(`button[aria-label="關閉設定"]`).click();true')
+  await call('pauseFocus', session)
+  await until(() => js('qaAudio[0].state==="suspended"'), 'pause')
+  await call('resumeFocus', session)
+  await until(() => js('qaAudio[0].state==="running"'), 'resume')
+  win.minimize(); await delay(1200); assert.equal(await js('qaAudio[0].state'), 'running'); win.restore()
+  await call('updateSettings', { environmentVolume: 0, musicVolume: 0 })
+  await until(() => js('qaAudio[0].state==="suspended"'), 'global sound off')
+  await call('updateSettings', { environmentVolume: 35, musicVolume: 12 })
+  await until(() => js('qaAudio[0].state==="running"'), 'saved volume restored')
+  sql = new Database(path.join(profile, 'focusquest.db'))
+  sql.prepare('UPDATE sessions SET started_at = ? WHERE id = ?').run(new Date(Date.now() - 1300000).toISOString(), session)
+  const state = sql.prepare('SELECT state_json FROM area_scene_states WHERE node_id=?').get(node.id)
+  const runtime = JSON.parse(state.state_json); runtime.weatherSeed = 1
+  sql.prepare('UPDATE area_scene_states SET state_json=? WHERE node_id=?').run(JSON.stringify(runtime), node.id)
+  s = await call('updateSettings', {})
+  await until(async () => { s = await call('getSnapshot'); return s.mossStation.weather.rain > 0.5 }, 'rain clock catch-up')
+  assert(s.mossStation.weather.rain > 0.5)
+  await delay(2000)
+  report.phase = 'rain-focus'; await shot('rain-focus.png')
+  // Changing the seed intentionally disposes the old graph and creates one replacement.
+  assert.equal(await js('qaAudio.filter(c=>c.state==="running").length'), 1)
+  sql.prepare('UPDATE sessions SET started_at=? WHERE id=?').run(new Date(Date.now() - 3010000).toISOString(), session)
+  await call('beginSessionDebrief', session)
+  await until(() => js('qaAudio.every(c=>c.state!=="running")'), 'review silence')
+  s = await call('finishListFocus', session, false)
+  const next = s.expeditionNodes.find(n => n.parentNodeId === node.id && n.areaId === 'area-01-cloud-ruins') || s.expeditionNodes.find(n => n.parentNodeId === node.id)
+  sql.prepare('UPDATE expedition_nodes SET area_id=? WHERE id=?').run('area-01-cloud-ruins', next.id)
+  await call('chooseNextRoute', s.todayRun.id, node.id, next.id)
+  await call('startListFocus', { minimumMinutes: 5, blockedProcessNames: [], runId: s.todayRun.id, nodeId: next.id, plannedMinutes: next.plannedMinutes })
+  await until(() => js('qaAudio.length>=3 && qaAudio.slice(0,2).every(c=>c.state==="closed")'), 'Moss sources closed after map switch')
+  await until(() => js('Boolean(document.querySelector(`.area-scene-destination button[aria-label="專注設定"]`)) || Boolean(document.querySelector(`button[aria-label="專注設定"]`))'), 'Cloud settings gear')
+  await js('document.querySelector(`button[aria-label="專注設定"]`).click();true')
+  await until(() => js('Boolean(document.querySelector(`.focus-settings-sheet input[aria-label="全部靜音"]`))'), 'Cloud shared settings')
+  await js('document.querySelector(`.focus-settings-sheet input[aria-label="全部靜音"]`).click();true')
+  await until(() => js('qaAudio.every(c=>c.state!=="running")'), 'Cloud global mute')
+  assert.equal(report.errors.length, 0, report.errors.join('\n'))
+  report.checks.push('Both volume controls present with saved defaults', 'Both maps use the shared focus gear and glass settings, timer continues', 'Global mute persists and stops both maps', 'Moss pause/resume/minimize/global volume lifecycle passed', 'Visible rain and sound use the same saved weather seed', 'Review stops sound and Cloud transition closes all Moss contexts')
+  sql.close(); fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify(report, null, 2)); app.exit(0)
+})().catch(error => { if (sql) sql.close(); report.errors.push(error.stack || String(error)); fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify(report, null, 2)); console.error(error); app.exit(1) })

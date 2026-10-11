@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>玻璃苗圃 · 動畫音效測試</title></head><body>
+<main class="tester">
+ <section class="stage" aria-label="玻璃苗圃地圖">
+  <div id="scene"></div>
+  <header class="stage-heading"><span class="eyebrow">FOCUS QUEST · AREA 07</span><h1>玻璃苗圃</h1><p>動畫與音效試映室</p></header>
+  <div id="loading" role="status"><span class="spinner"></span><strong>正在準備玻璃苗圃</strong><span id="load-detail">首次開啟需要一些時間</span></div>
+  <footer class="caption"><span id="play-state">選一段動作，開始試看</span><p id="caption">右側選擇動畫，會以正常速度播放正式地圖與音效。</p></footer>
+ </section>
+ <aside class="controls">
+  <div class="control-heading"><span class="eyebrow">專屬測試畫面</span><h2>逐段看，逐段聽。</h2><p>不需要先完成專注，也不會改動你的遊戲存檔。</p></div>
+  <div class="transport"><button id="pause" disabled>暫停</button><button id="replay" disabled>重新播放</button><button id="mute" aria-pressed="false">靜音</button></div>
+  <div class="time-row"><span id="current-name">尚未選擇動畫</span><span id="elapsed">00:00</span></div>
+  <div class="field"><label for="mood">光線與環境</label><select id="mood"><option value="day">白天</option><option value="dawnClear">清晨</option><option value="dusk">黃昏</option><option value="clearNight">夜晚 · 薄霧</option><option value="night">夜晚 · 濃霧</option><option value="sunrise">濃霧散開 · 75 秒</option></select></div>
+  <div class="volume"><label for="environment">環境與動作 <output id="environment-value">35%</output></label><input id="environment" type="range" min="0" max="100" value="35"></div>
+  <div class="volume"><label for="music">音樂與提示 <output id="music-value">12%</output></label><input id="music" type="range" min="0" max="100" value="12"></div>
+  <section class="preview"><strong>間歇背景音樂</strong><p id="bgm-state">先聽環境音，再播放配樂。</p><div class="transport"><button id="music-12">背景音 12%</button><button id="music-25">背景音 25%</button><button id="bgm-mix">立即聽環境混音</button></div><label class="check"><input id="short-gaps" type="checkbox">縮短留白至 3 秒</label><div id="bgm-buttons" class="transport"></div><audio id="bgm-preview" controls preload="none"></audio></section>
+  <label class="check"><input id="walk-in" type="checkbox">包含走到動作位置的路程</label>
+  <nav id="tabs" aria-label="動畫類別"></nav><div id="actions" aria-label="可播放的動畫"></div>
+  <div id="note" class="note"></div>
+  <section class="preview"><strong>核心木琴 · 待確認試聽</strong><p>此處可單獨試聽，尚未加入核心取得動畫。</p><audio id="motif" controls preload="none"></audio></section>
+  <p class="hint">可隨時切換動作。點燈、植物長大與單純觀看保留安靜；夜晚沒有蟲鳴。</p>
+ </aside>
+</main><script type="module" src="./main.ts"></script></body></html>

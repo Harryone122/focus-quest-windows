@@ -1,0 +1,1286 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- 收藏室（旅人行李的內部）與線索桌原型（企畫書 §50、docs/COLLECTION_ROOM_HANDOFF.md）。Claude 設計原型，2026-09-28。 -->
+<title>收藏室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600&family=LXGW+WenKai+TC&display=swap">
+<style>
+  /* Single committed look: the lobby's glass-over-scene language (lobbyA.css tokens). */
+  :root {
+    color-scheme: dark;
+    --ground: #17120e;
+    --ink: #f1eee6;
+    --ink-soft: rgba(240, 237, 228, 0.84);
+    --ink-faint: rgba(230, 228, 220, 0.66);
+    --amber: #e0b265;
+    --amber-text: #f0cf8e;
+    --teal-text: #bfe0da;
+    --core-blue: #9cc8e8;
+    --glass: rgba(20, 27, 33, 0.44);
+    --glass-strong: rgba(20, 27, 33, 0.74);
+    --line: rgba(255, 255, 255, 0.13);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.42), 0 0 14px rgba(0, 0, 0, 0.28);
+    --panel-w: clamp(284px, 30vw, 360px);
+    --sans: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+    --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+    --hand: "LXGW WenKai TC", "Noto Serif TC", "Kaiti TC", serif;
+  }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); overflow: hidden; }
+  .app { position: fixed; inset: 0; }
+  .stage { position: absolute; inset: 0; overflow: hidden;
+    background: radial-gradient(ellipse 90% 70% at 52% 0%, #4a3b2c 0%, #2a2119 45%, #17120e 100%); }
+  #scene { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #scene.dragging { cursor: grabbing; }
+  #scene.pointing { cursor: pointer; }
+  .glass { background: var(--glass); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1); text-shadow: var(--shadow); }
+  .label { font-size: 11px; letter-spacing: 0.12em; color: var(--ink-faint); margin: 0; }
+  .warm { color: var(--amber-text); }
+  .blue { color: var(--core-blue); }
+  .soft { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.7; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible { outline: 2px solid #d9c38f; outline-offset: 3px; }
+  .ghost { padding: 8px 14px; border-radius: 16px; border: 1px solid var(--line); background: none; color: var(--ink-soft); font-size: 13px; }
+  .ghost:hover { background: rgba(255, 255, 255, 0.06); color: var(--ink); }
+  .ghost:disabled { opacity: 0.35; cursor: default; }
+  .primary { padding: 9px 16px; border-radius: 16px; border: 1px solid rgba(240, 204, 138, 0.7); background: rgba(224, 178, 101, 0.2); color: var(--amber-text); font-size: 14px; font-weight: 500; letter-spacing: 0.12em; }
+  .primary:hover { background: rgba(224, 178, 101, 0.3); }
+
+  /* header */
+  .top-left { position: absolute; top: 16px; left: 16px; display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; z-index: 3; max-width: calc(100% - 32px); }
+  .head { padding: 10px 14px; display: grid; gap: 4px; min-width: 150px; }
+  .head h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 19px; letter-spacing: 0.14em; line-height: 1.25; }
+  .track { font-size: 12px; color: var(--amber-text); letter-spacing: 0.04em; }
+  .pill { padding: 8px 14px; border-radius: 16px; font-size: 12.5px; letter-spacing: 0.08em; }
+  .pill:hover { background: rgba(40, 50, 58, 0.55); }
+  .hint { position: absolute; right: 16px; bottom: 16px; padding: 7px 14px; font-size: 12px; color: var(--ink-faint); letter-spacing: 0.06em; z-index: 3; white-space: nowrap; transition: opacity 0.4s; }
+
+  /* floating labels in the scene */
+  .pin { position: absolute; transform: translate(-50%, -100%); display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 14px; font-size: 12px; letter-spacing: 0.06em; white-space: nowrap; z-index: 2; pointer-events: none; }
+  .pin::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px 2px rgba(224, 178, 101, 0.55); animation: pulse 2.2s ease-in-out infinite; }
+  .pin.blue::before { background: var(--core-blue); box-shadow: 0 0 10px 2px rgba(140, 190, 230, 0.55); }
+  .pin.plain::before { animation: none; background: rgba(240, 237, 228, 0.55); box-shadow: none; }
+  @keyframes pulse { 50% { transform: scale(1.5); opacity: 0.7; } }
+  .hot { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 0; background: none; opacity: 0; z-index: 2; pointer-events: none; }
+  .hot:focus-visible { opacity: 1; outline: 2px solid #d9c38f; }
+
+  /* right panel */
+  .panel { position: absolute; top: 16px; right: 16px; bottom: 16px; width: var(--panel-w); border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; z-index: 6; }
+  .panel:not([hidden]) { animation: panel-in 260ms cubic-bezier(.2,.8,.2,1) both; }
+  .sheet-wrap:not([hidden]), .book-wrap:not([hidden]) { animation: shade-in 220ms ease-out both; }
+  .sheet-wrap:not([hidden]) > .sheet, .book-wrap:not([hidden]) > .book { animation: window-in 300ms cubic-bezier(.2,.8,.2,1) both; transform-origin: 50% 60%; }
+  @keyframes panel-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes shade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes window-in { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .panel-scroll { overflow: auto; padding: 18px; display: grid; gap: 14px; align-content: start; flex: 1; }
+  .panel h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 21px; letter-spacing: 0.12em; text-wrap: balance; }
+  .panel-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .x { border: 0; background: none; color: var(--ink-faint); font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 10px; }
+  .x:hover { color: var(--ink); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; letter-spacing: 0.06em; padding: 3px 10px; border-radius: 12px; border: 1px solid var(--line); color: var(--ink-soft); width: fit-content; }
+  .chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip.blue { color: var(--core-blue); border-color: rgba(156, 200, 232, 0.4); }
+  .chip.warm { color: var(--amber-text); border-color: rgba(240, 207, 142, 0.4); }
+  .obs { margin: 0; font-family: var(--hand); font-size: 16px; line-height: 1.75; color: var(--ink); }
+  .sec { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+  .clue-row { display: grid; gap: 2px; font-size: 13px; line-height: 1.6; color: var(--ink-soft); }
+  .clue-row small { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.04em; }
+  .need { display: grid; gap: 3px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.04); }
+  .need b { font-weight: 500; font-size: 14px; }
+  .need small { font-size: 11.5px; line-height: 1.5; color: var(--ink-faint); }
+  .need small.blue { color: var(--core-blue); }
+  .need .ghost { justify-self: start; margin-top: 4px; padding: 5px 11px; font-size: 12px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .eye { width: 100%; aspect-ratio: 1; max-width: 240px; justify-self: center; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 6px rgba(176, 141, 87, 0.55), 0 0 0 7px rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.8); }
+  .eye canvas { width: 100%; height: 100%; display: block; }
+
+  /* table mode */
+  .table-ui { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.45s ease; }
+  .table-ui.on { opacity: 1; }
+  .table-ui.on > * { pointer-events: auto; }
+  .tbar { position: absolute; top: 16px; left: 16px; display: flex; gap: 10px; align-items: center; padding: 6px 8px 6px 6px; }
+  .tbar h2 { margin: 0 6px; font-family: var(--serif); font-weight: 600; font-size: 17px; letter-spacing: 0.14em; }
+  .dim { position: absolute; border-radius: 6px; box-shadow: 0 0 0 200vmax rgba(12, 9, 7, 0.5); pointer-events: none !important; }
+  .hits { position: absolute; inset: 0; pointer-events: none !important; }
+  .hit { position: absolute; border: 0; background: none; border-radius: 50%; pointer-events: auto; transform: translate(-50%, -50%); }
+  .hit:hover { background: rgba(224, 178, 101, 0.12); }
+  .hit.sq { border-radius: 4px; }
+  .hit:focus-visible { outline: 2px solid #8a5a1e; }
+  .tray { position: absolute; left: 16px; bottom: 58px; padding: 10px 12px; display: grid; gap: 8px; max-width: calc(100% - var(--panel-w) - 64px); }
+  .tray-head { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+  .tray-cards { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+  .card { flex: 0 0 196px; text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(80, 60, 30, 0.35); background: #e9dfc6; color: #3b3226; text-shadow: none; display: grid; gap: 3px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+  .card:hover { background: #f1e8d2; }
+  .card small { font-size: 10.5px; letter-spacing: 0.06em; color: #7a6a52; }
+  .card span { font-family: var(--hand); font-size: 13.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* sheet (departure mock) */
+  .sheet-wrap { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(8, 6, 4, 0.35); z-index: 8; }
+  .sheet { width: min(380px, 100%); padding: 18px; display: grid; gap: 12px; background: var(--glass-strong); }
+  .sheet h3 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 18px; letter-spacing: 0.1em; }
+  .pick { display: grid; gap: 6px; }
+  .pick button { text-align: left; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: none; font-size: 13.5px; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 8px; }
+  .pick button[aria-pressed="true"] { border-color: rgba(156, 200, 232, 0.7); background: rgba(120, 170, 210, 0.16); color: var(--ink); }
+  .pick button small { color: var(--ink-faint); font-size: 11px; }
+  .sheet .row { justify-content: flex-end; }
+
+  /* notebook */
+  .book-wrap { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(8, 6, 4, 0.55); z-index: 9; }
+  .book { width: min(820px, 100%); display: grid; gap: 12px; }
+  .spread { display: grid; grid-template-columns: 1fr 1fr; gap: 0; aspect-ratio: 1.55; max-height: 70vh; filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.55)); }
+  .page { position: relative; background: #e8dcc0; color: #3b3226; padding: clamp(14px, 3.4vw, 34px); font-family: var(--hand); font-size: clamp(13px, 1.9vw, 17px); line-height: 1.9; overflow: hidden; }
+  .page:first-child { border-radius: 6px 0 0 6px; box-shadow: inset -18px 0 24px -18px rgba(60, 40, 20, 0.45); }
+  .page:last-child { border-radius: 0 6px 6px 0; box-shadow: inset 18px 0 24px -18px rgba(60, 40, 20, 0.45); }
+  .page p { margin: 0 0 0.6em; }
+  .page .meta { font-family: var(--sans); font-size: 11px; letter-spacing: 0.1em; color: #8a7658; margin-bottom: 10px; }
+  .page .ink2 { color: #2f4c6b; }
+  .page.found { background: #dccfae; }
+  .page.found::before, .page.found::after { content: ""; position: absolute; width: 58px; height: 18px; background: rgba(230, 220, 190, 0.7); top: 10px; transform: rotate(-8deg); }
+  .page.found::before { left: 10px; }
+  .page.found::after { right: 10px; transform: rotate(7deg); }
+  .page.stub { background: transparent; box-shadow: none; }
+  .page.stub::before { content: ""; position: absolute; top: 0; bottom: 0; width: 26px; background: #e2d5b8; clip-path: polygon(0 0, 100% 0, 60% 4%, 90% 9%, 55% 14%, 85% 20%, 50% 26%, 80% 32%, 58% 38%, 88% 45%, 52% 52%, 84% 58%, 55% 65%, 90% 72%, 50% 79%, 82% 86%, 56% 93%, 86% 100%, 0 100%); }
+  .page.stub:first-child::before { right: 0; transform: scaleX(-1); }
+  .page.stub:last-child::before { left: 0; }
+  .page .stub-note { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font-family: var(--sans); font-size: 12px; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .page.blank { background: #e8dcc0; }
+  .tree { width: 60%; margin: 6px auto 10px; display: block; }
+  .book-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+  /* toast + veil */
+  .toast { position: absolute; top: 18px; left: 50%; transform: translate(-50%, -8px); padding: 9px 16px; font-size: 13px; letter-spacing: 0.06em; z-index: 11; opacity: 0; transition: opacity 0.4s, transform 0.4s; pointer-events: none; white-space: nowrap; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  .veil { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: #0c0907; z-index: 10; }
+
+  /* prototype controls (not part of the game UI) */
+  .proto { position: absolute; left: 16px; bottom: 16px; z-index: 7; max-width: min(460px, calc(100% - var(--panel-w) - 64px)); padding: 8px 10px; border-radius: 16px; font-size: 12px; }
+  .proto summary { cursor: pointer; color: var(--teal-text); letter-spacing: 0.1em; font-size: 11px; list-style: none; }
+  .proto summary::-webkit-details-marker { display: none; }
+  .proto[open] summary { margin-bottom: 8px; }
+  .proto .grp { display: grid; gap: 4px; margin-bottom: 8px; }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+  .seg button { border: 1px solid transparent; background: none; border-radius: 12px; padding: 3px 9px; font-size: 12px; color: var(--ink-faint); }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { border-color: var(--line); background: rgba(255, 255, 255, 0.1); color: var(--ink); }
+  .seg .act { color: var(--teal-text); }
+  .seg .c0 { opacity: 0.55; }
+  .seg .c1 { color: var(--core-blue); }
+  .seg .c2 { color: var(--core-blue); border-color: rgba(156, 200, 232, 0.5); }
+  .ui-fade { opacity: 0 !important; pointer-events: none !important; }
+
+  @media (max-width: 760px) {
+    body { overflow: auto; }
+    .app { position: static; }
+    .stage { position: relative; height: 64vh; min-height: 400px; }
+    .panel { position: static; width: auto; margin: 12px 16px 0; }
+    .proto { position: static; max-width: none; margin: 12px 16px 16px; }
+    .hint { display: none; }
+    .tray { max-width: calc(100% - 32px); }
+    .card { flex-basis: 170px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .pin::before, .panel:not([hidden]), .sheet-wrap:not([hidden]), .book-wrap:not([hidden]), .sheet-wrap:not([hidden]) > .sheet, .book-wrap:not([hidden]) > .book { animation: none; } .table-ui, .toast { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="scene" aria-label="收藏室：旅人行李的內部。帆布內壁上縫著口袋、掛著鐘和架子，中央是一張線索桌，上方是打開的包口。"></canvas>
+    <div id="pins"></div>
+    <div id="hots"></div>
+    <div class="top-left" id="topLeft">
+      <header class="head glass">
+        <p class="label">行李的內部</p>
+        <h1>收藏室</h1>
+        <span class="track" id="trackLine" hidden></span>
+      </header>
+      <button type="button" class="pill glass" id="backBtn">回大廳</button>
+    </div>
+    <p class="hint glass" id="hint">點展示品看細節 · 點桌子攤開線索 · 拖曳可以偷看</p>
+
+    <div class="table-ui" id="tableUi" aria-hidden="true">
+      <div class="dim" id="dim"></div>
+      <div class="hits" id="hits"></div>
+      <div class="tbar glass">
+        <button type="button" class="ghost" id="tableBack">回到行李裡</button>
+        <h2>線索桌</h2>
+      </div>
+      <div class="tray glass" id="tray" hidden>
+        <div class="tray-head"><p class="label">新的線索 · <span id="trayCount">0</span></p><div><button type="button" class="ghost" id="pinAll">全部釘上</button><button type="button" class="ghost" id="pinSingle">單獨釘上</button></div></div>
+        <div class="tray-cards" id="trayCards"></div>
+      </div>
+    </div>
+
+    <div class="sheet-wrap" id="sheetWrap" hidden></div>
+    <div class="book-wrap" id="bookWrap" hidden></div>
+    <div class="veil" id="veil"></div>
+    <div class="toast glass" id="toast" role="status"></div>
+  </div>
+
+  <aside class="panel glass" id="panel" aria-live="polite" hidden><div class="panel-scroll" id="panelBody"></div></aside>
+
+  <details class="proto glass" id="proto" open>
+    <summary>原型控制（不屬於遊戲畫面）</summary>
+    <div class="grp"><p class="label">進度</p><div class="seg" id="presetSeg"></div></div>
+    <div class="grp"><p class="label">核心（點一下切換：空 → 已放上 → 看懂了）</p><div class="seg" id="coreSeg"></div></div>
+    <div class="grp"><p class="label">演出</p><div class="seg">
+      <button type="button" class="act" id="actEnter">打開行李：放上新核心</button>
+      <button type="button" class="act" id="actLink">十件齊的聯動</button>
+    </div></div>
+  </details>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+'use strict';
+const T = window.THREE;
+if (!T) { document.getElementById('hint').textContent = '3D 函式庫載入失敗，請重新整理頁面。'; return; }
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- helpers ----------
+let seed = 11;
+const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+const rr = (a, b) => a + (b - a) * rnd();
+const V3 = (x, y, z) => new T.Vector3(x, y, z);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const ease = (x) => { x = clamp(x, 0, 1); return x * x * x * (x * (x * 6 - 15) + 10); };
+const lerp = (a, b, t) => a + (b - a) * t;
+const wrapA = (a) => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const mat = (c, e) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.95, metalness: 0, flatShading: true }, e || {}));
+const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.anisotropy = 4; return t; };
+const radial = (stops) => canvasTex(64, 64, (x) => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); stops.forEach(([o, c]) => g.addColorStop(o, c)); x.fillStyle = g; x.fillRect(0, 0, 64, 64); });
+const haloTex = radial([[0, 'rgba(255,230,180,1)'], [0.3, 'rgba(255,190,110,0.4)'], [1, 'rgba(255,160,80,0)']]);
+const dotTex = radial([[0, 'rgba(255,255,255,1)'], [0.4, 'rgba(255,255,255,0.5)'], [1, 'rgba(255,255,255,0)']]);
+const mistTex = radial([[0, 'rgba(255,255,255,0.85)'], [0.5, 'rgba(255,255,255,0.35)'], [1, 'rgba(255,255,255,0)']]);
+
+// fabric lining with a stitched seam along every tile edge
+const liningTex = canvasTex(256, 256, (x, w, h) => {
+  x.fillStyle = '#7b806b'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(${rnd() < 0.5 ? '255,255,240' : '30,30,20'},${rr(0.02, 0.06)})`; x.fillRect(rnd() * w, rnd() * h, rr(1, 3), 1); }
+  x.strokeStyle = 'rgba(40,36,28,0.35)'; x.lineWidth = 2; x.strokeRect(1, 1, w - 2, h - 2);
+  x.strokeStyle = 'rgba(226,210,170,0.7)'; x.lineWidth = 2; x.setLineDash([7, 6]); x.strokeRect(8, 8, w - 16, h - 16);
+});
+liningTex.wrapS = liningTex.wrapT = T.RepeatWrapping;
+const pocketTex = canvasTex(128, 128, (x, w, h) => {
+  x.fillStyle = '#8f8a6e'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 700; i++) { x.fillStyle = `rgba(20,20,10,${rr(0.02, 0.07)})`; x.fillRect(rnd() * w, rnd() * h, rr(1, 3), 1); }
+  x.strokeStyle = 'rgba(236,222,186,0.8)'; x.lineWidth = 2; x.setLineDash([6, 5]); x.strokeRect(7, 7, w - 14, h - 14);
+});
+// the bag's bottom: stitched leather panels
+const plankTex = canvasTex(256, 256, (x, w, h) => {
+  x.fillStyle = '#6e4e37'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 5000; i++) { x.fillStyle = `rgba(${rnd() < 0.5 ? '30,18,10' : '160,120,80'},${rr(0.03, 0.08)})`; x.fillRect(rnd() * w, rnd() * h, rr(1, 3), rr(1, 2)); }
+  x.strokeStyle = 'rgba(30,18,10,0.45)'; x.lineWidth = 3; x.strokeRect(2, 2, w - 4, h - 4);
+  x.strokeStyle = 'rgba(214,190,140,0.55)'; x.lineWidth = 2; x.setLineDash([8, 7]); x.strokeRect(12, 12, w - 24, h - 24);
+});
+plankTex.wrapS = plankTex.wrapT = T.RepeatWrapping; plankTex.repeat.set(2, 2);
+const rugTex = canvasTex(256, 180, (x, w, h) => {
+  x.fillStyle = '#6a3e33'; x.fillRect(0, 0, w, h); x.strokeStyle = '#c9a36a'; x.lineWidth = 5; x.strokeRect(12, 12, w - 24, h - 24);
+  x.strokeStyle = '#3f2a24'; x.lineWidth = 3; x.strokeRect(24, 24, w - 48, h - 48);
+  x.fillStyle = 'rgba(201,163,106,0.5)'; for (let i = 0; i < 6; i++) { x.beginPath(); x.arc(40 + i * 35, h / 2, 6, 0, 7); x.fill(); }
+});
+
+const M = {
+  shell: mat(0x5a3e2c), lining: new T.MeshStandardMaterial({ color: 0xffffff, map: liningTex, roughness: 1, flatShading: true }),
+  rim: mat(0x4a3223), leather: mat(0x6b4630), leatherDark: mat(0x3d2a1e), floor: new T.MeshStandardMaterial({ color: 0xffffff, map: plankTex, roughness: 0.9 }),
+  wood: mat(0x6e5440), woodDark: mat(0x4a3a2e), woodPale: mat(0x9c7f5f), crate: mat(0x86694c),
+  brass: new T.MeshStandardMaterial({ color: 0xb08d57, metalness: 0.6, roughness: 0.38, flatShading: true }),
+  brassDark: new T.MeshStandardMaterial({ color: 0x7c6440, metalness: 0.5, roughness: 0.5, flatShading: true }),
+  glass: new T.MeshStandardMaterial({ color: 0xcfe2ea, transparent: true, opacity: 0.18, roughness: 0.1, depthWrite: false }),
+  paper: mat(0xe7dcc4), paperOld: mat(0xd6c7a4), ink: mat(0x2e2721), leatherBook: mat(0x6b3f2c), red: mat(0x9c4636),
+  rock: mat(0x6f6a62), stoneBlue: mat(0x71808c, { emissive: 0x1d3b52, emissiveIntensity: 0.35 }),
+  crystal: new T.MeshStandardMaterial({ color: 0x9cc8e8, emissive: 0x3f7fb0, emissiveIntensity: 0.7, roughness: 0.3, flatShading: true }),
+  soil: mat(0x3e2f24), pot: mat(0xa0664a), leaf: mat(0x6c8a5a), leafLight: mat(0x86a36a), pod: mat(0x7a5a3a),
+  cloth: mat(0x7a6f5c), rug: new T.MeshStandardMaterial({ color: 0xffffff, map: rugTex, roughness: 1 }), cushion: mat(0x8e5f4e),
+  face: mat(0xe9dfc9), dust: new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18, depthWrite: false }),
+  glove: mat(0x74563f), sleeve: mat(0x3d4659), cloakOld: mat(0x6a6e76), hatOld: mat(0x9c9486), cuffBand: mat(0x9b5e4c), cloak: mat(0x4b4f58), boot: mat(0x3b2f26), cup: mat(0xb8a58a)
+};
+const mesh = (geo, m, parent, x, y, z) => { const o = new T.Mesh(geo, m); o.position.set(x || 0, y || 0, z || 0); o.castShadow = true; o.receiveShadow = true; if (parent) parent.add(o); return o; };
+const box = (w, h, d, m, p, x, y, z) => mesh(new T.BoxGeometry(w, h, d), m, p, x, y, z);
+const cyl = (rt, rb, h, s, m, p, x, y, z) => mesh(new T.CylinderGeometry(rt, rb, h, s), m, p, x, y, z);
+const sprite = (tex, color, opacity, parent, x, y, z, s) => { const sp = new T.Sprite(new T.SpriteMaterial({ map: tex, color, transparent: true, opacity, blending: T.AdditiveBlending, depthWrite: false })); sp.position.set(x, y, z); sp.scale.set(s, s, 1); if (parent) parent.add(sp); return sp; };
+const flat = (geo, m, parent, x, y, z) => { const o = new T.Mesh(geo, m); o.rotation.x = -Math.PI / 2; o.position.set(x, y, z); if (parent) parent.add(o); return o; };
+
+// ---------- renderer / scene ----------
+const canvas = $('scene');
+const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setClearColor(0x000000, 0);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+const scene = new T.Scene();
+const DIST = 60;
+const camera = new T.OrthographicCamera(-10, 10, 6, -6, 1, 400);
+
+// Light comes in through the open mouth of the bag above; small warm lamps inside.
+const hemi = new T.HemisphereLight(0x8c8070, 0x2a2018, 0.55); scene.add(hemi);
+const mouth = new T.DirectionalLight(0xffe6c2, 0.95);
+mouth.position.set(3, 16, 5); mouth.target.position.set(-0.5, 0, -0.5);
+mouth.castShadow = true; mouth.shadow.mapSize.set(2048, 2048);
+Object.assign(mouth.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 2, far: 40 });
+mouth.shadow.bias = -0.0006; mouth.shadow.normalBias = 0.03;
+scene.add(mouth); scene.add(mouth.target);
+const fill = new T.DirectionalLight(0xa0b4c8, 0.16); fill.position.set(12, 6, 14); scene.add(fill);
+const lampTable = new T.PointLight(0xffbe78, 0.8, 6, 2); lampTable.position.set(1.95, 0.75, 3.1); scene.add(lampTable);
+const lampPost = new T.PointLight(0xffc98a, 0, 4.5, 2); lampPost.position.set(3.2, 2.55, -3.4); scene.add(lampPost);
+const orreryLight = new T.PointLight(0x8fbfe6, 0, 4.5, 2); orreryLight.position.set(0.5, 2.55, 0.5); scene.add(orreryLight);
+
+// ---------- the bag interior ----------
+// World axes: the two walls kept by the cut are x = -4 (left on screen) and z = -4 (right on screen);
+// the camera sits at azimuth 45° (+x, +z), 31° up, like every other scene.
+const room = new T.Group(); scene.add(room);
+const WH = 3.4;
+function lined(w, h, d, x, y, z, rx, ry) { const l = box(w, h, d, M.lining, room, x, y, z); l.material = M.lining.clone(); l.material.map = liningTex.clone(); l.material.map.needsUpdate = true; l.material.map.repeat.set(rx, ry); return l; }
+box(0.16, WH, 8.3, M.shell, room, -4.2, WH / 2, -0.15); lined(0.1, WH, 8.1, -4.07, WH / 2, -0.05, 2.7, 1.1);
+box(8.3, WH, 0.16, M.shell, room, -0.15, WH / 2, -4.2); lined(8.1, WH, 0.1, -0.05, WH / 2, -4.07, 2.7, 1.1);
+box(0.4, 0.16, 8.4, M.rim, room, -4.12, WH + 0.06, -0.12);
+box(8.4, 0.16, 0.4, M.rim, room, -0.12, WH + 0.06, -4.12);
+for (let i = 0; i < 10; i++) { cyl(0.035, 0.035, 0.04, 6, M.brass, room, -3.95, WH - 0.12, -3.6 + i * 0.8).rotation.z = Math.PI / 2; cyl(0.035, 0.035, 0.04, 6, M.brass, room, -3.6 + i * 0.8, WH - 0.12, -3.95).rotation.x = Math.PI / 2; }
+box(8.4, 0.3, 8.4, M.shell, room, -0.1, -0.2, -0.1);
+const floorTop = box(8, 0.06, 8, M.floor, room, 0, -0.03, 0); floorTop.receiveShadow = true; floorTop.material.map.repeat.set(1.6, 1.6);
+const flap = box(8.2, 0.12, 2.0, M.leatherDark, room, -0.1, WH - 0.84, -4.78); flap.rotation.x = -1.1;
+cyl(0.1, 0.1, 8, 6, M.leatherDark, room, -3.95, 0.08, 0).rotation.x = Math.PI / 2;
+cyl(0.1, 0.1, 8, 6, M.leatherDark, room, 0, 0.08, -3.95).rotation.z = Math.PI / 2;
+cyl(0.1, 0.1, WH, 6, M.leatherDark, room, -3.95, WH / 2, -3.95);
+cyl(0.045, 0.045, 8.4, 6, M.brass, room, -4.12, WH + 0.17, -0.12).rotation.x = Math.PI / 2;
+cyl(0.045, 0.045, 8.4, 6, M.brass, room, -0.12, WH + 0.17, -4.12).rotation.z = Math.PI / 2;
+box(0.06, 1.1, 0.34, M.leatherDark, room, -3.93, WH - 0.5, 3.4); box(0.08, 0.1, 0.44, M.brass, room, -3.9, WH - 1.02, 3.4);
+// the brass mouth frame bar the sky-orrery hangs from (hidden while looking down at the table)
+const bar = cyl(0.06, 0.06, 8.4, 8, M.brass, room, -0.1, WH + 0.1, 0.5); bar.rotation.z = Math.PI / 2; bar.castShadow = false;
+mesh(new T.SphereGeometry(0.13, 8, 6), M.brass, room, -4.2, WH + 0.1, 0.5);
+// rug, table, a candle on a crate by the front
+const TABLE = { x: 0.5, y: 0.95, z: 0.5, w: 3.0, d: 2.0 };
+const rug = flat(new T.PlaneGeometry(4.4, 3.1), M.rug, room, TABLE.x, 0.005, TABLE.z); rug.receiveShadow = true;
+box(3.12, 0.08, 2.12, M.wood, room, TABLE.x, TABLE.y - 0.045, TABLE.z);
+[[-1.4, -0.9], [1.4, -0.9], [-1.4, 0.9], [1.4, 0.9]].forEach(([a, b]) => box(0.1, 0.9, 0.1, M.woodDark, room, TABLE.x + a, 0.45, TABLE.z + b));
+const boardTexCanvas = document.createElement('canvas'); boardTexCanvas.width = 2048; boardTexCanvas.height = 1366;
+const boardTex = new T.CanvasTexture(boardTexCanvas); boardTex.anisotropy = 8;
+const boardMesh = flat(new T.PlaneGeometry(TABLE.w, TABLE.d), new T.MeshStandardMaterial({ map: boardTex, roughness: 0.95 }), room, TABLE.x, TABLE.y + 0.002, TABLE.z); boardMesh.receiveShadow = true;
+box(0.6, 0.45, 0.5, M.crate, room, 1.95, 0.225, 3.1);
+cyl(0.1, 0.1, 0.22, 10, M.glass, room, 1.95, 0.56, 3.1); cyl(0.04, 0.04, 0.12, 6, M.paper, room, 1.95, 0.52, 3.1);
+const candle = sprite(haloTex, 0xffd9a0, 0.8, room, 1.95, 0.64, 3.1, 0.5);
+const book3d = new T.Group(); book3d.position.set(TABLE.x - 1.5 + 3 * 0.944, TABLE.y, TABLE.z - 1 + 2 * 0.91); book3d.rotation.y = -0.18; room.add(book3d);
+box(0.24, 0.045, 0.3, M.leatherBook, book3d, 0, 0.025, 0); box(0.22, 0.035, 0.28, M.paper, book3d, 0.01, 0.028, 0); box(0.26, 0.012, 0.035, M.leatherDark, book3d, 0, 0.054, 0.06);
+
+// ---------- the ten exhibits ----------
+// Big, specific objects that each stay alive in their own way. Only three of them involve light,
+// and each differently: the orrery's star specks, the bridge lamp (once understood), the telescope's rainbows.
+const MAPS = { m01: '雲上遺庭', m02: '苔痕驛站', m03: '倒影湖畔', m04: '風切斷橋', m05: '回聲採石場', m06: '潮汐郵驛', m07: '玻璃苗圃', m08: '無聲書庫', m09: '停擺鐘樓', m10: '折光觀測台' };
+const mapOf = (i) => 'm' + String(i).padStart(2, '0');
+const EX = [];
+const EL = 0.541, AZ = Math.PI / 4;
+function exhibit(i, name, anchor, view, hitSize, hitAt) {
+  const g = new T.Group(); room.add(g); const core = new T.Group(); g.add(core);
+  const hit = new T.Mesh(new T.BoxGeometry(hitSize[0], hitSize[1], hitSize[2]), new T.MeshBasicMaterial()); hit.visible = false; hit.position.copy(hitAt || anchor); room.add(hit);
+  const vw = Object.assign({ tx: anchor.x, ty: anchor.y, tz: anchor.z, el: EL, az: AZ }, view); vw.w *= 1.4; vw.h *= 1.4;
+  const e = { i, key: 'core' + i, name, map: mapOf(i), anchor, view: vw, g, core, hit, state: 0, set: () => {}, tick: () => {}, empty: new T.Group() };
+  room.add(e.empty); hit.userData.target = e; EX[i] = e; return e;
+}
+const blueLine = new T.MeshStandardMaterial({ color: 0x7fb4dc, emissive: 0x3f86c0, emissiveIntensity: 0.9, roughness: 0.4 });
+const bone = mat(0xd9ceb4), boneDark = mat(0xa99b7e), iron = mat(0x3c3a38), ironLight = mat(0x55524c);
+const dustFall = (parent, n) => { const a = []; for (let k = 0; k < n; k++) a.push({ sp: sprite(dotTex, 0xd8cfbf, 0, parent, 0, 0, 0, 0.06), t: rr(0, 1), x: rr(-0.3, 0.3), z: rr(-0.3, 0.3) }); return a; };
+
+// 01 星盤核心 → the sky-orrery filling the mouth of the bag
+{
+  const O = V3(TABLE.x, 2.55, TABLE.z); const e = exhibit(1, '星盤核心', O, { w: 5.2, h: 4.0 }, [3.2, 1.0, 3.2]);
+  cyl(0.015, 0.015, 0.95, 4, M.leatherDark, e.g, O.x, O.y + 0.55, O.z);
+  const hub = new T.Group(); hub.position.copy(O); e.g.add(hub);
+  const ring = (r, tilt, t2) => { const p = new T.Group(); p.rotation.set(tilt[0], 0, tilt[1]); const s = new T.Group(); p.add(s); mesh(new T.TorusGeometry(r, t2 || 0.03, 5, 64), M.brass, s, 0, 0, 0).rotation.x = Math.PI / 2; return { p, s }; };
+  const A = ring(1.5, [0.12, 0.06], 0.04); hub.add(A.p); // the outer ring is there from the start
+  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; box(0.02, 0.06, 0.02, M.brassDark, A.s, Math.cos(a) * 1.5, 0.05, Math.sin(a) * 1.5); }
+  const B = ring(1.18, [0.7, -0.35]); const C = ring(0.9, [-0.45, 0.6]); const D = ring(0.62, [1.2, 0.3], 0.025);
+  [B, C, D].forEach((R) => e.core.add(R.p)); e.core.position.copy(O);
+  mesh(new T.SphereGeometry(0.09, 10, 8), M.brass, A.s, 1.5, 0, 0); mesh(new T.SphereGeometry(0.07, 8, 6), M.brassDark, B.s, 0, 0, 1.18); mesh(new T.SphereGeometry(0.06, 8, 6), M.brass, C.s, -0.9, 0, 0); mesh(new T.SphereGeometry(0.05, 8, 6), M.leatherBook, D.s, 0, 0, -0.62);
+  cyl(0.02, 0.02, 1.6, 5, M.brass, e.core, 0, 0, 0);
+  const crystal = mesh(new T.IcosahedronGeometry(0.2, 0), M.crystal, e.core, 0, 0, 0);
+  // star specks thrown onto the lining
+  const specks = []; for (let k = 0; k < 30; k++) specks.push({ sp: sprite(dotTex, 0xcfe4f4, 0, room, 0, 0, 0, 0.13), a: k / 30 * Math.PI * 2 + rr(-0.1, 0.1), dy: rr(-0.55, 0.05) });
+  const hitWall = (dx, dy, dz) => { let best = null; const tryT = (t) => { if (t > 0 && (!best || t < best)) best = t; }; if (dx < 0) tryT((-3.99 - O.x) / dx); if (dz < 0) tryT((-3.99 - O.z) / dz); if (dy < 0) tryT((0.01 - O.y) / dy); return best; };
+  e.set = (s) => { e.core.visible = s > 0; };
+  e.tick = (dt, t, k) => {
+    const sp = e.state === 0 ? 0 : e.state === 1 ? 0.07 : 0.14; const boost = 1 + k.link * 6;
+    A.s.rotation.y += dt * sp * boost; B.s.rotation.y -= dt * sp * 1.5 * boost; C.s.rotation.y += dt * sp * 2.2 * boost; D.s.rotation.y -= dt * sp * 3 * boost; crystal.rotation.y += dt * 0.3;
+    if (e.state === 0) hub.rotation.y = 0.05 * Math.sin(t * 0.3);
+    orreryLight.intensity = e.state ? 0.25 + k.link * 0.8 : 0;
+    const rot = A.s.rotation.y * 0.6; const vis = e.state === 0 ? 0 : (e.state === 1 ? 0.35 : 0.6) + k.link * 0.3;
+    specks.forEach((s) => { const a = s.a + rot; const dx = Math.cos(a), dz = Math.sin(a), dy = s.dy; const tt = hitWall(dx, dy, dz); if (!tt) { s.sp.material.opacity = 0; return; } const p = V3(O.x + dx * tt, O.y + dy * tt, O.z + dz * tt); if (p.x > 3.95 || p.z > 3.95 || p.y > WH) { s.sp.material.opacity = 0; return; } s.sp.position.copy(p); s.sp.material.opacity = vis * (0.7 + 0.3 * Math.sin(t * 2 + s.a * 5)) * (1 - (S.tableF || 0)); });
+  };
+}
+
+// 02 裂痕羅盤 → set in a brass bowl on the station's old luggage trolley, beside the table
+{
+  const P = V3(2.75, 0, 2.05); const e = exhibit(2, '裂痕羅盤', P.clone().add(V3(0, 1.15, 0)), { w: 2.6, h: 2.0 }, [1.1, 1.5, 0.9], P.clone().add(V3(0, 0.7, 0)));
+  const base = new T.Group(); base.position.copy(P); base.rotation.y = Math.PI / 4; e.g.add(base);
+  box(1.0, 0.1, 0.62, M.woodPale, base, 0, 0.28, 0); box(1.0, 0.04, 0.05, M.woodDark, base, 0, 0.35, 0.3); box(1.0, 0.04, 0.05, M.woodDark, base, 0, 0.35, -0.3);
+  [[-0.38, 0.33], [-0.38, -0.33]].forEach(([x, z]) => { const w = cyl(0.2, 0.2, 0.06, 12, iron, base, x, 0.2, z); w.rotation.x = Math.PI / 2; });
+  box(0.1, 0.12, 0.5, M.woodDark, base, 0.42, 0.17, 0); cyl(0.025, 0.025, 1.0, 5, iron, base, 0.62, 0.7, 0).rotation.z = -0.5;
+  cyl(0.07, 0.1, 0.62, 8, M.brass, base, -0.05, 0.64, 0);
+  const bowl = mesh(new T.SphereGeometry(0.4, 14, 7, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), M.brass, base, -0.05, 1.1, 0); bowl.material = M.brass.clone(); bowl.material.side = T.DoubleSide;
+  const tag = box(0.16, 0.22, 0.01, M.paperOld, base, 0.3, 0.95, 0.12); tag.rotation.set(0.1, 0.2, 0.25); cyl(0.004, 0.004, 0.2, 3, M.red, base, 0.3, 1.12, 0.1);
+  const face = new T.Group(); face.position.set(P.x - 0.03, 1.12, P.z); face.rotation.set(0.28, 0, -0.28); e.core.add(face);
+  cyl(0.34, 0.34, 0.05, 20, M.brassDark, face, 0, 0, 0); cyl(0.3, 0.3, 0.02, 20, M.face, face, 0, 0.03, 0);
+  const crack = box(0.36, 0.006, 0.012, blueLine, face, 0.02, 0.045, 0.05); crack.rotation.y = 0.5; const crack2 = box(0.14, 0.006, 0.01, blueLine, face, -0.12, 0.045, -0.02); crack2.rotation.y = -0.4;
+  for (let h = 0; h < 8; h++) { const a = h / 8 * Math.PI * 2; box(0.012, 0.01, h % 2 ? 0.04 : 0.07, M.ink, face, Math.cos(a) * 0.25, 0.045, Math.sin(a) * 0.25).rotation.y = -a + Math.PI / 2; }
+  const needle = new T.Group(); needle.position.y = 0.06; face.add(needle); box(0.26, 0.016, 0.035, M.red, needle, 0.13, 0, 0); box(0.26, 0.016, 0.035, M.ink, needle, -0.13, 0, 0);
+  mesh(new T.SphereGeometry(0.3, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2), M.glass, face, 0, 0.03, 0);
+  e.set = (s) => { e.core.visible = s > 0; };
+  const inv = new T.Quaternion(), v = new T.Vector3();
+  e.tick = (dt, t, k) => {
+    let yaw;
+    if (e.state > 1 || k.link) { const tgt = k.link || !k.trackWorld ? V3(TABLE.x, 8, TABLE.z - 1) : k.trackWorld; face.updateMatrixWorld(true); inv.copy(face.getWorldQuaternion(new T.Quaternion())).invert(); v.copy(tgt).sub(face.getWorldPosition(new T.Vector3())).applyQuaternion(inv); yaw = Math.atan2(-v.z, v.x) + 0.04 * Math.sin(t * 2.1); }
+    else yaw = 1.4 * Math.sin(t * 0.7) + 0.6 * Math.sin(t * 1.9 + 1);
+    needle.rotation.y = needle.rotation.y + wrapA(yaw - needle.rotation.y) * (1 - Math.pow(0.02, dt));
+  };
+}
+
+// 03 留影玻璃 → a disc of upright lake water held in a ring of stones; it shows this same bag, used for longer
+const mirrorRT = new T.WebGLRenderTarget(512, 512);
+const mirrorCam = new T.PerspectiveCamera(70, 1, 0.2, 40);
+mirrorCam.layers.enable(1);
+const ghost = new T.Group(); scene.add(ghost);
+const ripples = [];
+{
+  const C = V3(-1.25, 1.02, -3.62); const e = exhibit(3, '留影玻璃', C, { w: 3.0, h: 2.6 }, [2.0, 2.1, 0.6]);
+  const ringG = new T.Group(); ringG.position.copy(C); e.g.add(ringG);
+  for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2; const st = mesh(new T.DodecahedronGeometry(0.15 + (k % 3) * 0.025, 0), k % 2 ? M.rock : mat(0x5f5b54), ringG, Math.cos(a) * 0.98, Math.sin(a) * 0.98, -0.04); st.rotation.set(rr(0, 3), rr(0, 3), 0); st.scale.set(1, 1, 0.7); }
+  box(1.5, 0.12, 0.5, mat(0x5f5b54), e.g, C.x, 0.06, C.z + 0.05);
+  mirrorRT.texture.wrapS = T.RepeatWrapping; mirrorRT.texture.repeat.set(-1, 1); mirrorRT.texture.offset.set(1, 0);
+  const water = new T.Mesh(new T.CircleGeometry(0.8, 40), new T.MeshBasicMaterial({ map: mirrorRT.texture, color: 0xf2f6f6 })); water.position.copy(C).add(V3(0, 0, 0.01)); e.core.add(water);
+  const sheen = new T.Mesh(new T.CircleGeometry(0.8, 40), new T.MeshBasicMaterial({ color: 0x9cc8e8, transparent: true, opacity: 0.1, depthWrite: false })); sheen.position.copy(C).add(V3(0, 0, 0.015)); e.core.add(sheen);
+  for (let k = 0; k < 3; k++) { const r = new T.Mesh(new T.RingGeometry(0.1, 0.12, 36), new T.MeshBasicMaterial({ color: 0xe8f2f6, transparent: true, opacity: 0, depthWrite: false })); r.position.copy(C).add(V3(rr(-0.2, 0.2), rr(-0.25, 0.1), 0.02)); e.core.add(r); ripples.push({ r, t: k / 3 }); }
+  mirrorCam.position.copy(C).add(V3(0, 0.05, 0.1)); mirrorCam.lookAt(-0.2, 0.45, 0.2);
+  e.set = (s) => { e.core.visible = s > 0; ringG.visible = true; e.empty.visible = s === 0; GHOSTS.forEach((gh, n) => { gh.visible = s === 1 ? n < 2 : s > 1; }); };
+  e.tick = (dt, t) => { ripples.forEach((p) => { p.t = (p.t + dt / 3.2) % 1; p.r.scale.setScalar(1 + p.t * 5.5); p.r.material.opacity = e.state ? 0.22 * (1 - p.t) : 0; }); sheen.material.opacity = 0.08 + 0.04 * Math.sin(t * 0.8); };
+}
+const GHOSTS = [];
+function ghostItem(build) { const g = new T.Group(); ghost.add(g); build(g); g.traverse((c) => c.layers.set(1)); GHOSTS.push(g); return g; }
+const ghostSteam = [];
+ghostItem((g) => { g.position.set(TABLE.x - 0.9, TABLE.y, TABLE.z - 0.55); cyl(0.07, 0.06, 0.14, 8, M.cup, g, 0, 0.07, 0); cyl(0.07, 0.06, 0.14, 8, M.cup, g, 0.22, 0.07, 0.12); for (let k = 0; k < 3; k++) { const s = sprite(dotTex, 0xffffff, 0.2, g, 0, 0.2, 0, 0.1); ghostSteam.push(s); } });
+ghostItem((g) => { g.position.set(-0.55, 0, -1.9); g.rotation.y = 0.5; box(0.5, 0.06, 0.5, M.woodPale, g, 0, 0.52, 0); [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]].forEach(([a, b]) => box(0.05, 0.5, 0.05, M.woodDark, g, a, 0.25, b)); const c = box(0.62, 0.08, 0.58, M.cloakOld, g, 0, 0.6, 0); c.rotation.z = 0.12; const d = box(0.08, 0.55, 0.56, M.cloakOld, g, 0.32, 0.36, 0); d.rotation.z = 0.1; box(0.1, 0.5, 0.12, M.cuffBand, g, 0.36, 0.34, 0.1); const hat = new T.Group(); hat.position.set(-0.05, 0.66, 0.02); g.add(hat); cyl(0.3, 0.3, 0.03, 12, M.hatOld, hat, 0, 0, 0); cyl(0.15, 0.17, 0.18, 10, M.hatOld, hat, 0, 0.1, 0); hat.rotation.z = -0.15; });
+ghostItem((g) => { g.position.set(TABLE.x + 0.6, TABLE.y, TABLE.z - 0.45); box(0.4, 0.1, 0.5, M.leatherBook, g, 0, 0.05, 0); box(0.38, 0.09, 0.48, M.paperOld, g, 0.012, 0.06, 0); g.rotation.y = 0.4; });
+ghostItem((g) => { g.position.set(-1.35, 0, -1.55); [0, 0.2].forEach((dz, n) => { box(0.14, 0.34, 0.14, M.boot, g, n * 0.05, 0.17, dz); box(0.26, 0.08, 0.14, M.boot, g, 0.08 + n * 0.05, 0.04, dz); }); g.rotation.y = 0.5; });
+ghostItem((g) => { g.position.set(TABLE.x, TABLE.y + 0.01, TABLE.z); const s = box(2.2, 0.012, 0.012, M.red, g, 0, 0, 0); s.rotation.y = -0.7; [[-0.84, 0.72], [0.84, -0.72]].forEach(([x, z]) => mesh(new T.SphereGeometry(0.03, 6, 4), M.red, g, x, 0.02, z)); });
+ghostItem((g) => { g.position.set(0.15, 0.05, -1.1); [[0, 0], [0.4, 0.3], [-0.3, 0.5], [0.7, -0.2]].forEach(([x, z]) => mesh(new T.IcosahedronGeometry(0.08, 0), M.paper, g, x, 0.03, z)); });
+
+// 04 修橋銘牌 → on the bridge-head lamp post; its flag flies in a wind that isn't in the bag
+{
+  const P = V3(3.25, 0, -3.35); const e = exhibit(4, '修橋銘牌', P.clone().add(V3(0, 1.4, 0)), { w: 3.4, h: 3.2 }, [0.9, 2.9, 0.9], P.clone().add(V3(0, 1.4, 0)));
+  box(0.62, 0.3, 0.62, mat(0x6f6a62), e.g, P.x, 0.15, P.z);
+  e.core.position.copy(P);
+  cyl(0.16, 0.2, 0.3, 8, iron, e.core, 0, 0.45, 0); cyl(0.065, 0.08, 2.1, 8, iron, e.core, 0, 1.6, 0);
+  [0.9, 1.9].forEach((y) => cyl(0.1, 0.1, 0.06, 8, ironLight, e.core, 0, y, 0));
+  const head = new T.Group(); head.position.y = 2.72; e.core.add(head);
+  box(0.36, 0.05, 0.36, iron, head, 0, -0.2, 0); box(0.3, 0.36, 0.3, M.glass, head, 0, 0, 0); [[-0.15, -0.15], [0.15, -0.15], [-0.15, 0.15], [0.15, 0.15]].forEach(([x, z]) => box(0.03, 0.4, 0.03, iron, head, x, 0, z)); const cap = mesh(new T.ConeGeometry(0.28, 0.2, 4), iron, head, 0, 0.3, 0); cap.rotation.y = Math.PI / 4;
+  const bulb = sprite(haloTex, 0xffd28a, 0, head, 0, 0, 0, 0.9);
+  const plate = box(0.2, 0.26, 0.02, M.brass, e.core, 0.03, 1.25, 0.075); plate.rotation.y = Math.PI / 4 - 0.5; box(0.14, 0.012, 0.01, blueLine, e.core, 0.035, 1.18, 0.09).rotation.y = Math.PI / 4 - 0.5;
+  box(0.7, 0.04, 0.04, iron, e.core, -0.33, 2.3, 0.2).rotation.y = -0.5;
+  const flagGeo = new T.PlaneGeometry(0.75, 0.45, 10, 4); const flag = new T.Mesh(flagGeo, mat(0xa2614c, { side: T.DoubleSide })); flag.position.set(-0.62, 2.1, 0.38); flag.rotation.y = -0.5 - Math.PI / 2 + 0.2; e.core.add(flag); flag.castShadow = true;
+  const fBase = Float32Array.from(flagGeo.attributes.position.array);
+  const patch = box(0.14, 0.12, 0.01, mat(0xd6c7a6), flag, -0.12, 0.05, 0.012);
+  cyl(0.24, 0.26, 0.05, 8, iron, e.empty, P.x, 0.325, P.z); [[0.15, 0.15], [-0.15, 0.15], [0.15, -0.15], [-0.15, -0.15]].forEach(([x, z]) => cyl(0.025, 0.025, 0.1, 6, ironLight, e.empty, P.x + x, 0.38, P.z + z));
+  e.set = (s) => { e.core.visible = s > 0; patch.visible = s > 1; e.empty.visible = s === 0; };
+  e.tick = (dt, t, k) => {
+    const a = flagGeo.attributes.position; for (let i = 0; i < a.count; i++) { const x = fBase[i * 3], y = fBase[i * 3 + 1]; const d = (x + 0.375) / 0.75; a.array[i * 3 + 2] = fBase[i * 3 + 2] + d * (0.09 * Math.sin(t * 5.5 - x * 7) + 0.03 * Math.sin(t * 9 - y * 6)); a.array[i * 3 + 1] = y - d * d * 0.05; } a.needsUpdate = true; flagGeo.computeVertexNormals();
+    const on = e.state > 1 || k.link ? 1 : 0; bulb.material.opacity = on * (0.85 + 0.08 * Math.sin(t * 6)); lampPost.intensity = on * 0.9;
+  };
+}
+
+// 05 藏聲石 → a big holed stone riding in a quarry cart; it hums and sheds stone dust
+{
+  const P = V3(-2.75, 0, -2.7); const e = exhibit(5, '藏聲石', P.clone().add(V3(0, 0.9, 0)), { w: 2.8, h: 2.3 }, [1.5, 1.6, 1.2], P.clone().add(V3(0, 0.7, 0)));
+  const cart = new T.Group(); cart.position.copy(P); cart.rotation.y = 0.35; e.g.add(cart);
+  [[-0.35], [0.35]].forEach(([z]) => box(1.9, 0.04, 0.06, iron, cart, 0, 0.02, z));
+  for (let k = 0; k < 5; k++) box(0.14, 0.03, 0.9, M.woodDark, cart, -0.8 + k * 0.4, 0.015, 0);
+  box(1.15, 0.5, 0.78, M.woodDark, cart, 0, 0.48, 0); box(1.05, 0.05, 0.68, M.soil, cart, 0, 0.72, 0);
+  [[-0.4, 0.4], [0.4, 0.4], [-0.4, -0.4], [0.4, -0.4]].forEach(([x, z]) => { const w = cyl(0.16, 0.16, 0.06, 10, iron, cart, x, 0.17, z); w.rotation.x = Math.PI / 2; });
+  [0.26, 0.7].forEach((y) => box(1.17, 0.05, 0.8, ironLight, cart, 0, y, 0));
+  e.core.position.set(P.x, 1.2, P.z);
+  const stone = mesh(new T.IcosahedronGeometry(0.62, 0), mat(0x7a7870), e.core, 0, 0, 0); stone.scale.set(1.05, 0.82, 0.9);
+  const holes = [[0.5, 0.2, 0.2], [0.3, 0.35, 0.45], [0.55, -0.05, -0.2], [0.1, 0.45, 0.4], [0.35, -0.2, 0.45], [-0.2, 0.42, 0.35]];
+  holes.forEach(([x, y, z], n) => { const hN = V3(x, y, z).normalize(); const h = cyl(0.06 - (n % 2) * 0.015, 0.05, 0.2, 7, mat(0x1c1a18), e.core, hN.x * 0.5, hN.y * 0.42, hN.z * 0.46); h.quaternion.setFromUnitVectors(V3(0, 1, 0), hN); if (n < 2) { const b = mesh(new T.SphereGeometry(0.02, 5, 4), blueLine, e.core, hN.x * 0.56, hN.y * 0.47, hN.z * 0.52); } });
+  const dust = dustFall(room, 10);
+  const hum = []; for (let k = 0; k < 2; k++) { const r = new T.Mesh(new T.TorusGeometry(0.7, 0.008, 4, 40), new T.MeshBasicMaterial({ color: 0xd9d2c2, transparent: true, opacity: 0, depthWrite: false })); r.position.set(P.x, 1.2, P.z); r.rotation.x = Math.PI / 2; room.add(r); hum.push(r); }
+  e.set = (s) => { e.core.visible = s > 0; };
+  e.tick = (dt, t, k) => {
+    const per = e.state > 1 || k.link ? 4.5 : 8; const ph = (t % per) / per; const humming = e.state > 0 && ph < 0.3;
+    e.core.position.x = P.x + (humming ? 0.006 * Math.sin(t * 60) : 0);
+    hum.forEach((r, n) => { const p = clamp((ph - n * 0.08) / 0.3, 0, 1); r.scale.setScalar(1 + p * 0.8); r.material.opacity = e.state ? 0.35 * Math.sin(Math.PI * p) : 0; });
+    dust.forEach((d, n) => { const h = holes[n % holes.length]; const hN = V3(h[0], h[1], h[2]).normalize(); d.t += dt * 0.35; if (d.t > 1) d.t -= 1; const on = e.state > 0 && (humming || d.t > 0.05); d.sp.position.set(P.x + hN.x * 0.55, 1.2 + hN.y * 0.45 - d.t * 0.9, P.z + hN.z * 0.5); d.sp.material.opacity = on && e.state ? 0.5 * (1 - d.t) * (humming ? 1 : 0.35) : 0; });
+  };
+}
+
+// 06 蒼鯨號角 → a whale-bone horn slung across the left wall; the post house used it to call the mail boat
+{
+  const e = exhibit(6, '蒼鯨號角', V3(-3.45, 1.95, -0.7), { w: 5.4, h: 4.0 }, [0.9, 2.2, 4.2], V3(-3.55, 2.0, -1.1));
+  const pt = (u) => V3(-3.78 + 0.5 * u * u, 3.0 - 1.55 * u + 0.45 * Math.sin(Math.PI * u), -3.3 + 3.9 * u);
+  const rad = (u) => 0.06 + 0.4 * Math.pow(u, 2.3);
+  const N = 18; for (let n = 0; n < N; n++) { const u0 = n / N, u1 = (n + 1) / N; const a = pt(u0), b = pt(u1); const len = a.distanceTo(b); const seg = new T.Mesh(new T.CylinderGeometry(rad(u1), rad(u0), len * 1.04, 12), n % 4 === 3 ? boneDark : bone); seg.position.copy(a).lerp(b, 0.5); seg.quaternion.setFromUnitVectors(V3(0, 1, 0), b.clone().sub(a).normalize()); seg.castShadow = seg.receiveShadow = true; e.core.add(seg); }
+  const mouthP = pt(1), mouthDir = pt(1).sub(pt(0.95)).normalize();
+  const bell = new T.Mesh(new T.CylinderGeometry(0.5, 0.44, 0.1, 16, 1, true), mat(0xc9bd9f, { side: T.DoubleSide })); bell.position.copy(mouthP); bell.quaternion.setFromUnitVectors(V3(0, 1, 0), mouthDir); e.core.add(bell);
+  const lip = new T.Mesh(new T.TorusGeometry(0.5, 0.035, 5, 28), M.brass); lip.position.copy(mouthP).add(mouthDir.clone().multiplyScalar(0.05)); lip.quaternion.setFromUnitVectors(V3(0, 0, 1), mouthDir); e.core.add(lip);
+  const dark = new T.Mesh(new T.CircleGeometry(0.44, 20), mat(0x2a241c)); dark.position.copy(mouthP).sub(mouthDir.clone().multiplyScalar(0.02)); dark.quaternion.setFromUnitVectors(V3(0, 0, 1), mouthDir); e.core.add(dark);
+  [0.3, 0.55, 0.78].forEach((u) => { const r = new T.Mesh(new T.TorusGeometry(rad(u) + 0.01, 0.018, 4, 20), M.brass); r.position.copy(pt(u)); r.quaternion.setFromUnitVectors(V3(0, 0, 1), pt(u + 0.02).sub(pt(u - 0.02)).normalize()); e.core.add(r); });
+  const inlay = box(0.01, 0.02, 0.5, blueLine, e.core, 0, 0, 0); inlay.position.copy(pt(0.62)).add(V3(0.2, 0.18, 0)); inlay.quaternion.setFromUnitVectors(V3(0, 0, 1), pt(0.66).sub(pt(0.58)).normalize());
+  [0.18, 0.52, 0.84].forEach((u) => { const p = pt(u), r = rad(u); const y = p.y - r - 0.03; const len = p.x + 3.97; box(0.12, 0.3, 0.06 + r * 0.5, M.brassDark, e.g, -3.94, y - 0.1, p.z); box(len, 0.04, 0.05, M.brass, e.g, -3.97 + len / 2, y, p.z); [-1, 1].forEach((sd) => { const pr = box(0.04, r * 0.9 + 0.06, 0.04, M.brass, e.g, p.x, y + (r * 0.9 + 0.06) / 2, p.z + sd * (r + 0.03)); pr.rotation.x = -sd * 0.25; }); });
+  const breath = []; for (let k = 0; k < 6; k++) breath.push({ sp: new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xe6ecee, transparent: true, opacity: 0, depthWrite: false })), t: k / 6 }); breath.forEach((b) => room.add(b.sp));
+  const letter = new T.Group(); room.add(letter); box(0.26, 0.012, 0.18, M.paper, letter, 0, 0, 0); box(0.07, 0.014, 0.07, M.red, letter, 0.07, 0.002, -0.04);
+  let lt = 0;
+  e.set = (s) => { e.core.visible = s > 0; e.empty.visible = s === 0; };
+  e.tick = (dt, t, k) => {
+    const per = 7; const ph = (t % per) / per; const puff = ph < 0.4 ? Math.sin(ph / 0.4 * Math.PI) : 0;
+    e.core.scale.setScalar(1 + (e.state ? 0.006 * puff : 0));
+    breath.forEach((b) => { b.t += dt / 4; if (b.t > 1) b.t -= 1; const p = mouthP.clone().add(mouthDir.clone().multiplyScalar(0.2 + b.t * 1.4)).add(V3(0, b.t * 0.5, 0)); b.sp.position.copy(p); const sc = 0.4 + b.t * 1.2; b.sp.scale.set(sc, sc * 0.7, 1); b.sp.material.opacity = e.state ? 0.28 * Math.sin(Math.PI * b.t) * (0.4 + 0.6 * puff) : 0; });
+    letter.visible = e.state > 1 || k.link > 0; if (letter.visible) { lt = (lt + dt / 9) % 1; const p = mouthP.clone().add(mouthDir.clone().multiplyScalar(0.3 + lt * 1.3)).add(V3(0, 0.3 * Math.sin(lt * Math.PI) - lt * 1.6, 0)); letter.position.copy(p); letter.rotation.set(0.3 * Math.sin(t * 2), t * 0.6, 0.2 * Math.sin(t * 1.3)); letter.scale.setScalar(lt < 0.08 ? lt / 0.08 : lt > 0.9 ? (1 - lt) / 0.1 : 1); }
+  };
+  e.mouthP = mouthP;
+}
+
+// 07 封存種莢 → planted under a tall glass bell; the sapling grows a little with every journey
+{
+  const P = V3(1.35, 0, -3.3); const e = exhibit(7, '封存種莢', P.clone().add(V3(0, 0.9, 0)), { w: 2.7, h: 2.4 }, [1.2, 1.9, 1.2], P.clone().add(V3(0, 0.9, 0)));
+  cyl(0.62, 0.66, 0.2, 14, M.woodDark, e.g, P.x, 0.1, P.z); cyl(0.55, 0.55, 0.06, 14, M.soil, e.g, P.x, 0.22, P.z);
+  e.core.position.set(P.x, 0.25, P.z);
+  const glassM = M.glass.clone(); glassM.opacity = 0.16; glassM.side = T.DoubleSide;
+  const dome = new T.Group(); e.core.add(dome); const cylG = new T.Mesh(new T.CylinderGeometry(0.52, 0.52, 1.0, 20, 1, true), glassM); cylG.position.y = 0.5; dome.add(cylG); const top = new T.Mesh(new T.SphereGeometry(0.52, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2), glassM); top.position.y = 1.0; dome.add(top); cyl(0.07, 0.07, 0.08, 8, M.brass, dome, 0, 1.55, 0); mesh(new T.TorusGeometry(0.53, 0.025, 4, 28), M.brass, dome, 0, 0.01, 0).rotation.x = Math.PI / 2;
+  const tree = new T.Group(); e.core.add(tree);
+  cyl(0.03, 0.05, 0.6, 6, M.wood, tree, 0, 0.3, 0); const br = cyl(0.015, 0.02, 0.3, 5, M.wood, tree, 0.08, 0.52, 0); br.rotation.z = -0.8;
+  const crowns = [[0, 0.72, 0, 0.26], [0.18, 0.62, 0.05, 0.18], [-0.14, 0.64, -0.06, 0.17]].map(([x, y, z, r], n) => { const c = mesh(new T.IcosahedronGeometry(r, 0), n ? M.leafLight : M.leaf, tree, x, y, z); return c; });
+  const pod = mesh(new T.SphereGeometry(0.07, 7, 5), M.pod, e.core, 0.26, 0.05, 0.15); pod.scale.set(0.8, 1.4, 0.8); box(0.04, 0.02, 0.06, blueLine, e.core, 0.26, 0.15, 0.17);
+  e.set = (s) => { e.core.visible = s > 0; const g = clamp(0.38 + 0.07 * (S.journeys || 0) + (s > 1 ? 0.12 : 0), 0.3, 1.25); tree.scale.setScalar(g); };
+  e.tick = (dt, t) => { tree.rotation.z = 0.03 * Math.sin(t * 0.5); crowns.forEach((c, n) => { c.rotation.y = 0.1 * Math.sin(t * 0.7 + n); }); };
+}
+
+// 08 未寫成的日記 → a book half a person tall on a library lectern; its pages turn by themselves
+{
+  const P = V3(-1.9, 0, 3.05); const e = exhibit(8, '未寫成的日記', P.clone().add(V3(0, 1.15, 0)), { w: 2.8, h: 2.3 }, [1.5, 1.6, 1.2], P.clone().add(V3(0, 0.8, 0)));
+  const lect = new T.Group(); lect.position.copy(P); lect.rotation.y = Math.PI / 4; e.g.add(lect);
+  box(0.8, 0.08, 0.14, M.woodDark, lect, 0, 0.04, 0); box(0.14, 0.08, 0.7, M.woodDark, lect, 0, 0.04, 0); cyl(0.07, 0.09, 0.95, 8, M.wood, lect, 0, 0.5, 0);
+  const deskTop = new T.Group(); deskTop.position.set(0, 1.0, 0); deskTop.rotation.x = 0.42; lect.add(deskTop); box(1.3, 0.05, 0.85, M.wood, deskTop, 0, 0, 0); box(1.3, 0.08, 0.04, M.woodDark, deskTop, 0, 0.04, 0.42);
+  const book = new T.Group(); book.position.set(0, 0.03, 0); deskTop.add(book); e.core.add(book);
+  e.core.position.set(0, 0, 0); deskTop.add(e.core);
+  box(1.14, 0.03, 0.8, M.leatherBook, e.core, 0, 0.015, 0);
+  box(0.54, 0.12, 0.74, M.paper, e.core, -0.28, 0.09, 0); box(0.54, 0.1, 0.74, M.paper, e.core, 0.28, 0.08, 0);
+  for (let k = 0; k < 5; k++) box(0.34, 0.004, 0.012, M.ink, e.core, -0.3, 0.152, -0.22 + k * 0.1);
+  const ribbon = box(0.03, 0.005, 0.5, blueLine, e.core, 0.02, 0.15, 0.4); ribbon.rotation.x = 0.4;
+  const pageG = new T.Group(); pageG.position.set(0, 0.15, 0); e.core.add(pageG); const page = new T.Mesh(new T.PlaneGeometry(0.54, 0.74), mat(0xefe6cf, { side: T.DoubleSide })); page.rotation.x = -Math.PI / 2; page.position.x = 0.27; pageG.add(page);
+  const loose = new T.Group(); loose.position.set(P.x + 0.55, 0.02, P.z - 0.35); e.g.add(loose); for (let k = 0; k < 4; k++) { const p = box(0.26, 0.006, 0.34, M.paperOld, loose, rr(-0.1, 0.1), 0.004 + k * 0.007, rr(-0.1, 0.1)); p.rotation.y = rr(-0.5, 0.5); }
+  e.set = (s) => { e.core.visible = s > 0; loose.visible = s > 1; };
+  e.tick = (dt, t, k) => { const per = e.state > 1 || k.link ? 6 : 9; const ph = (t % per) / per; const turn = ease(clamp((ph - 0.6) / 0.3, 0, 1)); pageG.rotation.z = turn * Math.PI * 0.98; page.visible = e.state > 0 && ph > 0.55; };
+}
+
+// 09 停秒輪 → the stopped clock-tower face leaning on the wall; its escapement wheel shows behind
+{
+  const C = V3(-3.62, 1.1, 1.95); const e = exhibit(9, '停秒輪', C, { w: 3.4, h: 3.0 }, [0.6, 2.2, 2.2]);
+  e.core.position.copy(C); e.core.rotation.z = 0.12;
+  const wheel = new T.Group(); wheel.position.set(-0.18, 0.45, -0.55); e.core.add(wheel); const wd = cyl(0.72, 0.72, 0.06, 24, M.brassDark, wheel, 0, 0, 0); wd.rotation.z = Math.PI / 2; for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2; const tooth = box(0.06, 0.14, 0.1, M.brassDark, wheel, 0, Math.cos(a) * 0.78, Math.sin(a) * 0.78); tooth.rotation.x = -a; } for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; const sp = box(0.05, 1.3, 0.06, M.brassDark, wheel, 0.02, 0, 0); sp.rotation.x = a; }
+  const face = cyl(1.0, 1.0, 0.12, 32, M.face, e.core, 0, 0, 0); face.rotation.z = Math.PI / 2;
+  const rim = mesh(new T.TorusGeometry(1.0, 0.07, 6, 40), iron, e.core, 0.02, 0, 0); rim.rotation.y = Math.PI / 2;
+  for (let h = 0; h < 12; h++) { const a = h / 12 * Math.PI * 2; const mk = box(0.02, h % 3 ? 0.08 : 0.16, 0.035, M.ink, e.core, 0.07, Math.cos(a) * 0.82, Math.sin(a) * 0.82); mk.rotation.x = -a; }
+  const hnd = (len, w, m) => { const g = new T.Group(); g.position.set(0.08, 0, 0); e.core.add(g); box(0.02, len, w, m || iron, g, 0, len / 2 - 0.08, 0); return g; };
+  const hH = hnd(0.52, 0.07), hM = hnd(0.78, 0.045), hS = hnd(0.82, 0.018, M.red); cyl(0.06, 0.06, 0.04, 10, M.brass, e.core, 0.1, 0, 0).rotation.z = Math.PI / 2;
+  box(0.012, 0.03, 0.3, blueLine, e.core, 0.075, -0.45, 0);
+  box(0.4, 0.14, 0.9, M.woodDark, e.g, -3.7, 0.07, C.z); // the block it leans on
+  [-0.62, 0.62].forEach((dz) => { const st = box(0.08, 2.35, 0.1, M.wood, e.g, -3.68, 1.12, C.z + dz); st.rotation.z = 0.22; }); box(0.08, 0.1, 1.4, M.wood, e.g, -3.86, 1.85, C.z); box(0.08, 0.08, 1.4, M.wood, e.g, -3.62, 0.72, C.z); box(0.08, 0.1, 1.0, M.woodDark, e.g, -3.46, 0.19, C.z);
+  const dust = dustFall(room, 8);
+  let clockSec = 10 * 3600 + 8 * 60 + 42, runT = 0, shake = 0, lastSec = -1;
+  e.runSec = () => Math.round(1.5 + coreCount() * 1.1);
+  e.set = (s) => { e.core.visible = s > 0; e.empty.visible = s === 0; };
+  e.tick = (dt, t, k) => {
+    const cyc = e.runSec() + 3.5; let running = false;
+    if (e.state > 0) { runT = (runT + dt) % cyc; running = runT < e.runSec(); }
+    if (k.link || S.linked) running = e.state > 0;
+    if (running) clockSec += dt; const sec = Math.floor(clockSec);
+    if (sec !== lastSec) { if (lastSec >= 0 && running) shake = 1; lastSec = sec; }
+    shake = Math.max(0, shake - dt * 6);
+    e.core.position.y = C.y + shake * 0.012; e.core.position.x = C.x + shake * 0.006 * Math.sin(t * 90);
+    hS.rotation.x = -(sec % 60) / 60 * Math.PI * 2; hM.rotation.x = -(clockSec % 3600) / 3600 * Math.PI * 2; hH.rotation.x = -(clockSec % 43200) / 43200 * Math.PI * 2; wheel.rotation.x = -sec * 0.12;
+    dust.forEach((d, n) => { d.t += dt * 0.6; if (d.t > 1) d.t -= 1; d.sp.position.set(C.x + 0.1, C.y + 0.95 - d.t * 1.9, C.z - 0.8 + n * 0.22); d.sp.material.opacity = e.state && running ? 0.4 * (1 - d.t) * shake + 0.12 * (1 - d.t) : 0; });
+  };
+}
+
+// 10 歸途目鏡 → a long refracting telescope on a heavy mount, poking out of the mouth; prisms throw rainbows
+const TELE_DIR = V3(-0.06, 1, -0.14).normalize();
+{
+  const P = V3(3.05, 0, -1.0); const e = exhibit(10, '歸途目鏡', P.clone().add(V3(0, 1.7, -0.5)), { w: 3.8, h: 3.4 }, [1.3, 3.2, 1.8], P.clone().add(V3(0, 1.5, -0.5)));
+  for (let k = 0; k < 3; k++) { const a = k / 3 * Math.PI * 2 + 0.4; const leg = cyl(0.05, 0.04, 1.35, 6, iron, e.g, P.x + Math.cos(a) * 0.36, 0.62, P.z + Math.sin(a) * 0.36); leg.rotation.set(Math.sin(a) * 0.38, 0, -Math.cos(a) * 0.38); }
+  cyl(0.14, 0.18, 0.3, 10, iron, e.g, P.x, 1.28, P.z); mesh(new T.SphereGeometry(0.15, 10, 6), ironLight, e.g, P.x, 1.45, P.z);
+  e.core.position.set(P.x, 1.5, P.z);
+  const tube = new T.Group(); e.core.add(tube); tube.quaternion.setFromUnitVectors(V3(0, 1, 0), TELE_DIR);
+  cyl(0.13, 0.16, 2.6, 14, M.brass, tube, 0, 0.7, 0); cyl(0.18, 0.18, 0.34, 14, M.brassDark, tube, 0, 1.95, 0); cyl(0.06, 0.08, 0.35, 8, M.brassDark, tube, 0, -0.72, 0);
+  const prisms = []; [0.2, 0.9, 1.45].forEach((y, n) => { const r = new T.Group(); r.position.y = y; tube.add(r); mesh(new T.TorusGeometry(0.19, 0.03, 4, 20), M.brass, r, 0, 0, 0).rotation.x = Math.PI / 2; for (let q = 0; q < 6; q++) { const a = q / 6 * Math.PI * 2; const pr = mesh(new T.OctahedronGeometry(0.045, 0), n === 1 && q === 0 ? M.crystal : M.glass, r, Math.cos(a) * 0.22, 0, Math.sin(a) * 0.22); pr.material = n === 1 && q === 0 ? M.crystal : new T.MeshStandardMaterial({ color: 0xe8f2f6, transparent: true, opacity: 0.6, roughness: 0.1 }); } prisms.push(r); });
+  const COLORS = [0xff9a8a, 0xffd48a, 0xfff2a0, 0xa8e6a0, 0x9cc8e8, 0xc4a8f0];
+  const bows = []; for (let k = 0; k < 7; k++) { const sp = sprite(dotTex, COLORS[k % 6], 0, room, 0, 0, 0, 0.22); sp.scale.set(0.34, 0.12, 1); bows.push({ sp, a: rr(0, 6), y: rr(0.9, 2.8), x: rr(-3.2, 3.4) }); }
+  e.set = (s) => { e.core.visible = s > 0; };
+  e.tick = (dt, t, k) => { prisms.forEach((r, n) => { r.rotation.y += dt * (0.2 + n * 0.08) * (1 + k.link * 4); }); bows.forEach((b) => { const x = b.x + 0.4 * Math.sin(t * 0.13 + b.a); b.sp.position.set(x, b.y + 0.1 * Math.sin(t * 0.2 + b.a), -3.98); b.sp.material.opacity = e.state ? (0.28 + 0.14 * Math.sin(t * 0.9 + b.a)) * (1 - (S.tableF || 0)) : 0; }); };
+}
+
+// "這一趟" pocket near the mouth: this journey's items (emptied when a journey ends)
+const journeyPocket = new T.Group(); room.add(journeyPocket);
+box(0.95, 0.65, 0.05, new T.MeshStandardMaterial({ map: pocketTex, roughness: 1 }), journeyPocket, 0.0, 2.75, -3.99);
+const JP_HIT = new T.Mesh(new T.BoxGeometry(1.2, 1.0, 0.3), new T.MeshBasicMaterial()); JP_HIT.visible = false; JP_HIT.position.set(0.0, 2.85, -3.85); room.add(JP_HIT);
+const jpItems = [];
+for (let k = 0; k < 3; k++) { const g = new T.Group(); g.position.set(-0.3 + k * 0.3, 3.0, -3.95); journeyPocket.add(g); box(0.13, 0.22, 0.02, k === 1 ? M.woodPale : M.paperOld, g, 0, 0.1, 0); cyl(0.004, 0.004, 0.15, 3, M.red, g, 0, 0.26, 0); g.rotation.z = (k - 1) * 0.12; jpItems.push(g); }
+
+// ---------- the bag fills up over time ----------
+// a luggage sticker for every map visited, and books and rolled maps that pile up with the clues
+const STICK = [
+  { m: 'm01', at: [-3.97, 3.05, -3.35], r: 0.08 }, { m: 'm02', at: [-3.97, 3.02, -2.55], r: -0.12 }, { m: 'm03', at: [-3.97, 3.08, 3.3], r: 0.1 }, { m: 'm04', at: [-3.97, 1.45, 0.25], r: -0.06 }, { m: 'm05', at: [-3.97, 1.2, -1.05], r: 0.14 },
+  { m: 'm06', at: [-3.35, 2.75, -3.97], r: -0.1 }, { m: 'm07', at: [-2.45, 2.95, -3.97], r: 0.07 }, { m: 'm08', at: [2.4, 2.9, -3.97], r: -0.08 }, { m: 'm09', at: [3.3, 3.05, -3.97], r: 0.12 }, { m: 'm10', at: [-3.4, 1.85, -3.97], r: -0.05 }
+];
+const STICK_COL = { m01: '#6f8a4a', m02: '#4f6f64', m03: '#3f6f7f', m04: '#b7543f', m05: '#8a6a4a', m06: '#2f5f7a', m07: '#7a9a5a', m08: '#6b4f6f', m09: '#9a7a3a', m10: '#4a5a7a' };
+const stickers = [];
+function buildStickers() {
+  STICK.forEach((s, n) => {
+    const shape = n % 3; const tex = canvasTex(160, 110, (x, w, h) => {
+      x.fillStyle = STICK_COL[s.m]; if (shape === 1) { x.beginPath(); x.ellipse(w / 2, h / 2, w / 2 - 2, h / 2 - 2, 0, 0, 7); x.fill(); } else { x.fillRect(2, 2, w - 4, h - 4); }
+      x.strokeStyle = 'rgba(240,230,205,0.85)'; x.lineWidth = 3; if (shape === 1) { x.beginPath(); x.ellipse(w / 2, h / 2, w / 2 - 9, h / 2 - 9, 0, 0, 7); x.stroke(); } else x.strokeRect(9, 9, w - 18, h - 18);
+      x.save(); x.translate(w / 2, h / 2); x.scale(2.2, 2.2); x.strokeStyle = '#f1e8d4'; x.fillStyle = '#f1e8d4'; x.lineWidth = 1.4; const g = ISLES[s.m].g; glyphRaw(x, g); x.restore();
+    });
+    const m = new T.Mesh(new T.PlaneGeometry(0.46, 0.32), new T.MeshStandardMaterial({ map: tex, roughness: 0.8, transparent: true }));
+    m.position.set(s.at[0], s.at[1], s.at[2]); if (s.at[0] < -3.9) { m.rotation.y = Math.PI / 2; m.position.x = -3.99; m.rotation.x = s.r; } else { m.position.z = -3.99; m.rotation.z = s.r; } room.add(m); stickers.push({ m, map: s.m });
+  });
+}
+const clutter = [];
+{
+  const stack = (x, z, n0, cols) => { for (let k = 0; k < 4; k++) { const b = box(rr(0.42, 0.55), 0.1, rr(0.3, 0.38), mat(cols[k % cols.length]), room, x + rr(-0.04, 0.04), 0.05 + k * 0.1, z + rr(-0.04, 0.04)); b.rotation.y = rr(-0.3, 0.3); clutter.push({ o: b, need: n0 + k * 2 }); } };
+  stack(-3.35, -0.35, 1, [0x6b4a3a, 0x4e5a52, 0x7c6a4a, 0x5a4a5e]);
+  stack(-2.7, 0.55, 5, [0x5a4a5e, 0x7c6a4a, 0x6b4a3a, 0x3f5a6a]);
+  const basket = cyl(0.3, 0.26, 0.4, 10, M.crate, room, 3.3, 0.2, 3.25); clutter.push({ o: basket, need: 3 });
+  for (let k = 0; k < 4; k++) { const r = cyl(0.05, 0.05, 0.9, 7, M.paperOld, room, 3.3 + rr(-0.12, 0.12), 0.55, 3.25 + rr(-0.12, 0.12)); r.rotation.set(rr(-0.25, 0.25), 0, rr(-0.25, 0.25)); clutter.push({ o: r, need: 4 + k * 2 }); }
+}
+function applyGrowth() {
+  if (!stickers.length) buildStickers();
+  stickers.forEach((s) => { s.m.visible = S.visited.includes(s.map); });
+  clutter.forEach((c) => { c.o.visible = S.pinned.length >= c.need; });
+  EX[7].set(EX[7].state);
+}
+
+// ---------- the traveller's hand (only when something is put in place) ----------
+const hand = new T.Group(); hand.visible = false; scene.add(hand);
+const HAND = { tip: new T.Object3D() };
+{
+  mesh(new T.CylinderGeometry(0.62, 0.72, 2.6, 8), M.sleeve, hand, 0, 1.55, 0);
+  mesh(new T.CylinderGeometry(0.66, 0.66, 0.16, 8), M.cuffBand, hand, 0, 0.3, 0);
+  mesh(new T.CylinderGeometry(0.5, 0.58, 0.34, 8), M.glove, hand, 0, 0.08, 0);
+  const palm = box(0.98, 1.0, 0.44, M.glove, hand, 0, -0.5, 0); palm.scale.set(1, 1, 1);
+  const finger = (x, len, curl, r) => {
+    const f = new T.Group(); f.position.set(x, -0.98, 0); hand.add(f);
+    mesh(new T.CylinderGeometry(r, r * 1.05, len * 0.55, 6), M.glove, f, 0, -len * 0.275, 0);
+    const j = new T.Group(); j.position.set(0, -len * 0.55, 0); f.add(j);
+    mesh(new T.CylinderGeometry(r * 0.9, r, len * 0.45, 6), M.glove, j, 0, -len * 0.225, 0);
+    mesh(new T.SphereGeometry(r * 0.9, 6, 4), M.glove, j, 0, -len * 0.45, 0);
+    f.rotation.x = curl; j.rotation.x = curl * 1.3; return j;
+  };
+  const idx = finger(0.34, 1.15, -0.12, 0.125); finger(0.11, 1.2, -1.15, 0.13); finger(-0.12, 1.1, -1.25, 0.125); finger(-0.33, 0.9, -1.3, 0.105);
+  const th = new T.Group(); th.position.set(0.46, -0.45, 0.14); th.rotation.set(-0.5, 0, 0.75); hand.add(th);
+  mesh(new T.CylinderGeometry(0.13, 0.15, 0.5, 6), M.glove, th, 0, -0.25, 0); const th2 = new T.Group(); th2.position.y = -0.5; th.add(th2); th2.rotation.z = -0.35; mesh(new T.CylinderGeometry(0.11, 0.13, 0.4, 6), M.glove, th2, 0, -0.2, 0); mesh(new T.SphereGeometry(0.11, 6, 4), M.glove, th2, 0, -0.4, 0);
+  HAND.tip.position.set(0, -0.56, 0); idx.add(HAND.tip);
+  hand.scale.setScalar(0.85);
+}
+function handTipLocal(q) { hand.position.set(0, 0, 0); hand.quaternion.copy(q); hand.updateMatrixWorld(true); return HAND.tip.getWorldPosition(V3()); }
+
+// ---------- blue acquisition light (small version of the map's big core reveal) ----------
+const blueFx = new T.Group(); blueFx.visible = false; scene.add(blueFx);
+const colTex = canvasTex(8, 128, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.55, 'rgba(255,255,255,0.8)'); g.addColorStop(1, 'rgba(255,255,255,0.1)'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
+const column = new T.Mesh(new T.CylinderGeometry(0.28, 0.28, 3.2, 20, 1, true), new T.MeshBasicMaterial({ map: colTex, color: 0x8fc3ea, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide })); column.position.y = 1.4; blueFx.add(column);
+const bRings = [0, 1].map(() => { const r = new T.Mesh(new T.TorusGeometry(0.4, 0.015, 4, 40), new T.MeshBasicMaterial({ color: 0xa9d6f0, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false })); r.rotation.x = Math.PI / 2; blueFx.add(r); return r; });
+const bStars = []; for (let k = 0; k < 12; k++) bStars.push({ sp: sprite(dotTex, 0xcfe6f7, 0, blueFx, 0, 0, 0, 0.09), a: rr(0, 6.28), r: rr(0.15, 0.55), v: rr(0.5, 1.1) });
+
+// ---------- final domain, seen only through the eyepiece ----------
+const eyeCanvas = document.createElement('canvas'); eyeCanvas.width = 480; eyeCanvas.height = 480;
+let eyeRenderer = null; const eyeScene = new T.Scene(); const eyeCam = new T.PerspectiveCamera(22, 1, 1, 400);
+eyeScene.background = new T.Color(0x9aa6ac); eyeScene.fog = new T.Fog(0x9aa6ac, 40, 150);
+eyeScene.add(new T.HemisphereLight(0xdfe6ea, 0x44484c, 0.9));
+const domain = new T.Group(); eyeScene.add(domain); domain.position.set(0, -6, -90);
+{ const dm = new T.MeshStandardMaterial({ color: 0x4f5a64, flatShading: true, roughness: 1 });
+  const isl = new T.Mesh(new T.IcosahedronGeometry(9, 1), dm); isl.scale.set(1.6, 0.5, 1); isl.position.y = -2; domain.add(isl);
+  [[-4, 6], [4, 6]].forEach(([x, h]) => { const p = new T.Mesh(new T.BoxGeometry(1.2, h, 1.2), dm); p.position.set(x, h / 2 + 1.5, 0); domain.add(p); });
+  const lint = new T.Mesh(new T.BoxGeometry(9.6, 1, 1.4), dm); lint.position.set(0, 8, 0); domain.add(lint);
+  const tower = new T.Mesh(new T.CylinderGeometry(0.8, 1.3, 11, 6), dm); tower.position.set(8, 7, -3); domain.add(tower); }
+const domainLight = new T.Sprite(new T.SpriteMaterial({ map: haloTex, color: 0xffcf8a, transparent: true, opacity: 0, fog: false, depthWrite: false })); domainLight.scale.set(5, 5, 1); domainLight.position.set(0, 4.5, 1); domain.add(domainLight);
+const eyeMists = []; for (let k = 0; k < 14; k++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xdfe4e6, transparent: true, opacity: 0.6, depthWrite: false })); sp.position.set(rr(-30, 30), rr(-10, 12), rr(-70, -30)); sp.scale.set(rr(26, 44), rr(12, 20), 1); eyeScene.add(sp); eyeMists.push({ sp, x: sp.position.x, ph: rr(0, 6) }); }
+eyeCam.position.set(0, 0, 0); eyeCam.lookAt(0, -1, -90);
+
+// ---------- clue table data ----------
+const BW = 1000, BH = 667;
+const ISLES = {
+  camp: { x: 520, y: 604, r: 30, g: 'fire', name: '營火' },
+  m01: { x: 290, y: 450, r: 40, g: 'tree' }, m02: { x: 700, y: 440, r: 40, g: 'station' }, m03: { x: 150, y: 330, r: 38, g: 'lake' },
+  m04: { x: 830, y: 300, r: 38, g: 'bridge' }, m05: { x: 640, y: 285, r: 36, g: 'rock' }, m06: { x: 110, y: 140, r: 38, g: 'letter' },
+  m07: { x: 380, y: 300, r: 36, g: 'glass' }, m08: { x: 300, y: 110, r: 38, g: 'books' }, m09: { x: 760, y: 110, r: 36, g: 'clock' }, m10: { x: 540, y: 95, r: 36, g: 'lens' }
+};
+Object.keys(MAPS).forEach((k) => { ISLES[k].name = MAPS[k]; });
+const PLACES = {
+  h1: { x: 500, y: 380, r: 40, name: '沉燈灣', g: 'lanterns', tag: '霧裡漂著上一次的燈', needs: [['舊燈芯', 'm01'], ['舊荷札', 'm02']], below: true },
+  h2: { x: 905, y: 470, r: 40, name: '冷營地', g: 'coldfire', tag: '那堆火比這裡早熄', needs: [['銅製風哨', 'm04'], ['殘缺星圖', 'm10']], below: true },
+  h3: { x: 160, y: 606, r: 40, name: '留白書桌', g: 'desk', tag: '路線是在這裡寫下的', needs: [['覆寫墨水', 'm08'], ['未封口的信', 'm06']], below: false }
+};
+const CLUES = {
+  // 雲上遺庭（01）的正式線索：docs/AREA_01_STORY_EVENTS.md §6（2026-09-29）
+  n_first: { kind: 'note', from: 'm01', src: '雲上遺庭 · 石拱橋頭（第一次專注）', text: '筆記第一頁畫的大樹，就是雲上遺庭中央這一棵。' },
+  c01_bark_date: { kind: 'note', from: 'm01', src: '雲上遺庭 · 大樹（首訪）', text: '樹皮上刻著一個日期，刻痕看起來比這棵樹還老。' },
+  c01_stele_scale: { kind: 'note', from: 'm01', src: '雲上遺庭 · 索引石碑（第二次造訪）', text: '索引石碑的邊緣有一排很細的刻度，不像是量長度用的。' },
+  h1a: { kind: 'way', place: 'h1', from: 'm01', src: '雲上遺庭 · 古井（第二次造訪）', text: '井底的倒影裡有一串燈。井邊明明沒有燈。' },
+  c01_rubbing: { kind: 'note', from: 'm01', src: '雲上遺庭 · 索引石碑（帶著炭印紙）', text: '碑上被磨掉的那一行，拓出來是「燈點完再走」。' },
+  c01_tag: { kind: 'note', from: 'm01', src: '雲上遺庭 · 大樹（帶著壓葉標本）', text: '樹枝上綁著一塊栽培牌：「第一年，別讓它長太快。」' },
+  h1b: { kind: 'way', place: 'h1', from: 'm02', src: '苔痕驛站 · 霧瀑小舟（首訪）', text: '溪尾漂來一盞熄掉的提燈，順著霧瀑落進霧裡。下游好像還有更多。' },
+  h1c: { kind: 'look', place: 'h1', from: 'm02', src: '苔痕驛站 · 住宿簿（第二次造訪）', text: '住宿簿夾著一張畫：半沉在水裡的提燈，角落寫著「灣」。' },
+  n_tag: { kind: 'note', from: 'm02', src: '苔痕驛站 · 行李推車', text: '舊荷札上的編號，和風切斷橋橋頭寄物櫃的編號是同一種寫法。' },
+  h2a: { kind: 'way', place: 'h2', from: 'm04', src: '風切斷橋 · 維修紀錄', text: '維修紀錄最後一頁：「往風吹來的那邊，有人的火熄了。」' },
+  h2b: { kind: 'way', place: 'h2', from: 'm10', src: '折光觀測台 · 鏡架', text: '鏡架對準的方向，霧裡有一塊不反光的黑點。' },
+  h2c: { kind: 'look', place: 'h2', from: 'm05', src: '回聲採石場 · 共鳴洞', text: '岩壁裡的聲音說：「……柴都濕了。」後面只剩風聲。' },
+  m02_wick: { kind: 'note', from: 'm02', src: '苔痕驛站 · 溪尾棧橋（帶著舊燈芯）', text: '漂來的熄燈裡，燈芯的編法和舊燈芯一樣。' },
+  m02_lens: { kind: 'note', from: 'm02', src: '苔痕驛站 · 柴堆後（帶著風化鏡片）', text: '透過風化鏡片，霧那一頭的山頂上有一座塔。' },
+  m02_sign: { kind: 'note', from: 'm02', src: '苔痕驛站 · 站名牌（帶著炭印紙）', text: '站名牌上被磨掉的字，拓出來是「苔痕」兩個字，後面還有字，拓不出來。' },
+  m02_sapling: { kind: 'note', from: 'm02', src: '苔痕驛站 · 石地藏（帶著護根布）', text: '地藏小杯裡長出一株幼苗，根先用布包好，它沒有枯。' },
+  n_seed: { kind: 'note', from: 'm07', src: '玻璃苗圃 · 栽培紀錄', text: '要帶走幼苗，得先用布把根包好。' },
+  h3a: { kind: 'way', place: 'h3', from: 'h1', src: '缺頁一的背面', text: '背面畫著一個箭頭，指向營火的左手邊。' },
+  h3b: { kind: 'way', place: 'h3', from: 'h2', src: '缺頁二的角落', text: '角落寫著：「路線是在火邊寫的。」' },
+  h3c: { kind: 'look', place: 'h3', from: 'm08', src: '無聲書庫 · 空白書脊', text: '一整排空白書脊中，只有一本寫著「路線」，裡面是空的。' }
+};
+const KIND = { way: '方位', look: '樣子', note: '筆記' };
+const ALLMAPS = Object.keys(MAPS);
+const PRESETS = [
+  { key: 'start', journeys: 0, name: '開局', cores: {}, visited: ['m01'], pinned: ['n_first'], tray: [], met: false, found: [], bag: [] },
+  { key: 'met', journeys: 1, name: '初次相遇後', cores: { 1: 1 }, visited: ['m01', 'm02', 'm03'], pinned: ['n_first', 'c01_bark_date', 'h1a', 'n_tag'], tray: ['h1b', 'h1c'], met: true, found: [], bag: ['舊燈芯', '炭印紙'] },
+  { key: 'mid', journeys: 3, name: '中期', cores: { 1: 2, 2: 2, 3: 1, 4: 1, 5: 1, 7: 1 }, visited: ['m01', 'm02', 'm03', 'm04', 'm05', 'm06', 'm07', 'm10'], pinned: ['n_first', 'c01_bark_date', 'c01_stele_scale', 'h1a', 'h1b', 'h1c', 'n_tag', 'h2a', 'n_seed'], tray: ['h2b', 'h2c', 'c01_rubbing'], met: true, found: ['h1'], bag: ['舊荷札', '水位刻片'] },
+  { key: 'late', journeys: 6, name: '後期', cores: { 1: 2, 2: 2, 3: 2, 4: 2, 5: 2, 6: 1, 7: 2, 8: 1, 10: 1 }, visited: ALLMAPS, pinned: Object.keys(CLUES).filter((k) => k !== 'h3c'), tray: ['h3c'], met: true, found: ['h1', 'h2'], bag: ['覆寫墨水'] },
+  { key: 'all', journeys: 9, name: '十件齊', cores: { 1: 2, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 2, 9: 2, 10: 2 }, visited: ALLMAPS, pinned: Object.keys(CLUES), tray: [], met: true, found: ['h1', 'h2', 'h3'], bag: [], linked: true }
+];
+
+// ---------- core texts ----------
+const TXT = {
+  1: { empty: '包口的橫桿上吊著一圈空的銅環。', got: '天穹儀轉了幾格就停下來，把星點灑在帆布上，停在一組沒有標名的座標。', know: '天穹儀整圈轉起來，星點在線索桌上排成一組座標。', rel: '折光觀測台 · 星圖桌：同一組座標被圈起來，旁邊寫著一個還沒到的日期。' },
+  2: { empty: '舊行李推車上的銅碗是空的。', got: '背面刻著「燈點完再走」，字跡顯得很老。裂縫裡透出一點藍，指針一直在晃。', know: null, rel: '苔痕驛站 · 遺失物抽屜：空抽屜裡又多了一張行李牌：「燈點完再走。」和羅盤背面刻的字一樣。' },
+  3: { empty: '一圈石頭圍成的環立在那裡，中間是空的，看得到後面的帆布。', got: '石環裡立著一片不會流下來的湖水。水裡的桌上有兩只杯子，桌邊多了一張凳子，披著斗篷和一頂舊帽子。', know: '水面映出同一個行李，只是有人在裡面住得更久：靴子、揉掉的紙、桌上一條你沒拉過的線。', rel: '倒影湖畔 · 第二次造訪：倒影沒有跟著你轉身。' },
+  4: { empty: '石座上有一塊鑄鐵底板，四根螺栓空著，柱子還沒立起來。', got: '斷橋橋頭的燈柱，銘牌釘在柱子上。行李裡沒有風，上面的旗子卻一直在飄。', know: '燈亮了。銘牌背面記著一次沒有發生的事故，最後一行寫著「這次來得及」；旗子上多了一塊補丁。', rel: '風切斷橋 · 第二次造訪：橋頭寄物櫃裡有一張維修路線圖，日期寫著還沒到的那一天。' },
+  5: { empty: '礦車是空的。', got: '石頭偶爾低鳴，孔裡落下細細的石粉。貼近聽，只聽得清最後兩個字：「……保重。」', know: '多聽幾次，說話時停頓的地方，和你很像。', rel: '停擺鐘樓 · 維修表：告別那天，鐘停過一次。' },
+  6: { empty: '內壁上釘著三個銅托架，一個比一個寬，像要架起一件由細到粗的長東西。', got: '郵驛用來呼叫郵船的鯨骨號角。它偶爾像在呼吸，從號口吐出一縷霧。', know: '霧裡飄出一封信，郵戳上的日期還沒到，收件地址寫的是這個行李。', rel: '無聲書庫 · 寄件登記：寄件人一欄全部塗掉了。' },
+  7: { empty: '木座上只有一層土。', got: '種莢和遺庭的大樹是同一種，採集日期卻比那棵樹還早。每走完一趟，鐘罩裡的幼苗就長高一點。', know: '新長的葉子，和遺庭那棵大樹的葉子一模一樣。', rel: '雲上遺庭 · 大樹（首訪）：樹皮上刻著一個日期，刻痕看起來比這棵樹還老。和種莢的採集日期是同一天。' },
+  8: { empty: '講台上什麼都沒有。', got: '日記寫著你上一趟做過的選擇，後面是空白。書頁會自己慢慢翻動。', know: '空白的頁數，比上次少了一頁。', rel: '苔痕驛站 · 住宿簿：你住過的那一晚已經有人寫好了，日期和日記裡的一樣。' },
+  9: { empty: '牆邊靠著一座很大的空木架，底下的墊木有一道弧形的凹槽。', got: null, know: null, rel: '回聲採石場 · 鐘聲：每次相遇的鐘聲，都比上一次晚一點。' },
+  10: { empty: '重型支架上沒有鏡筒。', got: '從目鏡看出去，霧的另一頭有一個輪廓。稜鏡把細小的彩虹投在帆布上。', know: '輪廓上有一點光，和你的提燈同一種顏色。', rel: '雲上遺庭 · 索引石碑（第二次造訪）：石碑邊緣有一排很細的刻度。和目鏡上的刻度是同一套。' }
+};
+const coreCount = () => EX.filter((e) => e && e.state > 0).length;
+function coreText(e) {
+  const t = TXT[e.i];
+  if (e.state === 0) return t.empty;
+  if (e.i === 9) return e.state === 1 ? `從鐘樓拆下來的鐘面。走了 ${e.runSec()} 秒又停下來，每走一格，整個鐘面都震一下。` : `每多一件核心，它就多走一會兒。這次走了 ${e.runSec()} 秒。`;
+  if (e.i === 2 && e.state > 1) return S.tracking ? `指針停住了，指著線索桌上的${PLACES[S.tracking].name}。` : '指針停住了，指著包口外面。';
+  return e.state === 1 ? t.got : t.know;
+}
+
+// ---------- state ----------
+const S = { mode: 'room', sel: null, preset: 0, visited: [], pinned: [], tray: [], selectedClue: null, bulkPinning: false, met: false, found: [], bag: [], tracking: null, linked: false, newCore: null, fx: {}, panelKind: null, busy: false, link: 0, linkT: -1, spread: 0, placeSel: null };
+let time = 0;
+const sceneTimers = [];
+function sceneLater(fn, ms) { sceneTimers.push({ fn, left: ms / 1000 }); }
+
+// ---------- clue table drawing ----------
+const HANDF = '"LXGW WenKai TC", "Noto Serif TC", serif';
+const INK = '#3a2f24', RED = '#9e4234', BLUE = '#3f6f99', AMBER = '#b27a2c';
+function seeded(n) { let s = 0; for (let i = 0; i < n.length; i++) s = (s * 31 + n.charCodeAt(i)) % 2147483647; return () => { s = (s * 16807 + 7) % 2147483647; return s / 2147483647; }; }
+const paperLayer = document.createElement('canvas'), fogLayer = document.createElement('canvas'), tmpLayer = document.createElement('canvas');
+function buildLayers(W, H) {
+  [paperLayer, fogLayer, tmpLayer].forEach((c) => { c.width = W; c.height = H; });
+  const p = paperLayer.getContext('2d'); const k = W / BW;
+  p.fillStyle = '#d7c8a5'; p.fillRect(0, 0, W, H);
+  const r = seeded('paper'); for (let i = 0; i < 9000; i++) { p.fillStyle = `rgba(${r() < 0.5 ? '90,70,40' : '255,250,235'},${0.03 + r() * 0.05})`; p.fillRect(r() * W, r() * H, 1 + r() * 2 * k, 1); }
+  const v = p.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.65); v.addColorStop(0, 'rgba(80,55,30,0)'); v.addColorStop(1, 'rgba(80,55,30,0.28)'); p.fillStyle = v; p.fillRect(0, 0, W, H);
+  p.strokeStyle = 'rgba(120,80,40,0.16)'; p.lineWidth = 6 * k; p.beginPath(); p.arc(780 * k, 560 * k, 48 * k, 0.4, 5.6); p.stroke();
+  p.strokeStyle = 'rgba(58,47,36,0.7)'; p.lineWidth = 1.6 * k; p.strokeRect(14 * k, 14 * k, W - 28 * k, H - 28 * k); p.lineWidth = 0.8 * k; p.strokeRect(19 * k, 19 * k, W - 38 * k, H - 38 * k);
+  const f = fogLayer.getContext('2d'); const rf = seeded('fog'); f.strokeStyle = 'rgba(90,100,104,0.22)'; f.lineWidth = 1 * k;
+  for (let y = 30; y < BH - 24; y += 10) { let x = 26 + rf() * 20; while (x < BW - 30) { const len = 30 + rf() * 90; f.beginPath(); for (let s = 0; s <= len; s += 6) { const xx = x + s; if (xx > BW - 26) break; const yy = y + Math.sin((xx + y * 3) * 0.05) * 2.2; s === 0 ? f.moveTo(xx * k, yy * k) : f.lineTo(xx * k, yy * k); } f.stroke(); x += len + 10 + rf() * 40; } }
+}
+function blob(ctx, id, x, y, r) { const q = seeded(id); const n = 12; ctx.beginPath(); for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2; const rr2 = r * (0.8 + q() * 0.32); const px = x + Math.cos(a) * rr2, py = y + Math.sin(a) * rr2 * 0.78; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); } ctx.closePath(); }
+function glyphRaw(ctx, g) { glyph(ctx, g, 0, 0, 1, '#f1e8d4'); }
+function glyph(ctx, g, x, y, s, col) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.strokeStyle = col || INK; ctx.fillStyle = col || INK; ctx.lineWidth = 1.6 / s * s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const L = (pts) => { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); };
+  switch (g) {
+    case 'fire': L([[-8, 6], [8, 6]]); L([[-4, 6], [0, -8], [4, 6]]); L([[-1, 6], [2, -2]]); break;
+    case 'tree': ctx.beginPath(); ctx.arc(0, -6, 9, 0, 7); ctx.stroke(); L([[0, 3], [0, 12]]); L([[-3, -6], [0, -2], [3, -7]]); break;
+    case 'station': L([[-11, 10], [-11, -2], [0, -10], [11, -2], [11, 10]]); L([[-4, 10], [-4, 2], [4, 2], [4, 10]]); L([[-14, 12], [14, 12]]); break;
+    case 'lake': ctx.beginPath(); ctx.ellipse(0, 2, 12, 6, 0, 0, 7); ctx.stroke(); L([[-6, 2], [-1, 2]]); L([[2, 5], [7, 5]]); break;
+    case 'bridge': L([[-13, 4], [-3, 0]]); L([[3, 0], [13, 4]]); L([[-13, 4], [-13, 10]]); L([[13, 4], [13, 10]]); L([[-3, 0], [-2, 5]]); break;
+    case 'rock': L([[-12, 9], [-8, -2], [-2, -6], [5, -3], [12, 9], [-12, 9]]); L([[-4, 9], [0, 1]]); break;
+    case 'letter': ctx.strokeRect(-11, -7, 22, 15); L([[-11, -7], [0, 2], [11, -7]]); break;
+    case 'glass': L([[-11, 9], [-11, -1]]); ctx.beginPath(); ctx.arc(0, -1, 11, Math.PI, 0); ctx.stroke(); L([[11, -1], [11, 9], [-11, 9]]); L([[0, -12], [0, 9]]); break;
+    case 'books': ctx.strokeRect(-11, -9, 6, 18); ctx.strokeRect(-4, -11, 6, 20); L([[5, 9], [9, -9], [14, -8], [10, 9], [5, 9]]); break;
+    case 'clock': ctx.beginPath(); ctx.arc(0, 0, 11, 0, 7); ctx.stroke(); L([[0, 0], [0, -7]]); L([[0, 0], [5, 3]]); break;
+    case 'lens': ctx.beginPath(); ctx.arc(0, 2, 10, Math.PI, 0); ctx.stroke(); L([[-10, 2], [10, 2]]); L([[0, -8], [7, -15]]); break;
+    case 'lanterns': [[-9, 2], [2, -3], [10, 5]].forEach(([a, b]) => { ctx.strokeRect(a - 3, b - 4, 6, 8); L([[a, b - 4], [a, b - 7]]); }); L([[-15, 7], [-5, 9], [5, 7], [15, 10]]); break;
+    case 'coldfire': L([[-10, 7], [10, 3]]); L([[-10, 3], [10, 7]]); L([[-3, 2], [-2, -4]]); L([[2, 1], [4, -5]]); L([[-6, -9], [-4, -6]]); break;
+    case 'desk': L([[-12, -2], [12, -2]]); L([[-10, -2], [-10, 10]]); L([[10, -2], [10, 10]]); L([[-5, -2], [-2, -8], [6, -8], [4, -2]]); break;
+    default: ctx.beginPath(); ctx.arc(0, 0, 8, 0, 7); ctx.stroke();
+  }
+  ctx.restore();
+}
+function srcPos(from) { return ISLES[from] || PLACES[from]; }
+function placeInfo(pid) {
+  const ways = S.pinned.filter((c) => CLUES[c].kind === 'way' && CLUES[c].place === pid);
+  const look = S.pinned.find((c) => CLUES[c].kind === 'look' && CLUES[c].place === pid);
+  return { ways, look, located: ways.length >= 2, found: S.found.includes(pid) };
+}
+const appear = (key) => { const f = S.fx[key]; if (!f) return 1; return clamp((time - f.s) / f.d, 0, 1); };
+function cardPos(cid) {
+  const c = CLUES[cid]; const src = srcPos(c.from); const list = S.pinned.filter((k) => CLUES[k].from === c.from); const n = list.indexOf(cid);
+  // six notes fan over the upper arc (the island's name sits below); more go on a second, wider ring
+  const ring = Math.floor(n / 6), idx = n % 6; const a = -2.5 + idx * 0.62 + ring * 0.31; return { x: src.x + Math.cos(a) * (src.r + 24 + ring * 26), y: src.y + Math.sin(a) * (src.r + 18 + ring * 20), rot: (n % 2 ? 0.12 : -0.1) };
+}
+function drawBoard(ctx, W, H) {
+  const k = W / BW; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(paperLayer, 0, 0, W, H);
+  // fog with clearings
+  const t = tmpLayer.getContext('2d'); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, W, H); t.globalCompositeOperation = 'source-over'; t.drawImage(fogLayer, 0, 0, W, H); t.globalCompositeOperation = 'destination-out';
+  const erase = (x, y, r, a) => { if (a <= 0) return; const g = t.createRadialGradient(x * k, y * k, 0, x * k, y * k, r * k); g.addColorStop(0, `rgba(0,0,0,${a})`); g.addColorStop(0.7, `rgba(0,0,0,${a * 0.8})`); g.addColorStop(1, 'rgba(0,0,0,0)'); t.fillStyle = g; t.fillRect((x - r) * k, (y - r) * k, r * 2 * k, r * 2 * k); };
+  const shown = ['camp'].concat(S.visited);
+  shown.forEach((id) => { const s = ISLES[id]; erase(s.x, s.y, s.r + 26, 1); });
+  Object.keys(PLACES).forEach((pid) => { const P = PLACES[pid], pi = placeInfo(pid); if (pi.located || pi.found) erase(P.x, P.y, 66, pi.found ? 1 : appear('clear:' + pid)); });
+  t.globalCompositeOperation = 'source-over'; ctx.drawImage(tmpLayer, 0, 0);
+  ctx.save(); ctx.scale(k, k);
+  // compass rose
+  ctx.save(); ctx.translate(58, 600); ctx.strokeStyle = 'rgba(58,47,36,0.65)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, 18, 0, 7); ctx.stroke(); [[0, -26], [0, 26], [-26, 0], [26, 0]].forEach(([a, b]) => { ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(a, b); ctx.stroke(); }); ctx.font = `12px ${HANDF}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.fillText('北', 0, -30); ctx.restore();
+  // threads (under the islands' pins, over the fog)
+  S.pinned.forEach((cid) => {
+    const c = CLUES[cid]; if (c.kind !== 'way') return; const src = srcPos(c.from), P = PLACES[c.place]; const pi = placeInfo(c.place);
+    const dx = P.x - src.x, dy = P.y - src.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+    const a = appear('thread:' + cid); if (a <= 0) return;
+    const sx = src.x + ux * 10, sy = src.y + uy * 10; const tail = pi.located || pi.found ? 12 : 150; const total = L + tail - 10; const len = total * ease(a);
+    const solid = pi.located || pi.found ? len : Math.min(len, L - 10 + 30);
+    ctx.strokeStyle = RED; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + ux * solid, sy + uy * solid); ctx.stroke();
+    if (len > solid) { const g = ctx.createLinearGradient(sx + ux * solid, sy + uy * solid, sx + ux * len, sy + uy * len); g.addColorStop(0, RED); g.addColorStop(1, 'rgba(158,66,52,0)'); ctx.strokeStyle = g; ctx.beginPath(); ctx.moveTo(sx + ux * solid, sy + uy * solid); ctx.lineTo(sx + ux * len, sy + uy * len); ctx.stroke(); }
+  });
+  // islands
+  const isle = (id, s, isPlace) => {
+    blob(ctx, id, s.x, s.y, s.r); ctx.fillStyle = isPlace ? '#c9b38c' : '#cdbb95'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.save(); blob(ctx, id, s.x, s.y, s.r); ctx.clip(); ctx.strokeStyle = 'rgba(58,47,36,0.25)'; ctx.lineWidth = 1; for (let i = -s.r; i < s.r * 2; i += 6) { ctx.beginPath(); ctx.moveTo(s.x + i, s.y + s.r * 0.2); ctx.lineTo(s.x + i - 14, s.y + s.r); ctx.stroke(); } ctx.restore();
+    glyph(ctx, s.g, s.x, s.y - 4, 1.15);
+    ctx.font = `17px ${HANDF}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.fillText(s.name, s.x, s.y + s.r * 0.78 + 20);
+  };
+  shown.forEach((id) => isle(id, ISLES[id], false));
+  // hidden places
+  Object.keys(PLACES).forEach((pid) => {
+    const P = PLACES[pid], pi = placeInfo(pid);
+    if (pi.found) { isle(pid, P, true); ctx.save(); ctx.translate(P.x + P.r * 0.9, P.y - P.r * 0.5); ctx.rotate(0.2); ctx.fillStyle = '#efe4c8'; ctx.fillRect(-9, -11, 18, 22); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(-9, -11, 18, 22); ctx.beginPath(); ctx.moveTo(-5, -4); ctx.lineTo(5, -4); ctx.moveTo(-5, 1); ctx.lineTo(4, 1); ctx.stroke(); ctx.restore(); ctx.font = `12px ${HANDF}`; ctx.fillStyle = '#6a5a44'; ctx.textAlign = 'center'; ctx.fillText('缺頁已夾回筆記', P.x, P.y + P.r * 0.78 + 36); }
+    else if (pi.located) {
+      if (pi.look) {
+        const a = Math.min(appear('look:' + pid), appear('mark:' + pid)); ctx.globalAlpha = a;
+        glyph(ctx, P.g, P.x, P.y - 2, 1.9); ctx.font = `19px ${HANDF}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.fillText(P.name, P.x, P.y + 34);
+        // needed items, tied with string
+        const dy = P.below ? 62 : -58;
+        P.needs.forEach(([item, map], n) => {
+          const nx = P.x + (n ? 50 : -50), ny = P.y + dy; ctx.strokeStyle = 'rgba(58,47,36,0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(P.x, P.y + (P.below ? 40 : -22)); ctx.lineTo(nx, ny - (P.below ? 12 : -12)); ctx.stroke();
+          ctx.beginPath(); ctx.arc(nx, ny, 11, 0, 7); ctx.fillStyle = '#e6d9ba'; ctx.fill(); ctx.strokeStyle = INK; ctx.stroke();
+          ctx.font = `13px ${HANDF}`; ctx.fillStyle = INK; ctx.fillText(item, nx, ny + (P.below ? 27 : -17) + (P.below ? 0 : 0));
+          if (coreOwned(map)) { ctx.beginPath(); ctx.arc(nx, ny, 4, 0, 7); ctx.fillStyle = BLUE; ctx.fill(); } else { ctx.beginPath(); ctx.arc(nx, ny, 3, 0, 7); ctx.fillStyle = INK; ctx.fill(); }
+        });
+        ctx.globalAlpha = 1;
+      } else { const a = appear('mark:' + pid); ctx.globalAlpha = a; ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(P.x, P.y, 20, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.font = `24px ${HANDF}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.fillText('？', P.x, P.y + 8); ctx.globalAlpha = 1; }
+      if (S.tracking === pid) { ctx.strokeStyle = AMBER; ctx.lineWidth = 2.2; ctx.setLineDash([7, 5]); ctx.beginPath(); ctx.arc(P.x, P.y + 4, 50, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+    }
+  });
+  // pins at the start of each thread
+  S.pinned.forEach((cid) => { const c = CLUES[cid]; if (c.kind !== 'way') return; const s = srcPos(c.from), P = PLACES[c.place]; const L = Math.hypot(P.x - s.x, P.y - s.y); const px = s.x + (P.x - s.x) / L * 10, py = s.y + (P.y - s.y) / L * 10; const a = appear('pin:' + cid); if (a <= 0) return; ctx.beginPath(); ctx.arc(px, py, 4.5 * (0.5 + 0.5 * a), 0, 7); ctx.fillStyle = RED; ctx.fill(); ctx.beginPath(); ctx.arc(px - 1.4, py - 1.4, 1.4, 0, 7); ctx.fillStyle = 'rgba(255,230,210,0.8)'; ctx.fill(); });
+  // clue slips beside their source
+  S.pinned.forEach((cid) => {
+    const a = appear('card:' + cid); if (a <= 0) return; const p = cardPos(cid), c = CLUES[cid];
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(p.x, p.y - (1 - a) * 18); ctx.rotate(p.rot); ctx.fillStyle = 'rgba(40,25,10,0.25)'; ctx.fillRect(-13, -9, 30, 22); ctx.fillStyle = '#efe6cf'; ctx.fillRect(-15, -11, 30, 22); ctx.strokeStyle = 'rgba(58,47,36,0.7)'; ctx.lineWidth = 0.8; ctx.strokeRect(-15, -11, 30, 22);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.beginPath();
+    if (c.kind === 'way') { ctx.moveTo(-8, 3); ctx.lineTo(7, -4); ctx.moveTo(2, -5); ctx.lineTo(7, -4); ctx.lineTo(4, 1); }
+    else if (c.kind === 'look') { ctx.ellipse(0, 0, 8, 4.5, 0, 0, 7); ctx.moveTo(2, 0); ctx.arc(0, 0, 2, 0, 7); }
+    else { ctx.moveTo(-9, -4); ctx.lineTo(9, -4); ctx.moveTo(-9, 0); ctx.lineTo(9, 0); ctx.moveTo(-9, 4); ctx.lineTo(4, 4); }
+    ctx.stroke(); ctx.beginPath(); ctx.arc(0, -11, 2.4, 0, 7); ctx.fillStyle = c.kind === 'note' ? '#6d6a5a' : RED; ctx.fill(); ctx.restore();
+  });
+  // a look without a location: pinned in the margin
+  const loose = Object.keys(PLACES).filter((pid) => { const pi = placeInfo(pid); return pi.look && !pi.located && !pi.found; });
+  if (loose.length) { ctx.font = `13px ${HANDF}`; ctx.fillStyle = '#6a5a44'; ctx.textAlign = 'center'; ctx.fillText('還不知道在哪', 932, 40); loose.forEach((pid, n) => { const x = 932, y = 80 + n * 64; ctx.save(); ctx.translate(x, y); ctx.rotate(n % 2 ? 0.06 : -0.05); ctx.fillStyle = '#efe6cf'; ctx.fillRect(-40, -24, 80, 50); ctx.strokeStyle = 'rgba(58,47,36,0.7)'; ctx.strokeRect(-40, -24, 80, 50); glyph(ctx, PLACES[pid].g, 0, 0, 1.2); ctx.beginPath(); ctx.arc(0, -24, 2.6, 0, 7); ctx.fillStyle = '#6d6a5a'; ctx.fill(); ctx.restore(); }); }
+  // (the notebook itself is a 3D object on this corner)
+  if (false) { ctx.save(); ctx.translate(944, 614); ctx.rotate(-0.18); ctx.fillStyle = 'rgba(30,18,8,0.3)'; ctx.fillRect(-36, -44, 76, 92); ctx.fillStyle = '#6b3f2c'; ctx.fillRect(-40, -48, 76, 92); ctx.fillStyle = '#e7dcc4'; ctx.fillRect(34, -44, 4, 84); ctx.fillStyle = '#3d2a1e'; ctx.fillRect(-40, 8, 76, 7); ctx.font = `13px ${HANDF}`; ctx.fillStyle = '#e7dcc4'; ctx.textAlign = 'center'; ctx.fillText('筆記', -2, -14); ctx.restore(); }
+  ctx.restore();
+}
+function coreOwned(map) { const i = parseInt(map.slice(1), 10); return EX[i] && EX[i].state > 0; }
+let boardDirty = true;
+function refreshBoardTexture() { const c = boardTexCanvas; drawBoard(c.getContext('2d'), c.width, c.height); boardTex.needsUpdate = true; boardDirty = false; }
+const boardWorld = (bx, by) => V3(TABLE.x - TABLE.w / 2 + TABLE.w * bx / BW, TABLE.y + 0.01, TABLE.z - TABLE.d / 2 + TABLE.d * by / BH);
+
+// ---------- camera ----------
+const ROOM = { tx: 0, ty: 1.25, tz: 0, w: 12.2, h: 9.3, el: EL, az: AZ };
+const TABLE_VIEW = { tx: TABLE.x, ty: TABLE.y, tz: TABLE.z, w: TABLE.w, h: TABLE.d, el: 1.5, az: 0 };
+const cam = { cur: Object.assign({}, ROOM), from: Object.assign({}, ROOM), to: ROOM, t: 1, dur: 1.2 };
+function camTo(v, dur) { cam.from = Object.assign({}, cam.cur); cam.to = v; cam.t = 0; cam.dur = dur || 1.2; }
+let yawOff = 0, pitchOff = 0, dragging = false, downX = 0, downY = 0, lastX = 0, lastY = 0, moved = false;
+let clear = { fx: 0.5, fy: 0.5, cw: 800, ch: 600, W: 800, H: 600 }, clearT = Object.assign({}, clear);
+function tableRect() {
+  const r = canvas.getBoundingClientRect(); const wide = window.innerWidth > 760;
+  const top = 72, bottom = r.height - (S.tray.length ? 176 : 58), left = 16, right = r.width - (wide ? document.getElementById('panel').offsetWidth + 40 : 16);
+  const aw = right - left, ah = bottom - top; let w = Math.min(aw, ah * 1.5); const h = w / 1.5;
+  return { x: left + (aw - w) / 2, y: top + (ah - h) / 2, w, h, W: r.width, H: r.height };
+}
+function measure() {
+  const r = canvas.getBoundingClientRect(); const wide = window.innerWidth > 760;
+  if (S.mode === 'table' || S.mode === 'toTable') { const b = tableRect(); clearT = { fx: (b.x + b.w / 2) / r.width, fy: (b.y + b.h / 2) / r.height, cw: b.w, ch: b.h, W: r.width, H: r.height }; const d = $('dim'); Object.assign(d.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px' }); return; }
+  let left = 0, right = r.width, top = wide ? 84 : 76, bottom = r.height - (wide ? 52 : 16);
+  if (wide && !$('panel').hidden) right = $('panel').getBoundingClientRect().left - r.left - 16;
+  clearT = { fx: (left + right) / 2 / r.width, fy: (top + bottom) / 2 / r.height, cw: Math.max(200, right - left), ch: Math.max(160, bottom - top), W: r.width, H: r.height };
+}
+function placeCamera() {
+  const v = cam.cur; const fitW = Math.max(v.w, v.h * clear.cw / clear.ch); const WW = fitW * clear.W / clear.cw; const HH = WW * clear.H / clear.W;
+  Object.assign(camera, { left: -WW * clear.fx, right: WW * (1 - clear.fx), top: HH * clear.fy, bottom: -HH * (1 - clear.fy) }); camera.updateProjectionMatrix();
+  const el = v.el + pitchOff, az = v.az + yawOff;
+  camera.position.set(v.tx + DIST * Math.cos(el) * Math.sin(az), v.ty + DIST * Math.sin(el), v.tz + DIST * Math.cos(el) * Math.cos(az)); camera.lookAt(v.tx, v.ty, v.tz);
+}
+function resize() { const w = canvas.clientWidth, h = canvas.clientHeight; renderer.setSize(w, h, false); measure(); clear = Object.assign({}, clearT); placeCamera(); layoutHits(); }
+window.addEventListener('resize', resize);
+
+// ---------- picking ----------
+const ray = new T.Raycaster(); const HITS = [];
+EX.forEach((e) => { if (e) HITS.push(e.hit); });
+const TABLE_HIT = new T.Mesh(new T.BoxGeometry(3.2, 1.0, 2.2), new T.MeshBasicMaterial()); TABLE_HIT.visible = false; TABLE_HIT.position.set(TABLE.x, 0.5, TABLE.z); TABLE_HIT.userData.target = 'table'; room.add(TABLE_HIT); HITS.push(TABLE_HIT);
+JP_HIT.userData.target = 'pocket'; HITS.push(JP_HIT);
+function pick(cx, cy) { const r = canvas.getBoundingClientRect(); const p = new T.Vector2((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); ray.setFromCamera(p, camera); const hit = ray.intersectObjects(HITS, false)[0]; return hit ? hit.object.userData.target : null; }
+let hoverT = null;
+canvas.addEventListener('pointerdown', (e) => { if (S.mode !== 'room' || S.busy) return; dragging = true; moved = false; downX = lastX = e.clientX; downY = lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', (e) => {
+  if (dragging) { if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) { moved = true; canvas.classList.add('dragging'); } if (moved) { yawOff = clamp(yawOff - (e.clientX - lastX) * 0.0025, -0.2, 0.2); pitchOff = clamp(pitchOff + (e.clientY - lastY) * 0.002, -0.08, 0.14); } lastX = e.clientX; lastY = e.clientY; return; }
+  if (S.mode !== 'room' || S.busy) { hoverT = null; return; }
+  hoverT = pick(e.clientX, e.clientY); canvas.classList.toggle('pointing', Boolean(hoverT)); hoverPin(e);
+});
+canvas.addEventListener('pointerleave', () => { hoverT = null; hoverPin(); });
+const endDrag = (e) => { if (!dragging) return; dragging = false; canvas.classList.remove('dragging'); if (!moved && e && e.type === 'pointerup') { const t = pick(e.clientX, e.clientY); if (t) activate(t); else if (S.sel) closePanel(); } };
+canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', () => { dragging = false; canvas.classList.remove('dragging'); });
+function labelFor(t) { if (t === 'table') return '線索桌'; if (t === 'pocket') return '這一趟的口袋'; return t.state ? t.name : '空著的位置'; }
+const hoverEl = document.createElement('div'); hoverEl.className = 'pin glass plain'; hoverEl.hidden = true; $('pins').appendChild(hoverEl);
+function anchorOf(t) { if (t === 'table') return V3(TABLE.x, TABLE.y + 0.3, TABLE.z - 0.9); if (t === 'pocket') return V3(0, 3.3, -3.9); return t.anchor.clone().add(V3(0, 0.35, 0)); }
+function hoverPin() { if (!hoverT) { hoverEl.hidden = true; return; } hoverEl.hidden = false; hoverEl.textContent = labelFor(hoverT); hoverEl.className = 'pin glass ' + (hoverT !== 'table' && hoverT !== 'pocket' && hoverT.state ? 'blue' : 'plain'); }
+function project(v) { const p = v.clone().project(camera); const r = canvas.getBoundingClientRect(); return { x: (p.x + 1) / 2 * r.width, y: (1 - p.y) / 2 * r.height }; }
+// keyboard hotspots (visible only on focus)
+const HOTS = [];
+['table', 'pocket'].concat(EX.filter(Boolean)).forEach((t) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'hot'; b.setAttribute('aria-label', typeof t === 'string' ? labelFor(t) : t.name); b.addEventListener('click', () => activate(t)); b.addEventListener('focus', () => { hoverT = t; hoverPin(); }); b.addEventListener('blur', () => { hoverT = null; hoverPin(); }); $('hots').appendChild(b); HOTS.push({ b, t }); });
+// the "new clues" pin above the table
+const cluePin = document.createElement('div'); cluePin.className = 'pin glass'; cluePin.hidden = true; $('pins').appendChild(cluePin);
+const newPin = document.createElement('div'); newPin.className = 'pin glass blue'; newPin.hidden = true; newPin.textContent = '新的收藏'; $('pins').appendChild(newPin);
+
+// ---------- panel ----------
+const panel = $('panel'), body = $('panelBody');
+function openPanel(html, kind) { body.innerHTML = html; panel.hidden = false; S.panelKind = kind; measure(); const x = body.querySelector('.x'); if (x) x.addEventListener('click', () => closePanel()); }
+function closePanel() { if (S.mode === 'table') { panelTableDefault(); return; } panel.hidden = true; S.sel = null; S.panelKind = null; measure(); if (S.mode === 'room' && !S.busy) camTo(ROOM, 1.0); }
+const closeBtn = '<button type="button" class="x" aria-label="關閉">×</button>';
+function activate(t) {
+  if (S.busy) return;
+  if (t === 'table') { enterTable(); return; }
+  if (t === 'pocket') { S.sel = 'pocket'; camTo({ tx: 0, ty: 2.7, tz: -3.6, w: 3.2, h: 2.4, el: EL, az: AZ }, 1.0); panelPocket(); return; }
+  S.sel = t; if (S.newCore === t.i) { S.newCore = null; }
+  camTo(t.view, 1.0); panelCore(t);
+}
+function panelCore(e) {
+  const st = e.state; const chip = st === 0 ? '<span class="chip">空著</span>' : st === 1 ? '<span class="chip blue"><i></i>已放上</span>' : '<span class="chip blue"><i></i>看懂了一些</span>';
+  let rel = '';
+  if (st === 1) rel = '<div class="sec"><p class="label">相關的線索</p><p class="soft">還差一條相關的線索，才看得懂更多。</p></div>';
+  if (st === 2) rel = `<div class="sec"><p class="label">讓它多透露一些的紀錄（永久保存）</p><div class="clue-row">${esc(TXT[e.i].rel)}</div></div>`;
+  const eye = e.i === 10 && st > 0 ? '<div class="eye" id="eyeHost"></div>' : '';
+  openPanel(`<div class="panel-top"><p class="label">${st ? '出自' + MAPS[e.map] : '還不知道是什麼'}</p>${closeBtn}</div><h2>${st ? e.name : '空著的位置'}</h2>${chip}${eye}<p class="obs">${esc(coreText(e))}</p>${rel}`, 'core');
+  if (eye) mountEye();
+}
+function panelPocket() {
+  const items = S.bag.length ? S.bag.map((b) => `<div class="clue-row">${esc(b)}</div>`).join('') : '<p class="soft">這一趟還沒有帶回信物。</p>';
+  openPanel(`<div class="panel-top"><p class="label">靠近包口的口袋</p>${closeBtn}</div><h2>這一趟</h2><p class="soft">這一趟帶回的信物放在這裡，和大廳的行囊是同一份。旅程結束、回到營火時會清空；核心、線索和缺頁放在行李深處，會一直留著。</p><div class="sec"><p class="label">口袋裡</p>${items}</div>`, 'pocket');
+}
+function mountEye() {
+  const host = $('eyeHost'); if (!host) return; host.appendChild(eyeCanvas);
+  if (!eyeRenderer) { eyeRenderer = new T.WebGLRenderer({ canvas: eyeCanvas, antialias: true, preserveDrawingBuffer: true }); eyeRenderer.setPixelRatio(1); eyeRenderer.setSize(480, 480, false); }
+}
+
+// ---------- table mode ----------
+function enterTable() {
+  if (S.busy) return; S.sel = null; S.mode = 'toTable'; hoverT = null; hoverPin();
+  ['hint', 'topLeft', 'pins', 'hots'].forEach((id) => $(id).classList.add('ui-fade'));
+  $('proto').open = false; yawOff = 0; pitchOff = 0; panelTableDefault(); renderTray(); measure(); camTo(TABLE_VIEW, 1.2);
+  sceneLater(() => { S.mode = 'table'; $('tableUi').classList.add('on'); $('tableUi').setAttribute('aria-hidden', 'false'); measure(); layoutHits(); }, reduceMotion ? 0 : 900);
+}
+function leaveTable() {
+  S.mode = 'room'; $('tableUi').classList.remove('on'); $('tableUi').setAttribute('aria-hidden', 'true');
+  ['hint', 'topLeft', 'pins', 'hots'].forEach((id) => $(id).classList.remove('ui-fade'));
+  panel.hidden = true; S.panelKind = null; measure(); camTo(ROOM, 1.2);
+}
+$('tableBack').addEventListener('click', leaveTable);
+function panelTableDefault() {
+  const n = S.pinned.length; const tr = S.tracking ? `<div class="sec"><p class="label">追查中</p><p class="soft"><span class="warm">${PLACES[S.tracking].name}</span>：${PLACES[S.tracking].needs.map((x) => x[0]).join('、')}</p></div>` : '';
+  openPanel(`<p class="label">攤開的地圖</p><h2>線索桌</h2><p class="soft">去過的地方會畫在桌上。旅途中查到的方位、樣子和筆記會釘在它們出自的地方；兩條方位線交會，霧裡就會浮出一個地點。</p><p class="soft">點地點或紙條可以看細節，點右下角的筆記可以翻開。</p><div class="sec"><p class="label">桌上</p><p class="soft">釘著 ${n} 條線索${S.tray.length ? ` · 還有 ${S.tray.length} 條新的沒釘` : ''}</p></div>${tr}`, 'tableDefault');
+}
+function renderTray() {
+  const tray = $('tray'); tray.hidden = S.tray.length === 0; $('trayCount').textContent = S.tray.length; const box = $('trayCards'); box.textContent = '';
+  if (!S.tray.includes(S.selectedClue)) S.selectedClue = S.tray[0] || null;
+  S.tray.forEach((cid) => { const c = CLUES[cid]; const b = document.createElement('button'); b.type = 'button'; b.className = 'card'; b.setAttribute('aria-pressed', String(S.selectedClue === cid)); b.style.outline = S.selectedClue === cid ? '2px solid #b27a2c' : ''; b.innerHTML = `<small>${KIND[c.kind]} · ${esc(c.src)}</small><span>${esc(c.text)}</span>`; b.addEventListener('click', () => { if (S.busy) return; S.selectedClue = cid; renderTray(); }); box.appendChild(b); });
+}
+$('pinSingle').addEventListener('click', () => { if (!S.busy && S.selectedClue) pinClue(S.selectedClue); });
+$('pinAll').addEventListener('click', () => { const list = S.tray.slice(); if (S.busy || !list.length) return; if (window.__roomPinAll) { S.busy = true; window.__roomPinAll(list); } else pinAllClues(list); });
+function pinAllClues(list) {
+  S.bulkPinning = true; S.busy = false; let k = 0;
+  const next = () => { if (k >= list.length) { S.bulkPinning = false; parent.postMessage({ source: 'focusquest-collection-room', type: 'pin-all-done' }, '*'); return; } pinClue(list[k++], next); };
+  next();
+}
+function fx(key, delay, dur) { S.fx[key] = { s: time + delay, d: dur }; }
+function pinClue(cid, done) {
+  if (S.busy || !S.tray.includes(cid)) return; S.busy = true;
+  const c = CLUES[cid]; const p = cardPos.call(null, cid);
+  S.tray = S.tray.filter((x) => x !== cid); renderTray(); measure();
+  const before = c.place ? placeInfo(c.place) : null;
+  S.pinned.push(cid); applyGrowth(); const cp = cardPos(cid);
+  const after = c.place ? placeInfo(c.place) : null;
+  const H = reduceMotion ? 0 : 0.8; // the fingertip touches the table here
+  fx('card:' + cid, H, 0.35);
+  if (c.kind === 'way') { fx('pin:' + cid, H, 0.2); fx('thread:' + cid, H + 0.25, 0.9); }
+  let reveal = null;
+  if (c.place && !before.located && after.located) { fx('clear:' + c.place, H + 1.0, 0.9); fx('mark:' + c.place, H + 1.4, 0.8); if (after.look) fx('look:' + c.place, H + 1.4, 1.0); if (after.look) reveal = c.place; }
+  if (c.kind === 'look' && after.located) { fx('look:' + c.place, H + 0.3, 1.0); fx('mark:' + c.place, H + 0.3, 1.0); reveal = c.place; }
+  if (c.kind === 'way' && before.located) { /* extra bearing: nothing new */ }
+  const src = srcPos(c.from); const target = boardWorld(cp.x, cp.y);
+  playHand(target, 'table', () => {});
+  const total = (H + (reveal || (after && after.located && !before.located) ? 2.5 : 1.3)) * 1000;
+  boardAnimUntil = time + total / 1000 + 0.1;
+  sceneLater(() => {
+    S.busy = false; layoutHits(); panelTableDefault();
+    if (reveal) { toast('霧裡浮出了一個地點：' + PLACES[reveal].name); panelPlace(reveal); }
+    else if (after && after.located && !before.located) toast('兩條線交會了，霧裡有什麼。');
+    if (!S.bulkPinning) parent.postMessage({ source: 'focusquest-collection-room', type: 'pin-done' }, '*');
+    if (done) sceneLater(done, 250);
+  }, total);
+}
+let boardAnimUntil = 0;
+// hit targets over the board
+function layoutHits() {
+  const hits = $('hits'); if (S.mode !== 'table') { hits.textContent = ''; return; }
+  hits.textContent = '';
+  const add = (bx, by, r, label, fn, sq) => { const s = project(boardWorld(bx, by)); const e = project(boardWorld(bx + r, by)); const px = Math.max(24, Math.abs(e.x - s.x) * 2); const b = document.createElement('button'); b.type = 'button'; b.className = 'hit' + (sq ? ' sq' : ''); b.style.left = s.x + 'px'; b.style.top = s.y + 'px'; b.style.width = px + 'px'; b.style.height = (sq ? px * 1.2 : px) + 'px'; b.setAttribute('aria-label', label); b.addEventListener('click', fn); hits.appendChild(b); };
+  ['camp'].concat(S.visited).forEach((id) => { const s = ISLES[id]; add(s.x, s.y, s.r, s.name, () => panelIsle(id)); });
+  Object.keys(PLACES).forEach((pid) => { const pi = placeInfo(pid); const P = PLACES[pid]; if (pi.located || pi.found) add(P.x, P.y, 34, pi.look || pi.found ? P.name : '霧裡的某個地方', () => panelPlace(pid)); else if (pi.look) { const n = Object.keys(PLACES).filter((q) => { const x = placeInfo(q); return x.look && !x.located && !x.found; }).indexOf(pid); add(932, 80 + n * 64, 40, '還不知道在哪的畫面', () => panelPlace(pid), true); } });
+  S.pinned.forEach((cid) => { const p = cardPos(cid); add(p.x, p.y, 16, '線索：' + CLUES[cid].text, () => panelClue(cid), true); });
+  add(944, 606, 42, '筆記', () => openBook(), true);
+}
+function panelIsle(id) {
+  const s = ISLES[id]; const list = S.pinned.filter((c) => CLUES[c].from === id);
+  const rows = list.length ? list.map((c) => `<div class="clue-row"><small>${KIND[CLUES[c].kind]} · ${esc(CLUES[c].src)}</small>${esc(CLUES[c].text)}</div>`).join('') : '<p class="soft">這裡還沒有釘上線索。</p>';
+  const i = id === 'camp' ? 0 : parseInt(id.slice(1), 10);
+  const core = i ? (EX[i].state ? `<span class="chip blue"><i></i>${EX[i].name}已經在行李裡</span>` : '<span class="chip">核心還沒找到</span>') : '';
+  openPanel(`<div class="panel-top"><p class="label">${id === 'camp' ? '旅程的起點' : '去過的地方'}</p>${closeBtn}</div><h2>${s.name}</h2>${core}<div class="sec"><p class="label">從這裡查到的</p>${rows}</div>`, 'isle');
+}
+function panelClue(cid) { const c = CLUES[cid]; const place = c.place ? placeInfo(c.place) : null; openPanel(`<div class="panel-top"><p class="label">${KIND[c.kind]} · ${esc(c.src)}</p>${closeBtn}</div><p class="obs">${esc(c.text)}</p>${place && (place.located || place.found) && (place.look || place.found) ? `<button type="button" class="ghost" id="toPlace">看${PLACES[c.place].name}</button>` : ''}`, 'clue'); const b = $('toPlace'); if (b) b.addEventListener('click', () => panelPlace(c.place)); }
+function panelPlace(pid) {
+  const P = PLACES[pid], pi = placeInfo(pid);
+  const clues = S.pinned.filter((c) => CLUES[c].place === pid).map((c) => `<div class="clue-row"><small>${KIND[CLUES[c].kind]} · ${esc(CLUES[c].src)}</small>${esc(CLUES[c].text)}</div>`).join('');
+  if (!pi.look && !pi.found) { openPanel(`<div class="panel-top"><p class="label">兩條線交會的地方</p>${closeBtn}</div><h2>霧裡的某個地方</h2><p class="soft">還缺一條線索，才看得出這裡是什麼。</p><div class="sec"><p class="label">線索</p>${clues}</div>`, 'place'); return; }
+  if (!pi.located && !pi.found) { openPanel(`<div class="panel-top"><p class="label">一個畫面</p>${closeBtn}</div><h2>還不知道在哪</h2><p class="soft">知道它的樣子，但方位線還不夠，桌上畫不出它的位置。</p><div class="sec"><p class="label">線索</p>${clues}</div>`, 'place'); return; }
+  const needs = P.needs.map(([item, map]) => { const i = parseInt(map.slice(1), 10); const owned = EX[i].state > 0; const inBag = S.bag.includes(item);
+    return `<div class="need"><b>${item}</b><small>出自${MAPS[map]}${inBag ? ' · <span class="warm">這一趟已經帶著</span>' : ''}</small>${owned ? `<small class="blue">行李裡有${EX[i].name}：出發前可以指定拿這一件</small><button type="button" class="ghost" data-dep="${map}|${item}">看出發前的樣子</button>` : '<small>還沒有這裡的核心：兩件信物會隨機給一件</small>'}</div>`; }).join('');
+  const track = S.tracking === pid ? '<button type="button" class="ghost" id="trackBtn">不再追查</button>' : '<button type="button" class="primary" id="trackBtn">設為追查中</button>';
+  const found = pi.found ? '<span class="chip warm"><i></i>缺頁已夾回筆記</span>' : '';
+  openPanel(`<div class="panel-top"><p class="label">隱藏的地點</p>${closeBtn}</div><h2>${P.name}</h2><p class="soft">${P.tag}</p>${found}
+    <div class="sec"><p class="label">在同一趟帶齊</p>${needs}<p class="soft">帶齊之後，下一次選路會多一張「${P.name}」的路線卡。</p></div>
+    ${pi.found ? '<div class="row"><button type="button" class="ghost" id="readPage">翻到那一頁</button></div>' : `<div class="row">${track}</div>`}
+    <div class="sec"><p class="label">線索</p>${clues}</div>`, 'place');
+  S.placeSel = pid;
+  const tb = $('trackBtn'); if (tb) tb.addEventListener('click', () => { S.tracking = S.tracking === pid ? null : pid; boardDirty = true; renderHeader(); panelPlace(pid); if (S.tracking) toast('羅盤的指針轉向了' + P.name + '。'); });
+  const rp = $('readPage'); if (rp) rp.addEventListener('click', () => openBook(pid));
+  body.querySelectorAll('[data-dep]').forEach((b) => b.addEventListener('click', () => { const [map, item] = b.dataset.dep.split('|'); openDeparture(map, item, pid); }));
+}
+// departure sheet mock: a core lets you pick which of the map's two items to bring back
+const ITEMS = { m01: ['舊燈芯', '風化鏡片'], m02: ['舊荷札', '炭印紙'], m04: ['銅製風哨', '纜索扣'], m06: ['未封口的信', '潮汐時刻籤'], m08: ['缺頁索引', '覆寫墨水'], m10: ['殘缺星圖', '空白感光片'] };
+function openDeparture(map, want, pid) {
+  const i = parseInt(map.slice(1), 10); let pickSel = want;
+  const draw = () => {
+    const opts = [['', '讓它自己出現', '兩件隨機給一件']].concat(ITEMS[map].map((it) => [it, it, it === want ? `${PLACES[pid].name}需要` : '']));
+    $('sheetWrap').innerHTML = `<div class="sheet glass" role="dialog" aria-label="出發前確認"><p class="label">出發前確認（示意）</p><h3>往${MAPS[map]}</h3><p class="soft">50 分鐘 · 每 10 分鐘點亮一盞燈</p><div class="sec"><p class="label blue">用${EX[i].name}指定這一段的信物</p><div class="pick">${opts.map(([v, l, s]) => `<button type="button" data-v="${v}" aria-pressed="${pickSel === v}"><span>${l}</span><small>${s}</small></button>`).join('')}</div><p class="soft">指定的信物一樣跟著某一盞燈出現，取得時多一道細細的藍光。核心的機率和保底不受影響。</p></div><div class="row"><button type="button" class="ghost" data-close>返回</button><button type="button" class="primary" data-close>開始專注</button></div></div>`;
+    $('sheetWrap').hidden = false;
+    $('sheetWrap').querySelectorAll('[data-v]').forEach((b) => b.addEventListener('click', () => { pickSel = b.dataset.v; draw(); }));
+  };
+  draw();
+}
+$('sheetWrap').addEventListener('click', (e) => { if (e.target === $('sheetWrap') || e.target.hasAttribute('data-close')) { $('sheetWrap').hidden = true; $('sheetWrap').textContent = ''; } });
+
+// ---------- notebook ----------
+const TREE_SVG = '<svg class="tree" viewBox="0 0 120 90" aria-hidden="true"><g fill="none" stroke="#3a2f24" stroke-width="1.4" stroke-linecap="round"><path d="M58 88 C57 70 59 60 56 50 M62 88 C63 72 61 60 65 50"/><path d="M56 50 C40 52 26 44 24 32 C20 18 36 8 50 12 C56 2 76 2 82 12 C98 10 106 26 98 36 C94 48 78 52 65 50"/><path d="M40 30 C48 34 54 30 58 36 M70 24 C74 32 84 30 88 34"/><path d="M8 88 L112 88"/></g></svg>';
+const PAGES = {
+  h1: { title: '沉燈灣找到的一頁', text: ['霧漲到腰，看不見自己的手。', '前面有一盞燈，接著又一盞，燈罩還是溫的，像剛有人點過。', '我照著走回來了。一直沒找到點燈的人。'] },
+  h2: { title: '冷營地找到的一頁', text: ['火是在第四天熄的。柴都濕了。', '之後我只能借別人的光走路。', '能借的時間不多，每一次都比上一次短。'] },
+  h3: { title: '留白書桌找到的一頁', text: ['我把路線寫下來了，一段一段，照著走就不會錯。', '後來才知道，寫下來的路，就只剩這一條。'], ink2: '下一次，把這一頁留白。' }
+};
+function bookPages() {
+  const p = [{ k: 'first' }, { k: 'rec', t: '筆記第一頁的大樹，就是雲上遺庭那一棵。樹旁有人用和我一樣的方式整理過行囊。' }];
+  if (S.visited.includes('m02')) p.push({ k: 'rec', t: '驛站的住宿簿裡，每一頁都有同一個沒寫名字的住客。' });
+  p.push(S.met ? { k: 'rec', t: '他看了我的筆記很久，只說：「下一次，記得把那一頁留白。」' } : { k: 'blank' });
+  ['h1', 'h2', 'h3'].forEach((h) => p.push(S.found.includes(h) ? { k: 'page', h } : { k: 'stub', h }));
+  if (p.length % 2) p.splice(p.length - 3, 0, { k: 'blank' });
+  return p;
+}
+function pageHtml(pg) {
+  if (pg.k === 'first') return `<div class="page"><p class="meta">第一頁（本來就寫好的）</p>${TREE_SVG}<p>從這裡開始。</p></div>`;
+  if (pg.k === 'rec') return `<div class="page"><p class="meta">你的紀錄</p><p>${esc(pg.t)}</p></div>`;
+  if (pg.k === 'blank') return '<div class="page blank"></div>';
+  if (pg.k === 'stub') return `<div class="page stub">${S.met ? '<p class="stub-note">這裡少了一頁。</p>' : ''}</div>`;
+  const P = PAGES[pg.h]; return `<div class="page found"><p class="meta">${P.title}</p>${P.text.map((t) => `<p>${esc(t)}</p>`).join('')}${P.ink2 ? `<p class="ink2">${esc(P.ink2)}</p>` : ''}</div>`;
+}
+function openBook(pid) {
+  const pages = bookPages(); const spreads = Math.ceil(pages.length / 2);
+  if (pid) { const idx = pages.findIndex((x) => x.h === pid && x.k === 'page'); if (idx >= 0) S.spread = Math.floor(idx / 2); } else S.spread = Math.min(S.spread, spreads - 1);
+  const draw = () => { $('bookWrap').innerHTML = `<div class="book" role="dialog" aria-label="筆記"><div class="spread">${pageHtml(pages[S.spread * 2])}${pageHtml(pages[S.spread * 2 + 1] || { k: 'blank' })}</div><div class="book-nav"><button type="button" class="ghost" id="bPrev" ${S.spread === 0 ? 'disabled' : ''}>上一頁</button><span class="label">${S.spread + 1} / ${spreads}</span><button type="button" class="ghost" id="bNext" ${S.spread >= spreads - 1 ? 'disabled' : ''}>下一頁</button><button type="button" class="ghost" id="bClose">闔上</button></div></div>`; $('bookWrap').hidden = false;
+    $('bPrev').addEventListener('click', () => { S.spread--; draw(); }); $('bNext').addEventListener('click', () => { S.spread++; draw(); }); $('bClose').addEventListener('click', () => { $('bookWrap').hidden = true; }); $('bClose').focus(); };
+  const go = () => draw();
+  if (S.mode === 'table' && !reduceMotion) { playHand(boardWorld(944, 606), 'table', () => {}); sceneLater(go, 1000); } else go();
+}
+$('bookWrap').addEventListener('click', (e) => { if (e.target === $('bookWrap')) $('bookWrap').hidden = true; });
+document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; if (!$('bookWrap').hidden) $('bookWrap').hidden = true; else if (!$('sheetWrap').hidden) { $('sheetWrap').hidden = true; } else if (S.mode === 'table') leaveTable(); else if (S.sel) closePanel(); });
+
+// ---------- hand animation ----------
+// descend 0–0.75 s, press and let go 0.75–1.05 s, withdraw 1.05–1.8 s
+const HAND_Q = { room: new T.Quaternion().setFromEuler(new T.Euler(0.2, Math.PI / 4, 0, 'YXZ')), table: new T.Quaternion().setFromEuler(new T.Euler(-1.1, Math.PI, 0, 'XYZ')) };
+const HAND_FROM = { room: V3(0.3, 7.2, -0.8), table: V3(0, 1.6, -4.6) };
+let HA = null;
+function playHand(target, mode, onTouch, carry) {
+  if (reduceMotion) { onTouch(); return; }
+  const q = HAND_Q[mode]; const tipOff = handTipLocal(q); HA = { t: 0, target: target.clone(), mode, q, tipOff, onTouch, touched: false, carry };
+}
+function tickHand(dt) {
+  if (!HA) { hand.visible = false; return; }
+  HA.t += dt; const t = HA.t; hand.visible = true; hand.quaternion.copy(HA.q);
+  const down = ease(t / 0.75) - 0.06 * Math.sin(clamp((t - 0.75) / 0.3, 0, 1) * Math.PI) * 0 ; const up = ease((t - 1.05) / 0.75);
+  const press = 0.05 * Math.sin(clamp((t - 0.72) / 0.3, 0, 1) * Math.PI);
+  const off = HAND_FROM[HA.mode].clone().multiplyScalar((1 - down) + up);
+  const tip = HA.target.clone().add(off); tip.y -= press;
+  hand.position.copy(tip.sub(HA.tipOff));
+  if (HA.carry) { const o = HAND_FROM[HA.mode].clone().multiplyScalar(1 - down); HA.carry.position.copy(HA.carry.userData.base.clone().add(o)); if (t > 0.8) HA.carry.position.copy(HA.carry.userData.base); }
+  if (t > 0.8 && !HA.touched) { HA.touched = true; HA.onTouch(); }
+  if (t > 1.85) { HA = null; hand.visible = false; }
+}
+
+// ---------- acquisition and linkage ----------
+let BF = null;
+function playBlue(anchor) { BF = { t: 0 }; blueFx.position.copy(anchor); blueFx.position.y = Math.max(0, anchor.y - 1.0); blueFx.visible = true; }
+function tickBlue(dt) {
+  if (!BF) { blueFx.visible = false; return; } BF.t += dt; const t = BF.t;
+  column.material.opacity = 0.55 * sstep(0, 0.3, t) * (1 - sstep(1.3, 2.2, t)); column.scale.set(1 + 0.2 * Math.sin(t * 6), 1, 1 + 0.2 * Math.sin(t * 6));
+  bRings.forEach((r, n) => { const p = clamp((t - n * 0.3) / 1.4, 0, 1); r.scale.setScalar(0.4 + p * 3); r.position.y = 1.0; r.material.opacity = 0.7 * (1 - p) * (p > 0 ? 1 : 0); });
+  bStars.forEach((s) => { s.sp.position.set(Math.cos(s.a + t) * s.r, 1.0 + t * s.v, Math.sin(s.a + t) * s.r); s.sp.material.opacity = 0.8 * sstep(0.2, 0.5, t) * (1 - sstep(1.4, 2.2, t)); });
+  if (t > 2.3) { BF = null; blueFx.visible = false; }
+}
+function enterBag(placeNew) {
+  if (S.busy) return; if (S.mode !== 'room') leaveTable(); closePanelQuiet();
+  S.busy = true; const v = $('veil'); v.style.transition = 'none'; v.style.opacity = '1'; mouthFade = 0; camTo(ROOM, 0.01); cam.cur = Object.assign({}, ROOM); cam.t = 1;
+  let target = null; if (placeNew) { const order = [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]; const i = order.find((n) => EX[n].state === 0); if (i) target = EX[i]; }
+  requestAnimationFrame(() => { v.style.transition = 'opacity 1.2s ease'; v.style.opacity = '0'; });
+  const done = () => { S.busy = false; };
+  if (!target) { sceneLater(done, 1200); if (placeNew) sceneLater(() => toast('十件核心都已經在行李裡了。'), 1300); return; }
+  // the new core is carried in by the hand, then the blue light plays
+  setState(target.i, 1, true); target.core.visible = false;
+  sceneLater(() => {
+    camTo(target.view, 1.1);
+    sceneLater(() => {
+      target.core.visible = true; target.core.userData.base = target.core.position.clone();
+      const tgt = target.anchor.clone();
+      playHand(tgt, 'room', () => { playBlue(target.anchor); }, target.core);
+      if (reduceMotion) playBlue(target.anchor);
+      sceneLater(() => { S.newCore = target.i; S.sel = target; panelCore(target); boardDirty = true; done(); }, reduceMotion ? 600 : 3300);
+    }, 1150);
+  }, 1300);
+}
+function closePanelQuiet() { panel.hidden = true; S.sel = null; S.panelKind = null; measure(); }
+function playLink() {
+  if (S.busy) return; if (S.mode !== 'room') leaveTable(); closePanelQuiet();
+  for (let i = 1; i <= 10; i++) setState(i, 2, false); applyCoresToSeg();
+  S.busy = true; camTo({ tx: 0, ty: 1.8, tz: -0.4, w: 13.2, h: 10.2, el: EL + 0.05, az: AZ }, 1.4); S.linkT = 0;
+}
+function tickLink(dt) {
+  if (S.linkT < 0) { S.link = lerp(S.link, 0, 1 - Math.pow(0.2, dt)); return; }
+  S.linkT += dt; const t = S.linkT;
+  S.link = sstep(0.4, 2.2, t) * (1 - sstep(6.0, 7.5, t));
+  beam.material.opacity = 0.5 * sstep(2.2, 3.6, t) * (1 - sstep(6.0, 7.8, t));
+  if (t > 3.8 && !S.linkToast) { S.linkToast = true; toast('十件東西都轉向包口外面的同一個地方。'); }
+  if (t > 8) { S.linkT = -1; S.linkToast = false; S.linked = true; S.busy = false; camTo(ROOM, 1.4); }
+}
+// a beam from the orrery up through the mouth during the linkage
+const beam = new T.Mesh(new T.CylinderGeometry(0.05, 0.12, 9, 10, 1, true), new T.MeshBasicMaterial({ map: colTex, color: 0x9cc8e8, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }));
+beam.position.set(TABLE.x, 2.55 + 4.5, TABLE.z); scene.add(beam);
+let mouthFade = 1;
+
+// ---------- presets, header, controls ----------
+function setState(i, s, quiet) { const e = EX[i]; e.state = s; e.set(s); boardDirty = true; if (!quiet) applyCoresToSeg(); }
+function applyPreset(k) {
+  const p = PRESETS[k]; S.preset = k; S.visited = p.visited.slice(); S.pinned = p.pinned.slice(); S.tray = p.tray.slice(); S.met = p.met; S.found = p.found.slice(); S.bag = p.bag.slice(); S.tracking = null; S.linked = Boolean(p.linked); S.fx = {}; S.newCore = null; S.journeys = p.journeys;
+  for (let i = 1; i <= 10; i++) setState(i, p.cores[i] || 0, true);
+  jpItems.forEach((g, n) => { g.visible = n < S.bag.length; }); applyGrowth();
+  boardDirty = true; applyCoresToSeg(); renderHeader(); renderTray();
+  document.querySelectorAll('#presetSeg button').forEach((b, n) => b.setAttribute('aria-pressed', n === k ? 'true' : 'false'));
+  if (S.mode === 'table') { panelTableDefault(); layoutHits(); measure(); } else closePanelQuiet();
+  if (S.mode === 'room') camTo(ROOM, 0.8);
+}
+function renderHeader() { const l = $('trackLine'); if (S.tracking) { l.hidden = false; l.textContent = '追查中 · ' + PLACES[S.tracking].name; } else l.hidden = true; }
+function applyCoresToSeg() { document.querySelectorAll('#coreSeg button').forEach((b, n) => { const e = EX[n + 1]; b.className = 'c' + e.state; b.title = e.name; b.setAttribute('aria-label', `${e.name}：${['空', '已放上', '看懂了'][e.state]}`); }); }
+PRESETS.forEach((p, k) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = p.name; b.addEventListener('click', () => applyPreset(k)); $('presetSeg').appendChild(b); });
+for (let i = 1; i <= 10; i++) { const b = document.createElement('button'); b.type = 'button'; b.textContent = String(i).padStart(2, '0'); b.addEventListener('click', () => { const e = EX[i]; setState(i, (e.state + 1) % 3); if (S.sel === e) panelCore(e); if (S.mode === 'table') { layoutHits(); } }); $('coreSeg').appendChild(b); }
+$('actEnter').addEventListener('click', () => enterBag(true));
+$('actLink').addEventListener('click', () => playLink());
+$('backBtn').addEventListener('click', () => toast('（回到大廳：鏡頭從包口退出來）'));
+let toastTimer = 0; function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2600); }
+
+// ---------- update ----------
+const clock = new T.Clock();
+function update(dt) {
+  time += dt; const mt = reduceMotion ? time * 0.3 : time;
+  for (let i = sceneTimers.length - 1; i >= 0; i--) { sceneTimers[i].left -= dt; if (sceneTimers[i].left <= 0) { const task = sceneTimers.splice(i, 1)[0]; task.fn(); } }
+  if (cam.t < 1) { cam.t = Math.min(1, cam.t + dt / cam.dur); const e = ease(cam.t); ['tx', 'ty', 'tz', 'w', 'h', 'el'].forEach((k) => { cam.cur[k] = lerp(cam.from[k], cam.to[k], e); }); cam.cur.az = cam.from.az + wrapA(cam.to.az - cam.from.az) * e; }
+  if (!dragging) { yawOff *= Math.pow(0.004, dt); pitchOff *= Math.pow(0.004, dt); }
+  ['fx', 'fy', 'cw', 'ch', 'W', 'H'].forEach((k) => { clear[k] = lerp(clear[k], clearT[k], 1 - Math.pow(0.002, dt)); });
+  const tf = sstep(EL + 0.2, 1.45, cam.cur.el); placeCamera();
+  const overhead = tf < 0.4; if (EX[1].g.visible !== overhead) { EX[1].g.visible = overhead; bar.visible = overhead; } S.tableF = tf;
+  const trackWorld = S.tracking ? boardWorld(PLACES[S.tracking].x, PLACES[S.tracking].y) : null;
+  const k = { link: S.link, trackWorld };
+  EX.forEach((e) => { if (e) e.tick(dt, mt, k); });
+  tickHand(dt); tickBlue(dt); tickLink(dt);
+  candle.material.opacity = 0.7 + 0.1 * Math.sin(mt * 8) + 0.05 * Math.sin(mt * 21);
+  lampTable.intensity = 0.8 + 0.08 * Math.sin(mt * 8);
+  mouth.intensity = 0.95 * (0.85 + 0.15 * (1 - S.link * 0.5));
+  ghostSteam.forEach((s, n) => { const p = ((mt * 0.3 + n / 3) % 1); s.position.set(0.02 * Math.sin(mt + n), 0.18 + p * 0.35, 0); s.scale.setScalar(0.06 + p * 0.14); s.material.opacity = 0.25 * Math.sin(Math.PI * p); });
+  // board texture: redraw while something on it is animating
+  if (boardDirty || time < boardAnimUntil) refreshBoardTexture();
+  // pins
+  const r = canvas.getBoundingClientRect();
+  if (S.mode === 'room') {
+    if (hoverT) { const p = project(anchorOf(hoverT)); hoverEl.style.left = p.x + 'px'; hoverEl.style.top = p.y + 'px'; }
+    cluePin.hidden = S.tray.length === 0 || S.busy; if (!cluePin.hidden) { cluePin.textContent = `新的線索 ${S.tray.length}`; const p = project(anchorOf('table')); cluePin.style.left = p.x + 'px'; cluePin.style.top = p.y + 'px'; }
+    newPin.hidden = !S.newCore || S.busy || (S.sel && S.sel.i === S.newCore); if (!newPin.hidden) { const p = project(anchorOf(EX[S.newCore])); newPin.style.left = p.x + 'px'; newPin.style.top = p.y + 'px'; }
+    HOTS.forEach(({ b, t }) => { const p = project(anchorOf(t)); b.style.left = p.x + 'px'; b.style.top = (p.y + 30) + 'px'; });
+  } else { cluePin.hidden = true; newPin.hidden = true; }
+  if (S.mode === 'table' && (cam.t < 1 || Math.abs(clear.fx - clearT.fx) > 0.001 || Math.abs(clear.cw - clearT.cw) > 0.5)) layoutHits();
+  // the mirror and the eyepiece
+  if (EX[3].state > 0 && S.mode !== 'table') { renderer.setRenderTarget(mirrorRT); renderer.render(scene, mirrorCam); renderer.setRenderTarget(null); }
+  if (eyeRenderer && S.sel === EX[10] && EX[10].state > 0) {
+    const n = coreCount(); const clearAmt = S.linked ? 1 : n / 10;
+    eyeMists.forEach((m) => { m.sp.position.x = m.x + Math.sin(mt * 0.08 + m.ph) * 6; m.sp.material.opacity = 0.75 * (1 - clearAmt * 0.85); });
+    domainLight.material.opacity = EX[10].state > 1 || S.linked ? 0.9 + 0.1 * Math.sin(mt * 2) : 0;
+    eyeCam.rotation.z = 0; eyeRenderer.render(eyeScene, eyeCam);
+  }
+}
+function frame() { const dt = Math.min(clock.getDelta(), 0.05); if (!window.__hold) { update(dt); renderer.render(scene, camera); } requestAnimationFrame(frame); }
+
+buildLayers(2048, 1366);
+resize(); applyPreset(1);
+const fontsReady = () => { boardDirty = true; };
+const boardText = ['營火', '還不知道在哪', '缺頁已夾回筆記', '北', '筆記', '？'].concat(Object.values(MAPS), Object.values(PLACES).map((p) => p.name + p.needs.map((n) => n[0]).join(''))).join('');
+if (document.fonts && document.fonts.load) { Promise.all([document.fonts.load('17px "LXGW WenKai TC"', boardText), document.fonts.ready]).then(fontsReady, fontsReady); }
+setTimeout(fontsReady, 1500); setTimeout(fontsReady, 4000);
+const h = location.hash.replace('#', ''); const pi = PRESETS.findIndex((p) => p.key === h); if (pi >= 0) applyPreset(pi);
+requestAnimationFrame(frame);
+{ const v = $('veil'); v.style.opacity = '1'; requestAnimationFrame(() => { v.style.transition = 'opacity 1.2s ease'; v.style.opacity = '0'; }); }
+window.__room = { S, EX, applyPreset, setState, enterBag, playLink, enterTable, leaveTable, pinClue, pinAllClues, openBook, activate, panelPlace, advance(sec) { for (let i = 0; i < Math.round(sec * 30); i++) update(1 / 30); renderer.render(scene, camera); } };
+})();
+</script>
+</body>
+</html>

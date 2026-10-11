@@ -1,0 +1,925 @@
+{
+ "id": "area-05-echo-quarry",
+ "title": "藏聲秋谷（暫定）",
+ "source": "docs/prototypes/echo-valley.html",
+ "coordinateNote": "three.js world units, y up; outdoor group at origin; cave group offset x+400 (cave coordinates below are local to the cave group)",
+ "camera": {
+  "projection": "orthographic",
+  "azimuthDeg": 45,
+  "elevationDeg": 31,
+  "distance": 90,
+  "home": [
+   5,
+   -0.5,
+   5
+  ],
+  "viewHeight": 22.5,
+  "dragYaw": 1.1,
+  "dragPitchUp": 0.5,
+  "dragPitchDown": 0.12,
+  "caveHome": [
+   0,
+   1,
+   0
+  ],
+  "caveViewHeight": 15,
+  "caveDragYaw": 0.55,
+  "caveDragPitchUp": 0.35
+ },
+ "clock": {
+  "plannedSeconds": 3000,
+  "dayLengthSeconds": 600,
+  "walkSpeedAtX6": 0.95,
+  "lampDue": [
+   600,
+   1200,
+   1800,
+   2400,
+   3000
+  ]
+ },
+ "lamps": [
+  {
+   "index": 0,
+   "post": [
+    -1.65,
+    0.527,
+    8.6
+   ],
+   "lightAt": [
+    -1.65,
+    1.947,
+    8.6
+   ],
+   "stand": [
+    -1,
+    9.5
+   ],
+   "look": [
+    -1.65,
+    8.6
+   ]
+  },
+  {
+   "index": 1,
+   "post": [
+    -2.6,
+    1.681,
+    -0.2
+   ],
+   "lightAt": [
+    -2.6,
+    3.101,
+    -0.2
+   ],
+   "stand": [
+    -2,
+    0.5
+   ],
+   "look": [
+    -2.6,
+    -0.2
+   ]
+  },
+  {
+   "index": 2,
+   "post": [
+    5.35,
+    1.314,
+    -4.65
+   ],
+   "lightAt": [
+    5.35,
+    2.734,
+    -4.65
+   ],
+   "stand": [
+    6.5,
+    -4.5
+   ],
+   "look": [
+    5.35,
+    -4.65
+   ]
+  },
+  {
+   "index": 3,
+   "post": [
+    12.1,
+    0.281,
+    -3.5
+   ],
+   "lightAt": [
+    12.1,
+    1.701,
+    -3.5
+   ],
+   "stand": [
+    13,
+    -2.5
+   ],
+   "look": [
+    12.1,
+    -3.5
+   ]
+  },
+  {
+   "index": 4,
+   "post": [
+    -6.5,
+    2.874,
+    15.5
+   ],
+   "lightAt": [
+    -6.5,
+    4.294,
+    15.5
+   ],
+   "stand": [
+    -6,
+    16.5
+   ],
+   "look": [
+    -6.5,
+    15.5
+   ]
+  }
+ ],
+ "startSpot": 9,
+ "restSpot": 4,
+ "restSeat": [
+  3.906,
+  19.414
+ ],
+ "spots": [
+  {
+   "id": 1,
+   "name": "石磬架",
+   "marker": [
+    0.9,
+    1.344,
+    -1.5
+   ],
+   "standTarget": [
+    1.5,
+    -0.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    0.9,
+    -1.5
+   ],
+   "pose": "reach",
+   "blurb": "旅人敲了敲石磬，站著聽它的回聲。",
+   "makesSound": "chime"
+  },
+  {
+   "id": 2,
+   "name": "聽音喇叭",
+   "marker": [
+    14.6,
+    1.674,
+    0.2
+   ],
+   "standTarget": [
+    15.5,
+    0
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    14.6,
+    0.2
+   ],
+   "pose": "listen",
+   "blurb": "旅人把耳朵湊近銅喇叭，聽見遠處的水聲被放大了。",
+   "makesSound": null
+  },
+  {
+   "id": 3,
+   "name": "回音巨石",
+   "marker": [
+    -4.6,
+    3.525,
+    3.4
+   ],
+   "standTarget": [
+    -3,
+    4.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    -4.6,
+    3.4
+   ],
+   "pose": "call",
+   "blurb": "旅人對著巨石的凹洞喊了一聲，回聲慢了一拍才回來。",
+   "makesSound": "echo"
+  },
+  {
+   "id": 4,
+   "name": "觀景平台（休息點）",
+   "marker": [
+    4.349,
+    0.618,
+    19.009
+   ],
+   "standTarget": [
+    3.5,
+    20
+   ],
+   "approachAfter": [
+    [
+     3.39,
+     19.887
+    ],
+    [
+     3.115,
+     19.216
+    ],
+    [
+     3.89,
+     18.507
+    ],
+    [
+     4.29,
+     19.063
+    ]
+   ],
+   "leaveVia": [
+    [
+     3.89,
+     18.507
+    ],
+    [
+     3.115,
+     19.216
+    ],
+    [
+     3.39,
+     19.887
+    ]
+   ],
+   "look": [
+    7.888,
+    15.766
+   ],
+   "pose": "sitGaze",
+   "blurb": "旅人在觀景平台坐下，看雲海慢慢流過。",
+   "makesSound": null
+  },
+  {
+   "id": 5,
+   "name": "吊橋與鐘樓",
+   "marker": [
+    7.6,
+    3,
+    9.6
+   ],
+   "standTarget": [
+    24,
+    10.5
+   ],
+   "approachAfter": [
+    [
+     23.4,
+     10.25
+    ],
+    [
+     11.52,
+     10.25
+    ],
+    [
+     8.55,
+     12.62
+    ]
+   ],
+   "leaveVia": [
+    [
+     11.52,
+     10.25
+    ],
+    [
+     23.4,
+     10.25
+    ]
+   ],
+   "look": [
+    7.6,
+    12.6
+   ],
+   "pose": "reach",
+   "blurb": "旅人走過吊橋登上鐘樓，拉動撞木。大鐘的聲音一路滾過雲海。",
+   "makesSound": "bell"
+  },
+  {
+   "id": 6,
+   "name": "風孔岩",
+   "marker": [
+    0.6,
+    3.464,
+    21.8
+   ],
+   "standTarget": [
+    2.5,
+    22
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    0.6,
+    21.8
+   ],
+   "pose": "listen",
+   "blurb": "風從岩壁的孔洞吹過，發出低低的嗚嗚聲。",
+   "makesSound": "wind"
+  },
+  {
+   "id": 7,
+   "name": "水車鋸石坊",
+   "marker": [
+    -7.85,
+    5.556,
+    12.05
+   ],
+   "standTarget": [
+    -7.5,
+    8.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    -7.85,
+    11.6
+   ],
+   "pose": "inspect",
+   "blurb": "水車一圈一圈地轉，鋸子慢慢切開石塊。",
+   "makesSound": null
+  },
+  {
+   "id": 8,
+   "name": "石拱橋",
+   "marker": [
+    -4,
+    1.765,
+    12.85
+   ],
+   "standTarget": [
+    -3.5,
+    10.5
+   ],
+   "approachAfter": [
+    [
+     -3.746,
+     10.967
+    ],
+    [
+     -4,
+     12.85
+    ]
+   ],
+   "leaveVia": [
+    [
+     -3.746,
+     10.967
+    ]
+   ],
+   "look": [
+    -1.027,
+    13.252
+   ],
+   "pose": "look",
+   "blurb": "旅人站在橋頂，看溪水一路流向瀑布。",
+   "makesSound": null
+  },
+  {
+   "id": 9,
+   "name": "瀑布口",
+   "marker": [
+    0.582,
+    0.982,
+    15.303
+   ],
+   "standTarget": [
+    0.5,
+    16
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    12,
+    12
+   ],
+   "pose": "gaze",
+   "blurb": "旅人靠在欄繩旁，看水落進深淵。",
+   "makesSound": null
+  },
+  {
+   "id": 10,
+   "name": "風化記號石",
+   "marker": [
+    6.2,
+    2.046,
+    0.4
+   ],
+   "standTarget": [
+    7,
+    1
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    6.2,
+    0.4
+   ],
+   "pose": "crouch",
+   "blurb": "旅人蹲下來，用指尖摸石面上磨平的刻痕。",
+   "makesSound": null
+  },
+  {
+   "id": 11,
+   "name": "纜車站",
+   "marker": [
+    9.8,
+    4.054,
+    -2
+   ],
+   "standTarget": [
+    9,
+    -1.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    9.8,
+    -2
+   ],
+   "pose": "gaze",
+   "blurb": "旅人看著纜車慢慢滑進遠處的霧裡。",
+   "makesSound": null
+  },
+  {
+   "id": 12,
+   "name": "共鳴洞",
+   "marker": [
+    11.4,
+    4.3,
+    -9
+   ],
+   "standTarget": [
+    11.5,
+    -6.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    11.4,
+    -8.4
+   ],
+   "pose": "listen",
+   "blurb": "洞口傳來很輕的嗡聲，像有人在深處哼歌。",
+   "makesSound": null
+  },
+  {
+   "id": 13,
+   "name": "聲壁",
+   "marker": [
+    15.6,
+    4.6,
+    -9
+   ],
+   "standTarget": [
+    16,
+    -8
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    15.6,
+    -9.2
+   ],
+   "pose": "reach",
+   "blurb": "旅人輕敲聲壁，整面岩壁都跟著嗡了一下。",
+   "makesSound": "wall"
+  },
+  {
+   "id": 14,
+   "name": "石材推車",
+   "marker": [
+    14.6,
+    2.9,
+    -7.2
+   ],
+   "standTarget": [
+    14.5,
+    -5.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    14.6,
+    -7.2
+   ],
+   "pose": "inspect",
+   "blurb": "旅人摸了摸推車上的方石，還帶著涼意。",
+   "makesSound": null
+  },
+  {
+   "id": 15,
+   "name": "起重架與方石",
+   "marker": [
+    14.2,
+    3.968,
+    -4
+   ],
+   "standTarget": [
+    14,
+    -5.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    14.2,
+    -4
+   ],
+   "pose": "gaze",
+   "blurb": "旅人抬頭看起重架，鐵鏈偶爾輕輕作響。",
+   "makesSound": null
+  },
+  {
+   "id": 16,
+   "name": "鋸切壁鷹架",
+   "marker": [
+    17.6,
+    4.7,
+    -8.6
+   ],
+   "standTarget": [
+    17.5,
+    -8
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    17.6,
+    -9.1
+   ],
+   "pose": "gaze",
+   "blurb": "旅人看著鋸切壁上排得整整齊齊的鑽孔。",
+   "makesSound": null
+  },
+  {
+   "id": 17,
+   "name": "絞盤吊籠",
+   "marker": [
+    22.615,
+    2.222,
+    4.422
+   ],
+   "standTarget": [
+    23.5,
+    3.5
+   ],
+   "approachAfter": [],
+   "leaveVia": [],
+   "look": [
+    12,
+    12
+   ],
+   "pose": "reach",
+   "blurb": "旅人轉了轉絞盤，吊籠在霧裡晃了晃。",
+   "makesSound": null
+  }
+ ],
+ "bellTower": {
+  "center": [
+   7.6,
+   0.6,
+   9.6
+  ],
+  "stage": {
+   "x0": 4.6,
+   "x1": 11.6,
+   "z0": 7,
+   "z1": 13.5,
+   "y": 0.6
+  },
+  "bridgeRim": [
+   23.4,
+   0.194,
+   10.25
+  ],
+  "bridgeStage": [
+   11.62,
+   0.66,
+   10.25
+  ],
+  "standAtLog": [
+   8.55,
+   12.62
+  ]
+ },
+ "caveMouth": {
+  "position": [
+   11.4,
+   1.6,
+   -7.75
+  ],
+  "rotationY": 0.3,
+  "tunnelDepth": 1,
+  "axisInside": [
+   11.267,
+   -8.18
+  ],
+  "axisOutside": [
+   11.696,
+   -6.795
+  ],
+  "humSource": [
+   11.4,
+   2.6,
+   -7.5
+  ]
+ },
+ "cave": {
+  "waterY": 0,
+  "stone": {
+   "pos": [
+    -2.5,
+    1.72,
+    -2.5
+   ],
+   "humEverySeconds": 8
+  },
+  "nodes": {
+   "E0": [
+    15.2,
+    3.6,
+    0.36
+   ],
+   "E1": [
+    11.4,
+    2.5,
+    0.36
+   ],
+   "L0": [
+    9.6,
+    2.05,
+    0.34
+   ],
+   "B1": [
+    7,
+    3.35,
+    0.32
+   ],
+   "B2": [
+    4.4,
+    1.55,
+    0.32
+   ],
+   "J": [
+    1.8,
+    2.85,
+    0.32
+   ],
+   "B3": [
+    0.15,
+    0.95,
+    0.32
+   ],
+   "I0": [
+    -0.697,
+    -0.697,
+    0.31
+   ],
+   "A0": [
+    -0.944,
+    -0.944,
+    0.31
+   ],
+   "S1": [
+    -1.121,
+    -1.121,
+    0.44
+   ],
+   "S1b": [
+    -1.425,
+    -1.425,
+    0.55
+   ],
+   "S2": [
+    -1.581,
+    -1.581,
+    0.66
+   ],
+   "S2b": [
+    -1.793,
+    -1.793,
+    0.76
+   ],
+   "ST": [
+    -1.892,
+    -1.892,
+    0.76
+   ],
+   "W1": [
+    -0.8,
+    4.95,
+    0.32
+   ],
+   "W2": [
+    -3.6,
+    3.75,
+    0.32
+   ],
+   "W3": [
+    -4.318,
+    4.239,
+    0.32
+   ],
+   "WL": [
+    -5.468,
+    3.989,
+    0.31
+   ]
+  },
+  "routes": {
+   "ROUTE_IN": [
+    "E0",
+    "E1",
+    "L0",
+    "B1",
+    "B2",
+    "J"
+   ],
+   "ROUTE_STONE": [
+    "J",
+    "B3",
+    "I0",
+    "A0",
+    "S1",
+    "S1b",
+    "S2",
+    "S2b",
+    "ST"
+   ],
+   "ROUTE_WALL": [
+    "J",
+    "W1",
+    "W2",
+    "W3",
+    "WL"
+   ]
+  },
+  "echoVisitRoute": {
+   "in": [
+    "E1",
+    "L0",
+    "B1",
+    "B2",
+    "J"
+   ],
+   "out": [
+    "J",
+    "B2",
+    "B1",
+    "L0",
+    "E1"
+   ],
+   "listenSeconds": 7,
+   "faceToward": [
+    -2.5,
+    -2.5
+   ]
+  },
+  "sealedWallFacing": [
+   0.99,
+   0.15
+  ]
+ },
+ "echoVisit": {
+  "maxPerExploration": 1,
+  "requiresSoundThisExploration": [
+   "chime",
+   "echo",
+   "bell",
+   "wind",
+   "wall"
+  ],
+  "mouthEchoOnce": true,
+  "chooseProbability": 0.6,
+  "notBeforeSeconds": 300,
+  "notAfterRest": true,
+  "visitEffectiveSeconds": 200,
+  "lampBufferSeconds": 60,
+  "fadeSeconds": 0.7,
+  "rule": "walkToMouthEff + visitEff + lampEtaFromCaveEff + 60 < nextLampDue - now (checked when choosing and again on arrival)"
+ },
+ "wind": {
+  "rollEverySeconds": 240,
+  "chance": 0.08,
+  "durationSeconds": 60,
+  "firstTimeBellStrikes": 13
+ },
+ "specialFinds": [
+  {
+   "key": "tuning_fork",
+   "label": "調音叉",
+   "kind": "journeyItem",
+   "spot": 1,
+   "reveal": "敲石磬時調音叉共振發亮，旅人取下（琥珀色小演出，比照其他地圖信物）",
+   "use": "停擺鐘樓分辨真正的報時聲"
+  },
+  {
+   "key": "mica_flake",
+   "label": "薄雲母片",
+   "kind": "journeyItem",
+   "spot": 7,
+   "reveal": "方石鋸開露出雲母層，旅人剝下一片折出光斑",
+   "use": "折光觀測台分離重疊光線"
+  },
+  {
+   "key": "voice_stone",
+   "label": "藏聲石",
+   "kind": "core",
+   "spot": 12,
+   "where": "cave dais lotus pedestal",
+   "reveal": "cave event core_voice_stone (blue light, stone shrinks into the luggage)"
+  }
+ ],
+ "storyEvents": [
+  {
+   "id": "story_first_two_notes",
+   "type": "firstVisit",
+   "when": "no m05_two_notes clue",
+   "spot": 1,
+   "traveller": "reach (strike the stone chime), then listen",
+   "visual": "one strike; the echo comes back as two waves (warm, then a cool one 1.2 s later) — prototype actFx(1)",
+   "clue": "m05_two_notes"
+  },
+  {
+   "id": "story_second_wall_voice",
+   "type": "secondVisit",
+   "when": "has m05_two_notes, no h2c, not the exploration that gave m05_two_notes",
+   "spot": 12,
+   "cave": true,
+   "traveller": "walk in to fork J, pause, walk branch to sealed-wall ledge WL, listen",
+   "visual": "faint warm wave from the wall, subtitle 「……柴都濕了。」",
+   "camera": "entrance follow → fork mid → close on wall+traveller (vh 8.5) → home",
+   "clue": "h2c (already in collectionRoom.ts)",
+   "prototype": "CAVE.evSecond()"
+  },
+  {
+   "id": "core_voice_stone",
+   "type": "core",
+   "when": "core roll hits (5% per lamp, pity by 5th exploration, §46.4)",
+   "spot": 12,
+   "cave": true,
+   "traveller": "walk J→B3→islet→dais, reach",
+   "visual": "three quickening hums; warm light dims, blue rises; stone lifts and spins, motes drawn in; big blue wave R15 + R22, screen blue flash; stone shrinks along an arc into the backpack; pedestal empty, hum stops for good",
+   "camera": "mid → dais close (vh 7.5) → slight pull back (vh 9) → home",
+   "prototype": "CAVE.evCore()"
+  },
+  {
+   "id": "carry_charcoal_rubbing",
+   "type": "carryItem",
+   "when": "carrying charcoal_rubbing (02)",
+   "spot": 10,
+   "visual": "rubs the worn marks",
+   "clueOnce": "m05_rubbing",
+   "clueText": "刻痕排起來，像石磬的長短。"
+  },
+  {
+   "id": "carry_copper_wind_whistle",
+   "type": "carryItem",
+   "when": "carrying copper_wind_whistle (04)",
+   "spot": 6,
+   "visual": "blows the whistle at the wind-hole crag; then cut to the cave: the sealed wall hums four times, shivers, grit falls from the seams",
+   "prototype": "CAVE.evWhistle()",
+   "clueOnce": "m05_whistle",
+   "clueText": "風哨一響，洞裡有一面牆跟著嗡，那後面是空的。"
+  },
+  {
+   "id": "ambient_first_wind",
+   "type": "ambientFirst",
+   "when": "first mountain wind (山風石歌)",
+   "visual": "nobody strikes it: the great bell rings 13 times",
+   "clue": "m05_thirteen",
+   "clueText": "沒有人敲，鐘樓的大鐘自己響了十三下。",
+   "note": "feeds 09 clock face 看懂; wording still to be confirmed by the user"
+  },
+  {
+   "id": "echo_visit",
+   "type": "ambientVisit",
+   "when": "see echoVisit rules",
+   "spot": 12,
+   "cave": true,
+   "visual": "cave mouth lets out the sound he made once; he walks in to fork J, the stone plays the sound back, he walks out",
+   "clue": null,
+   "rewards": "none (purely visual)"
+  }
+ ],
+ "clueIdsNote": "m05_* ids are proposals from Claude; h2c already exists in src/shared/collectionRoom.ts"
+}

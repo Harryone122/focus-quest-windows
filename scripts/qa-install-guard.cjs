@@ -1,0 +1,7 @@
+const fs=require('node:fs'),path=require('node:path'),Database=require('better-sqlite3')
+const db=new Database(path.join(process.env.APPDATA,'focus-quest-windows','focusquest.db'),{readonly:true})
+const active=db.prepare('SELECT id,started_at FROM sessions WHERE ended_at IS NULL').all();db.close()
+const version=require('../package.json').version,out=path.resolve(__dirname,`../previews/release-v${version}-qa/install-guard.json`)
+fs.mkdirSync(path.dirname(out),{recursive:true})
+fs.writeFileSync(out,JSON.stringify({activeSessions:active.length,checkedAt:new Date().toISOString()},null,2))
+process.exit(active.length?2:0)

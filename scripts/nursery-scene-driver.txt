@@ -1,0 +1,57 @@
+let key=null,view={kind:'overview'},chrome={cards:[]},routes=[],items=[],departureDone=false,departureStarted=false,ready=0,transplant=false;
+function applyWorld(){const m=nursery?.worldMarks;if(!m)return;setMemKey('pot',m.potUpright);setMemKey('wipe',m.glassWiped);
+  setSap(m.saplingTransplanted?3:m.saplingPlanted?m.saplingStage:-1);
+  if(nursery.coreTaken){jar.visible=false;cageDoor.rotation.y=-1.7;padlock.visible=false;keyG.visible=false;}}
+function clearAction(){TRV.path=null;TRV.act=null;SIM.ride=false;SIM.seatWait=false;SIM.board=null;SIM.carry=null;SIM.holdDisc=false;SIM.dripOn=false;camHome();}
+function presentAction(now){
+  const a=nursery?.action,seconds=paused||lobby?progress:Math.min(a?.endSeconds??progress+1,progress+(now-progressAt)/1000);
+  LIT=Math.min(5,Math.floor(seconds/600));
+  if(opts.departure){if(!departureStarted){clearAction();applyWorld();const p=seatPos();TRV.pos.copy(p.p);depart(opts.departure.exit==='exit_corridor'?'corridor':'cellar');departureStarted=true;}
+    if(!SIM.dep&&!departureDone){departureDone=true;opts.reportDepartureComplete?.();}return;}
+  if(transplant)return;
+  if(lobby){if(key!=='lobby'){clearAction();applyWorld();rest();key='lobby';}return;}
+  cur=a?.eventId==='carry_silvered_shard'?lerpMood(MOODS.night,MOODS.night,0):moodAt(seconds/30);playSeq=null;mt=1;
+  if(!a)return;
+  const next=`${a.id}:${a.kind}`;
+  if(key===next)return;key=next;clearAction();applyWorld();
+  if(a.kind==='walk'){TRV.pos.copy(NP(a.route[0]));TRV.path=a.route.map(NP);TRV.d=0;TRV.speed=polyLen(TRV.path)/Math.max(1,a.endSeconds-a.startSeconds);TRV.target=a.node;}
+  else {TRV.node=a.fromNode??a.node;if(a.kind!=='rest')TRV.pos.copy(NP(a.fromNode??a.node));
+    if(a.kind==='story'){const f=STORY[nurseryStoryKeys[a.eventId]];f?.();}
+    else if(a.kind==='ambient'){runAmbient(a.eventId);}
+    else if(a.kind==='lamp'){TRV.yaw=faceTo(...LAMP_POS[a.lamp-1]);doAct({dur:2.2,pose:'light'});}
+    else if(a.kind==='rest'){rest();}}
+  // Reopen at the saved position in the action rather than replaying an old event.
+  const elapsed=Math.max(0,Math.min(60,seconds-a.startSeconds));for(let t=0;t<elapsed;t+=.05)tick(Math.min(.05,elapsed-t));
+}
+function anchor(node){const p=NP(node).clone();p.y+=.7;p.project(camera);return {x:(p.x+1)*canvas.clientWidth/2,y:(1-p.y)*canvas.clientHeight/2};}
+function lobbyCam(){if(!lobby||transplant||opts.departure)return;
+  const p=view.kind==='look'?NP(view.exit==='exit_corridor'?'D':'X2'):TRV.pos.clone();p.y+=.8;
+  if(view.kind==='overview'){camGoal.copy(CI.target);camZoomGoal=1;return;}
+  const right=new T.Vector3().setFromMatrixColumn(camera.matrixWorld,0);p.addScaledVector(right,(chrome.right||0)/Math.max(1,canvas.clientWidth)*6);camGoal.copy(p);camZoomGoal=1.6;}
+let compiled=false;void renderer.compileAsync(scene,camera,()=>dead).then(()=>{compiled=true;}).catch(e=>{console.error(e);compiled=true;});
+function draw(now=performance.now()){
+  if(dead)return;const elapsed=Math.max(0,(now-lastReal)/1000);lastReal=now;if(!compiled)return;
+  presentAction(now);lobbyCam();
+  const dt=paused?0:Math.min(.05,elapsed);time+=dt;tick(dt);
+  if(!SIM.holdDisc&&CI.disc&&!lobby&&!opts.departure){const seconds=paused?progress:progress+(now-progressAt)/1000;const night=cur.lamps>.85;CI.disc.rotation.y=night?Math.floor(seconds/600)*Math.PI*2:seconds/600*Math.PI*2;}
+  glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);
+  opts.reportCinematic?.(transplant||nursery?.action?.kind==='story');
+  const anchors={rest:anchor('H'),entry:anchor('D'),exit_corridor:anchor('D'),exit_cellar:anchor('X2')};items.forEach((item,i)=>{const p=anchors.rest;anchors['item:'+item.key]={x:p.x+i*30,y:p.y+60};});opts.reportAnchors?.(anchors);
+  if(++ready===2)opts.reportReady?.();
+  if(transplant&&!TRV.act&&!TRV.path){transplant=false;key=null;applyWorld();glass.setUiFade(1);opts.reportCinematic?.(false);opts.reportTransplantComplete?.();globalThis.dispatchEvent(new CustomEvent('focusquest:nursery-transplant-done')); }
+}
+function loop(now){draw(now);if(!dead)raf=requestAnimationFrame(loop);}
+const observer=new ResizeObserver(()=>{resize();fgResize();});observer.observe(host);
+const watchdog=setInterval(()=>{if(performance.now()-lastReal>250)draw();},33);
+function transplantChoice(e){if(!lobby||e.detail?.nodeId!==nursery?.nodeId)return;if(e.detail.state)nursery=e.detail.state;clearAction();transplant=true;glass.setUiFade(0);SIM.dep=null;STORY.transplant();opts.reportCinematic?.(true);}
+globalThis.addEventListener('focusquest:nursery-transplant',transplantChoice);
+raf=requestAnimationFrame(loop);
+return {areaId:'area-07-glass-nursery',
+ setNurseryState(s){nursery=s;for(let i=0;i<FOG_ROLL.length;i++)FOG_ROLL[i]=nurseryFog(s.seed,i*600);},setProgress(s){progress=s;progressAt=performance.now();},setPaused(v){paused=!!v;progressAt=performance.now();glass.jumpPaused(paused);},
+ setReducedMotion(){},setUiFade(v){glass.setUiFade(v);},setChrome(v){chrome=v;glass.setChrome(v);},setWorldState(){},playSpecialFind(){},
+ setRoutes(v,hover){routes=v;if(hover){const r=routes.find(r=>r.key===hover);if(r?.exit)view={kind:'look',exit:r.exit};}},setLobbyView(v){view=v;},setLobbyItems(v){items=v;},
+ enterLobby(nextHost,nextOpts){observer.disconnect();host=nextHost;host.append(canvas,lens);observer.observe(host);opts={...opts,...nextOpts,departure:null};lobby=true;paused=false;key=null;resize();fgResize();},
+ renderNow(){draw();},debugState(){return {areaId:'area-07-glass-nursery',action:nursery?.action,worldMarks:nursery?.worldMarks,lit:LIT,departureDone,transplant,position:TRV.pos.toArray(),camera:target.toArray(),zoom:camZoom};},
+ qa:{T,scene,renderer,camera,N,EDGES,NP,route,edgePts,polyLen,polyAt,CORR,CELL,MC,BOARD,trav,M,M2,setSap,play(id){clearAction();STORY[id]?.();},advance(s){for(let t=0;t<s;t+=.05){time+=.05;tick(.05);}renderer.render(scene,camera);}},
+ destroy(){if(dead)return;dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();globalThis.removeEventListener('focusquest:nursery-transplant',transplantChoice);listeners.forEach(([type,fn])=>globalThis.removeEventListener(type,fn));scene.traverse(o=>{o.geometry?.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m)return;Object.values(m).forEach(v=>{if(v?.isTexture)v.dispose();});m.dispose();});});glass.dispose();renderer.dispose();canvas.remove();lens.remove();}
+};

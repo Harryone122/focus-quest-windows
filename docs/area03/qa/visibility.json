@@ -1,0 +1,1262 @@
+{
+ "camera": "default 31deg, orthographic",
+ "rule": "body >= 70% visible; head and hat fully visible (reeds, grass, flame glow do not count)",
+ "sizes": {
+  "1600x900": [
+   {
+    "id": "r_lamp1",
+    "kind": "lamp 1",
+    "pose": "light",
+    "uv": [
+     -10.95,
+     0.35
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_lamp2",
+    "kind": "lamp 2",
+    "pose": "light",
+    "uv": [
+     -5.15,
+     0.6
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "n_lamp3",
+    "kind": "lamp 3",
+    "pose": "light",
+    "uv": [
+     1,
+     6.55
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "k_lamp4",
+    "kind": "lamp 4",
+    "pose": "light",
+    "uv": [
+     8.4,
+     2
+    ],
+    "bodyVisible": 0.902,
+    "headHatVisible": 0.838,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {
+     "mesh hit at uv(8.6,2.0) h0.72": 11,
+     "mesh hit at uv(8.5,2.0) h0.67": 5,
+     "mesh hit at uv(8.7,1.3) h2.13": 5,
+     "mesh hit at uv(8.5,1.9) h0.68": 4,
+     "mesh hit at uv(8.7,1.3) h2.15": 3,
+     "mesh hit at uv(8.7,1.3) h2.14": 3
+    },
+    "pass": false
+   },
+   {
+    "id": "p_lamp5",
+    "kind": "lamp 5",
+    "pose": "light",
+    "uv": [
+     1.85,
+     8.65
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "r_gauge",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     -10.65,
+     -1.35
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "r_boat",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     -14.25,
+     0.95
+    ],
+    "bodyVisible": 0.982,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-14.2,0.1) h0.69": 2,
+     "mesh hit at uv(-14.3,0.1) h0.68": 2,
+     "mesh hit at uv(-14.4,0.4) h0.60": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "r_pool",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     -10.95,
+     -3.2
+    ],
+    "bodyVisible": 0.908,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-10.8,-3.3) h0.09": 13,
+     "mesh hit at uv(-10.7,-3.4) h0.07": 11,
+     "mesh hit at uv(-10.8,-3.5) h0.06": 9,
+     "mesh hit at uv(-10.8,-3.3) h0.08": 4,
+     "mesh hit at uv(-10.9,-3.6) h0.06": 2,
+     "mesh hit at uv(-10.9,-3.5) h0.06": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "r_reeds",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     -15,
+     -3.25
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_pillar",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     -2.4,
+     2
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_stele",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     0.65,
+     -1.9
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_column",
+    "kind": "spot",
+    "pose": "sit",
+    "uv": [
+     2.85,
+     1.3
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_breach",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     0.7,
+     -2.8
+    ],
+    "bodyVisible": 0.882,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(0.9,-3.1) h0.11": 15,
+     "mesh hit at uv(0.6,-3.2) h0.07": 7,
+     "mesh hit at uv(0.8,-3.2) h0.07": 5,
+     "mesh hit at uv(0.6,-3.2) h0.09": 4,
+     "mesh hit at uv(0.7,-3.2) h0.08": 4,
+     "mesh hit at uv(0.8,-3.2) h0.09": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "c_stair",
+    "kind": "spot",
+    "pose": "sit",
+    "uv": [
+     -1.2,
+     -0.55
+    ],
+    "bodyVisible": 0.909,
+    "headHatVisible": 1,
+    "samples": [
+     470,
+     0
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-1.3,-0.7) h0.11": 11,
+     "mesh hit at uv(-1.2,-0.6) h0.16": 8,
+     "mesh hit at uv(-1.3,-0.8) h0.11": 6,
+     "mesh hit at uv(-1.2,-0.9) h0.16": 4,
+     "mesh hit at uv(-1.0,-0.8) h0.16": 2,
+     "mesh hit at uv(-0.9,-0.6) h0.16": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "c_steps",
+    "kind": "spot",
+    "pose": "sitEdge",
+    "uv": [
+     3.9,
+     -3.7
+    ],
+    "bodyVisible": 0.93,
+    "headHatVisible": 1,
+    "samples": [
+     470,
+     0
+    ],
+    "blockedBy": {
+     "mesh hit at uv(3.9,-3.8) h0.34": 8,
+     "mesh hit at uv(3.8,-4.0) h0.30": 7,
+     "mesh hit at uv(3.8,-4.0) h0.28": 6,
+     "mesh hit at uv(4.1,-3.6) h0.34": 2,
+     "mesh hit at uv(4.0,-3.5) h0.34": 2,
+     "mesh hit at uv(3.6,-3.7) h0.34": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "p_bench",
+    "kind": "spot",
+    "pose": "sitGaze",
+    "uv": [
+     1.5,
+     11.5
+    ],
+    "bodyVisible": 0.23,
+    "headHatVisible": 0,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {
+     "mesh hit at uv(1.4,8.8) h2.31": 31,
+     "mesh hit at uv(2.1,9.8) h2.29": 29,
+     "mesh hit at uv(2.1,9.6) h2.28": 15,
+     "mesh hit at uv(1.5,9.8) h2.32": 14,
+     "mesh hit at uv(1.5,10.1) h2.34": 13,
+     "mesh hit at uv(1.5,9.7) h2.32": 12
+    },
+    "pass": false
+   },
+   {
+    "id": "p_table",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     2.75,
+     10.7
+    ],
+    "bodyVisible": 0.726,
+    "headHatVisible": 0.017,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {
+     "mesh hit at uv(2.3,9.1) h2.25": 19,
+     "mesh hit at uv(2.5,9.0) h2.26": 14,
+     "mesh hit at uv(2.5,9.4) h2.13": 13,
+     "mesh hit at uv(2.6,8.8) h2.25": 11,
+     "mesh hit at uv(2.6,8.8) h2.24": 11,
+     "mesh hit at uv(2.5,9.1) h2.24": 10
+    },
+    "pass": false
+   },
+   {
+    "id": "p_mirror",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     1.38,
+     10.64
+    ],
+    "bodyVisible": 0.523,
+    "headHatVisible": 0.033,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {
+     "mesh hit at uv(1.1,9.5) h1.85": 13,
+     "mesh hit at uv(1.2,9.5) h1.65": 12,
+     "mesh hit at uv(1.2,9.5) h1.72": 12,
+     "mesh hit at uv(1.3,9.5) h1.75": 11,
+     "mesh hit at uv(1.3,9.5) h1.73": 10,
+     "mesh hit at uv(1.3,9.5) h1.76": 9
+    },
+    "pass": false
+   },
+   {
+    "id": "k_roots",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     11.25,
+     2.75
+    ],
+    "bodyVisible": 0.767,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(11.2,2.2) h1.08": 15,
+     "mesh hit at uv(11.1,2.7) h1.15": 5,
+     "mesh hit at uv(11.0,2.4) h1.23": 5,
+     "mesh hit at uv(11.0,2.7) h1.34": 5,
+     "mesh hit at uv(11.0,2.8) h1.15": 4,
+     "mesh hit at uv(11.0,2.6) h1.17": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "k_branch",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     9.35,
+     1.85
+    ],
+    "bodyVisible": 0.988,
+    "headHatVisible": 0.971,
+    "samples": [
+     334,
+     136
+    ],
+    "blockedBy": {
+     "mesh hit at uv(9.0,1.5) h2.51": 4,
+     "mesh hit at uv(9.4,1.7) h1.21": 2,
+     "mesh hit at uv(9.4,1.8) h1.21": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "s_ring",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     0.15,
+     -8.2
+    ],
+    "bodyVisible": 0.874,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-0.1,-8.3) h0.12": 13,
+     "mesh hit at uv(-0.1,-8.4) h0.12": 13,
+     "mesh hit at uv(0.2,-8.8) h0.12": 13,
+     "mesh hit at uv(-0.1,-8.2) h0.13": 6,
+     "mesh hit at uv(-0.1,-8.5) h0.12": 6,
+     "mesh hit at uv(0.2,-8.7) h0.12": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "n_pier",
+    "kind": "spot",
+    "pose": "sitEdge",
+    "uv": [
+     1.1,
+     6.95
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "a_arch",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     -3.4,
+     13.8
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "a_stones",
+    "kind": "spot",
+    "pose": "hopStones",
+    "uv": [
+     -1.9,
+     13
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "b_far",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     14.01,
+     3.31
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "leaf_watch",
+    "kind": "spot",
+    "pose": "leafTouch",
+    "uv": [
+     11.2,
+     -4.3
+    ],
+    "bodyVisible": 0.884,
+    "headHatVisible": 1,
+    "samples": [
+     441,
+     29
+    ],
+    "blockedBy": {
+     "mesh hit at uv(11.4,-4.6) h0.08": 13,
+     "mesh hit at uv(11.2,-4.4) h0.08": 13,
+     "mesh hit at uv(11.4,-4.4) h0.08": 11,
+     "mesh hit at uv(11.4,-4.5) h0.08": 8,
+     "mesh hit at uv(11.2,-4.3) h0.08": 4,
+     "mesh hit at uv(11.4,-4.7) h0.08": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "leaf_seat",
+    "kind": "spot",
+    "pose": "sitGaze",
+    "uv": [
+     12.3,
+     -5.8
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "moon_watch",
+    "kind": "spot",
+    "pose": "gazeDown",
+    "uv": [
+     -8.85,
+     5.75
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     340,
+     130
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "moon_crown",
+    "kind": "spot",
+    "pose": "gazeDown",
+    "uv": [
+     -7.1,
+     7.55
+    ],
+    "bodyVisible": 0.827,
+    "headHatVisible": 1,
+    "samples": [
+     342,
+     128
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-6.9,7.0) h1.92": 7,
+     "mesh hit at uv(-7.2,7.0) h1.94": 5,
+     "mesh hit at uv(-7.0,7.0) h1.94": 5,
+     "mesh hit at uv(-7.2,7.0) h1.91": 4,
+     "mesh hit at uv(-7.1,7.0) h1.93": 4,
+     "mesh hit at uv(-7.2,7.0) h1.96": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "moon_bank",
+    "kind": "spot",
+    "pose": "sitEdge",
+    "uv": [
+     -5,
+     6.25
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "p_bench",
+    "kind": "rest",
+    "pose": "sitGaze",
+    "uv": [
+     1.5,
+     11.5
+    ],
+    "bodyVisible": 0.23,
+    "headHatVisible": 0,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {
+     "mesh hit at uv(1.4,8.8) h2.31": 31,
+     "mesh hit at uv(2.1,9.8) h2.29": 29,
+     "mesh hit at uv(2.1,9.6) h2.28": 15,
+     "mesh hit at uv(1.5,9.8) h2.32": 14,
+     "mesh hit at uv(1.5,10.1) h2.34": 13,
+     "mesh hit at uv(1.5,9.7) h2.32": 12
+    },
+    "pass": false
+   }
+  ],
+  "1280x800": [
+   {
+    "id": "r_lamp1",
+    "kind": "lamp 1",
+    "pose": "light",
+    "uv": [
+     -10.95,
+     0.35
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_lamp2",
+    "kind": "lamp 2",
+    "pose": "light",
+    "uv": [
+     -5.15,
+     0.6
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "n_lamp3",
+    "kind": "lamp 3",
+    "pose": "light",
+    "uv": [
+     1,
+     6.55
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "k_lamp4",
+    "kind": "lamp 4",
+    "pose": "light",
+    "uv": [
+     8.4,
+     2
+    ],
+    "bodyVisible": 0.902,
+    "headHatVisible": 0.838,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {
+     "mesh hit at uv(8.6,2.0) h0.72": 11,
+     "mesh hit at uv(8.5,2.0) h0.67": 5,
+     "mesh hit at uv(8.7,1.3) h2.13": 5,
+     "mesh hit at uv(8.5,1.9) h0.68": 4,
+     "mesh hit at uv(8.7,1.3) h2.15": 3,
+     "mesh hit at uv(8.7,1.3) h2.14": 3
+    },
+    "pass": false
+   },
+   {
+    "id": "p_lamp5",
+    "kind": "lamp 5",
+    "pose": "light",
+    "uv": [
+     1.85,
+     8.65
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "r_gauge",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     -10.65,
+     -1.35
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "r_boat",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     -14.25,
+     0.95
+    ],
+    "bodyVisible": 0.982,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-14.2,0.1) h0.69": 2,
+     "mesh hit at uv(-14.3,0.1) h0.68": 2,
+     "mesh hit at uv(-14.4,0.4) h0.60": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "r_pool",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     -10.95,
+     -3.2
+    ],
+    "bodyVisible": 0.908,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-10.8,-3.3) h0.09": 13,
+     "mesh hit at uv(-10.7,-3.4) h0.07": 11,
+     "mesh hit at uv(-10.8,-3.5) h0.06": 9,
+     "mesh hit at uv(-10.8,-3.3) h0.08": 4,
+     "mesh hit at uv(-10.9,-3.6) h0.06": 2,
+     "mesh hit at uv(-10.9,-3.5) h0.06": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "r_reeds",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     -15,
+     -3.25
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_pillar",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     -2.4,
+     2
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_stele",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     0.65,
+     -1.9
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_column",
+    "kind": "spot",
+    "pose": "sit",
+    "uv": [
+     2.85,
+     1.3
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "c_breach",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     0.7,
+     -2.8
+    ],
+    "bodyVisible": 0.882,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(0.9,-3.1) h0.11": 15,
+     "mesh hit at uv(0.6,-3.2) h0.07": 7,
+     "mesh hit at uv(0.8,-3.2) h0.07": 5,
+     "mesh hit at uv(0.6,-3.2) h0.09": 4,
+     "mesh hit at uv(0.7,-3.2) h0.08": 4,
+     "mesh hit at uv(0.8,-3.2) h0.09": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "c_stair",
+    "kind": "spot",
+    "pose": "sit",
+    "uv": [
+     -1.2,
+     -0.55
+    ],
+    "bodyVisible": 0.909,
+    "headHatVisible": 1,
+    "samples": [
+     470,
+     0
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-1.3,-0.7) h0.11": 11,
+     "mesh hit at uv(-1.2,-0.6) h0.16": 8,
+     "mesh hit at uv(-1.3,-0.8) h0.11": 6,
+     "mesh hit at uv(-1.2,-0.9) h0.16": 4,
+     "mesh hit at uv(-1.0,-0.8) h0.16": 2,
+     "mesh hit at uv(-0.9,-0.6) h0.16": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "c_steps",
+    "kind": "spot",
+    "pose": "sitEdge",
+    "uv": [
+     3.9,
+     -3.7
+    ],
+    "bodyVisible": 0.93,
+    "headHatVisible": 1,
+    "samples": [
+     470,
+     0
+    ],
+    "blockedBy": {
+     "mesh hit at uv(3.9,-3.8) h0.34": 8,
+     "mesh hit at uv(3.8,-4.0) h0.30": 7,
+     "mesh hit at uv(3.8,-4.0) h0.28": 6,
+     "mesh hit at uv(4.1,-3.6) h0.34": 2,
+     "mesh hit at uv(4.0,-3.5) h0.34": 2,
+     "mesh hit at uv(3.6,-3.7) h0.34": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "p_bench",
+    "kind": "spot",
+    "pose": "sitGaze",
+    "uv": [
+     1.5,
+     11.5
+    ],
+    "bodyVisible": 0.23,
+    "headHatVisible": 0,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {
+     "mesh hit at uv(1.4,8.8) h2.31": 31,
+     "mesh hit at uv(2.1,9.8) h2.29": 29,
+     "mesh hit at uv(2.1,9.6) h2.28": 15,
+     "mesh hit at uv(1.5,9.8) h2.32": 14,
+     "mesh hit at uv(1.5,10.1) h2.34": 13,
+     "mesh hit at uv(1.5,9.7) h2.32": 12
+    },
+    "pass": false
+   },
+   {
+    "id": "p_table",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     2.75,
+     10.7
+    ],
+    "bodyVisible": 0.726,
+    "headHatVisible": 0.017,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {
+     "mesh hit at uv(2.3,9.1) h2.25": 19,
+     "mesh hit at uv(2.5,9.0) h2.26": 14,
+     "mesh hit at uv(2.5,9.4) h2.13": 13,
+     "mesh hit at uv(2.6,8.8) h2.25": 11,
+     "mesh hit at uv(2.6,8.8) h2.24": 11,
+     "mesh hit at uv(2.5,9.1) h2.24": 10
+    },
+    "pass": false
+   },
+   {
+    "id": "p_mirror",
+    "kind": "spot",
+    "pose": "inspect",
+    "uv": [
+     1.38,
+     10.64
+    ],
+    "bodyVisible": 0.523,
+    "headHatVisible": 0.033,
+    "samples": [
+     350,
+     120
+    ],
+    "blockedBy": {
+     "mesh hit at uv(1.1,9.5) h1.85": 13,
+     "mesh hit at uv(1.2,9.5) h1.65": 12,
+     "mesh hit at uv(1.2,9.5) h1.72": 12,
+     "mesh hit at uv(1.3,9.5) h1.75": 11,
+     "mesh hit at uv(1.3,9.5) h1.73": 10,
+     "mesh hit at uv(1.3,9.5) h1.76": 9
+    },
+    "pass": false
+   },
+   {
+    "id": "k_roots",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     11.25,
+     2.75
+    ],
+    "bodyVisible": 0.767,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(11.2,2.2) h1.08": 15,
+     "mesh hit at uv(11.1,2.7) h1.15": 5,
+     "mesh hit at uv(11.0,2.4) h1.23": 5,
+     "mesh hit at uv(11.0,2.7) h1.34": 5,
+     "mesh hit at uv(11.0,2.8) h1.15": 4,
+     "mesh hit at uv(11.0,2.6) h1.17": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "k_branch",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     9.35,
+     1.85
+    ],
+    "bodyVisible": 0.988,
+    "headHatVisible": 0.971,
+    "samples": [
+     334,
+     136
+    ],
+    "blockedBy": {
+     "mesh hit at uv(9.0,1.5) h2.51": 4,
+     "mesh hit at uv(9.4,1.7) h1.21": 2,
+     "mesh hit at uv(9.4,1.8) h1.21": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "s_ring",
+    "kind": "spot",
+    "pose": "crouch",
+    "uv": [
+     0.15,
+     -8.2
+    ],
+    "bodyVisible": 0.874,
+    "headHatVisible": 1,
+    "samples": [
+     468,
+     2
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-0.1,-8.3) h0.12": 13,
+     "mesh hit at uv(-0.1,-8.4) h0.12": 13,
+     "mesh hit at uv(0.2,-8.8) h0.12": 13,
+     "mesh hit at uv(-0.1,-8.2) h0.13": 6,
+     "mesh hit at uv(-0.1,-8.5) h0.12": 6,
+     "mesh hit at uv(0.2,-8.7) h0.12": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "n_pier",
+    "kind": "spot",
+    "pose": "sitEdge",
+    "uv": [
+     1.1,
+     6.95
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "a_arch",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     -3.4,
+     13.8
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "a_stones",
+    "kind": "spot",
+    "pose": "hopStones",
+    "uv": [
+     -1.9,
+     13
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     328,
+     142
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "b_far",
+    "kind": "spot",
+    "pose": "gaze",
+    "uv": [
+     14.01,
+     3.31
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     335,
+     135
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "leaf_watch",
+    "kind": "spot",
+    "pose": "leafTouch",
+    "uv": [
+     11.2,
+     -4.3
+    ],
+    "bodyVisible": 0.884,
+    "headHatVisible": 1,
+    "samples": [
+     441,
+     29
+    ],
+    "blockedBy": {
+     "mesh hit at uv(11.4,-4.6) h0.08": 13,
+     "mesh hit at uv(11.2,-4.4) h0.08": 13,
+     "mesh hit at uv(11.4,-4.4) h0.08": 11,
+     "mesh hit at uv(11.4,-4.5) h0.08": 8,
+     "mesh hit at uv(11.2,-4.3) h0.08": 4,
+     "mesh hit at uv(11.4,-4.7) h0.08": 2
+    },
+    "pass": true
+   },
+   {
+    "id": "leaf_seat",
+    "kind": "spot",
+    "pose": "sitGaze",
+    "uv": [
+     12.3,
+     -5.8
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "moon_watch",
+    "kind": "spot",
+    "pose": "gazeDown",
+    "uv": [
+     -8.85,
+     5.75
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     340,
+     130
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "moon_crown",
+    "kind": "spot",
+    "pose": "gazeDown",
+    "uv": [
+     -7.1,
+     7.55
+    ],
+    "bodyVisible": 0.827,
+    "headHatVisible": 1,
+    "samples": [
+     342,
+     128
+    ],
+    "blockedBy": {
+     "mesh hit at uv(-6.9,7.0) h1.92": 7,
+     "mesh hit at uv(-7.2,7.0) h1.94": 5,
+     "mesh hit at uv(-7.0,7.0) h1.94": 5,
+     "mesh hit at uv(-7.2,7.0) h1.91": 4,
+     "mesh hit at uv(-7.1,7.0) h1.93": 4,
+     "mesh hit at uv(-7.2,7.0) h1.96": 4
+    },
+    "pass": true
+   },
+   {
+    "id": "moon_bank",
+    "kind": "spot",
+    "pose": "sitEdge",
+    "uv": [
+     -5,
+     6.25
+    ],
+    "bodyVisible": 1,
+    "headHatVisible": 1,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {},
+    "pass": true
+   },
+   {
+    "id": "p_bench",
+    "kind": "rest",
+    "pose": "sitGaze",
+    "uv": [
+     1.5,
+     11.5
+    ],
+    "bodyVisible": 0.23,
+    "headHatVisible": 0,
+    "samples": [
+     457,
+     13
+    ],
+    "blockedBy": {
+     "mesh hit at uv(1.4,8.8) h2.31": 31,
+     "mesh hit at uv(2.1,9.8) h2.29": 29,
+     "mesh hit at uv(2.1,9.6) h2.28": 15,
+     "mesh hit at uv(1.5,9.8) h2.32": 14,
+     "mesh hit at uv(1.5,10.1) h2.34": 13,
+     "mesh hit at uv(1.5,9.7) h2.32": 12
+    },
+    "pass": false
+   }
+  ]
+ }
+}

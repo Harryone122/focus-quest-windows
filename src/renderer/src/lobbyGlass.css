@@ -1,0 +1,323 @@
+/* Today lobby: route choice on the live 雲上遺庭 scene (loaded after focusGlass.css).
+   The same visual language as Focus Active: one full-bleed 3D scene, glass that the scene renders
+   itself under the text (header band, side panel, route markers), lantern amber for the chosen way,
+   teal for quiet accents. See docs/LOBBY_ROUTE_CHOICE_HANDOFF.md. */
+
+.view-content.today-lobby-view { height: 100%; padding: 0; overflow: hidden; }
+
+.today-lobby {
+  --glass-ink: #f1eee6;
+  --glass-ink-soft: rgba(236,233,224,.8);
+  --glass-ink-faint: rgba(226,224,216,.62);
+  --glass-shadow: 0 1px 2px rgba(0,0,0,.38), 0 0 16px rgba(0,0,0,.28);
+  --lamp: #e0b265;
+  --lamp-edge: rgba(240,204,138,.68);
+  --teal: #a9d0c9;
+  --panel-w: clamp(284px, 29%, 372px);
+  --panel-gap: 16px;
+  position: relative;
+  height: 100%;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--glass-ink);
+  background: #050a10;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+}
+
+/* ── Scene ──────────────────────────────────────────────────────── */
+.lobby-scene { position: absolute; z-index: 0; inset: 0; overflow: hidden; background: #050a10; }
+.lobby-scene .cloud-ruins-canvas { touch-action: none; cursor: grab; }
+.lobby-scene .cloud-ruins-canvas.dragging { cursor: grabbing; }
+.lobby-scene-fallback {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 60% at 38% 55%, rgba(122,132,150,.34), transparent 70%),
+    linear-gradient(180deg, #2a3140, #0b1016 78%);
+}
+.lobby-vignette {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 115% at 34% 52%, transparent 60%, rgba(2,5,8,.2));
+}
+
+/* ── Header (on the scene's header band glass) ─────────────────── */
+.lobby-header {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  right: calc(var(--panel-w) + var(--panel-gap) * 2);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px clamp(22px, 2.6vw, 36px) 20px;
+  text-shadow: var(--glass-shadow);
+  pointer-events: none;
+}
+.lobby-title { min-width: 0; }
+.lobby-title small { display: block; margin-bottom: 6px; color: var(--glass-ink-faint); font-size: 11px; letter-spacing: .14em; }
+.lobby-title h1 { margin: 0; color: var(--glass-ink); font: 600 clamp(22px, 2.1vw, 29px)/1.2 "Noto Sans TC", "Microsoft JhengHei", sans-serif; letter-spacing: .01em; }
+.lobby-activity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 330px;
+  margin: 4px 0 0;
+}
+.lobby-activity > i { flex: none; color: var(--teal); font: 400 20px Georgia, serif; }
+.lobby-activity span { min-width: 0; overflow: hidden; color: var(--glass-ink); font-size: 12.5px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-activity small { display: block; margin-bottom: 2px; color: var(--glass-ink-faint); font-size: 10px; letter-spacing: .12em; }
+.today-lobby:not(:has(.lobby-scene[data-glass="scene"])) .lobby-header {
+  background: linear-gradient(180deg, rgba(6,10,14,.72), rgba(6,10,14,.36) 70%, rgba(6,10,14,0));
+}
+
+/* ── Route markers: pinned beside the exit each route leaves by ──── */
+.lobby-markers { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
+.lobby-route-marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 12px auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 196px;
+  height: 62px;
+  padding: 0 14px 0 13px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 16px;
+  color: var(--glass-ink);
+  background: rgba(255,255,255,.04);
+  font: inherit;
+  text-align: left;
+  text-shadow: var(--glass-shadow);
+  cursor: pointer;
+  pointer-events: auto;
+  will-change: transform;
+  transition: opacity 420ms ease-out, border-color 160ms ease-out, background 160ms ease-out, box-shadow 220ms ease-out;
+}
+.lobby-route-marker.is-waiting { opacity: 0; pointer-events: none; }
+.lobby-route-marker:hover { border-color: rgba(255,236,204,.44); background: rgba(255,255,255,.1); }
+.lobby-route-marker:active { background: rgba(255,255,255,.14); }
+.lobby-route-marker:focus-visible { outline: 2px solid #d9c38f; outline-offset: 3px; }
+.lobby-route-marker:disabled { cursor: wait; }
+.lobby-route-marker.is-selected {
+  border-color: var(--lamp-edge);
+  color: #fff6e4;
+  background: rgba(224,170,88,.15);
+  box-shadow: 0 0 0 1px rgba(240,204,138,.12), 0 0 24px rgba(224,168,86,.2);
+}
+.lobby-route-marker.is-selected:hover { background: rgba(224,170,88,.22); }
+
+/* The leader line runs from the marker to its anchor on the map (the exit stairs or the entry stones),
+   ending in a small dot there. */
+.lobby-route-marker::before,
+.lobby-route-marker::after { content: ""; position: absolute; left: var(--leader-x, 20px); pointer-events: none; }
+.lobby-route-marker[data-leader="none"]::before,
+.lobby-route-marker[data-leader="none"]::after { display: none; }
+.lobby-route-marker::before { width: 1px; height: var(--leader, 0px); margin-left: -.5px; }
+.lobby-route-marker::after { width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: rgba(241,238,230,.85); box-shadow: 0 0 6px rgba(0,0,0,.4); }
+.lobby-route-marker[data-leader="up"]::before { bottom: 100%; background: linear-gradient(0deg, rgba(241,238,230,.26), rgba(241,238,230,.66)); }
+.lobby-route-marker[data-leader="up"]::after { bottom: calc(100% + var(--leader, 0px) - 3px); }
+.lobby-route-marker[data-leader="down"]::before { top: 100%; background: linear-gradient(180deg, rgba(241,238,230,.26), rgba(241,238,230,.66)); }
+.lobby-route-marker[data-leader="down"]::after { top: calc(100% + var(--leader, 0px) - 3px); }
+.lobby-route-marker.is-selected[data-leader="up"]::before { background: linear-gradient(0deg, rgba(240,204,138,.4), rgba(240,204,138,.9)); }
+.lobby-route-marker.is-selected[data-leader="down"]::before { background: linear-gradient(180deg, rgba(240,204,138,.4), rgba(240,204,138,.9)); }
+.lobby-route-marker.is-selected::after { background: var(--lamp); box-shadow: 0 0 10px rgba(224,168,86,.75); }
+
+.lobby-marker-lamp {
+  width: 9px;
+  height: 12px;
+  border: 1px solid rgba(232,228,214,.5);
+  border-radius: 50% 50% 42% 58%;
+  background: rgba(255,255,255,.06);
+  transition: background 400ms ease, box-shadow 400ms ease, border-color 400ms ease;
+}
+.is-selected .lobby-marker-lamp { border-color: rgba(250,220,160,.95); background: var(--lamp); box-shadow: 0 0 12px rgba(224,168,86,.7); }
+.lobby-marker-time { display: flex; align-items: baseline; gap: 3px; }
+.lobby-marker-time strong { font: 600 22px/1 Inter, Geist, "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.lobby-marker-time small { color: var(--glass-ink-faint); font-size: 10px; }
+.lobby-marker-text { display: grid; gap: 3px; min-width: 0; }
+.lobby-marker-text b { overflow: hidden; font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-marker-text small { overflow: hidden; color: var(--glass-ink-faint); font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+.is-selected .lobby-marker-text small { color: rgba(250,232,200,.78); }
+.lobby-marker-progress { position: absolute; right: 14px; bottom: 7px; left: 13px; height: 2px; overflow: hidden; border-radius: 2px; background: rgba(240,238,230,.16); }
+.lobby-marker-progress i { display: block; height: 100%; border-radius: inherit; background: var(--lamp); }
+.today-lobby:not(:has(.lobby-scene[data-glass="scene"])) .lobby-route-marker { background: rgba(8,13,18,.82); }
+
+/* ── Side panel (one glass card drawn by the scene) ─────────────── */
+.lobby-panel {
+  position: absolute;
+  z-index: 6;
+  top: var(--panel-gap);
+  right: var(--panel-gap);
+  bottom: var(--panel-gap);
+  display: flex;
+  flex-direction: column;
+  width: var(--panel-w);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  text-shadow: var(--glass-shadow);
+}
+.today-lobby:not(:has(.lobby-scene[data-glass="scene"])) .lobby-panel { background: rgba(8,13,18,.86); }
+.lobby-panel-scroll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 22px;
+  min-height: 0;
+  padding: 24px 22px 16px;
+  overflow-y: auto;
+  scrollbar-color: rgba(255,255,255,.18) transparent;
+  scrollbar-width: thin;
+}
+
+.lobby-overline {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 9px;
+  color: var(--glass-ink-faint);
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+.lobby-overline i { width: 14px; height: 1px; background: rgba(241,238,230,.36); }
+.lobby-route h2 { margin: 0 0 14px; font: 600 clamp(20px, 1.8vw, 24px)/1.3 "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+.lobby-route-facts { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.lobby-route-facts > strong { display: flex; align-items: baseline; gap: 4px; font: 550 40px/.95 Inter, Geist, "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.045em; }
+.lobby-route-facts > strong small { color: var(--glass-ink-faint); font: 400 12px "Noto Sans TC", sans-serif; letter-spacing: 0; }
+.lobby-route-facts > span { display: grid; gap: 6px; }
+.lobby-route-facts > span > small { color: var(--glass-ink-soft); font-size: 11px; }
+.lobby-lamp-row { display: flex; gap: 8px; }
+.lobby-lamp-row i {
+  width: 14px;
+  height: 6px;
+  border: 1px solid rgba(232,228,214,.42);
+  border-radius: 50% 50% 42% 58%;
+  background: rgba(255,255,255,.08);
+  transform: rotate(-4deg);
+}
+.lobby-lamp-row i.lit { border-color: rgba(240,204,138,.9); background: var(--lamp); box-shadow: 0 0 10px rgba(224,168,86,.55); }
+.lobby-route-copy { margin: 0 0 10px; color: var(--glass-ink-soft); font-size: 13px; line-height: 1.65; }
+.lobby-exit-hint,
+.lobby-intel { display: flex; gap: 8px; margin: 0 0 8px; color: var(--glass-ink-soft); font-size: 12px; line-height: 1.55; }
+.lobby-exit-hint i { flex: none; color: var(--teal); font-style: normal; }
+.lobby-intel i { flex: none; color: var(--lamp); font-style: normal; }
+
+.lobby-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  border: 1px solid var(--lamp-edge);
+  border-radius: 16px;
+  color: #fff6e4;
+  background: rgba(224,170,88,.18);
+  box-shadow: 0 0 0 1px rgba(240,204,138,.1), 0 0 24px rgba(224,168,86,.18);
+  font: 600 15px "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  letter-spacing: .08em;
+  text-shadow: var(--glass-shadow);
+  cursor: pointer;
+  transition: transform 100ms ease-out, background 140ms ease-out, border-color 140ms ease-out, box-shadow 200ms ease-out;
+}
+.lobby-primary:hover { border-color: rgba(250,220,160,.85); background: rgba(224,170,88,.26); transform: translateY(-1px); }
+.lobby-primary:active { transform: scale(.98); }
+.lobby-primary:focus-visible { outline: 2px solid #d9c38f; outline-offset: 3px; }
+.lobby-primary:disabled {
+  border-color: rgba(255,255,255,.16);
+  color: var(--glass-ink-faint);
+  background: rgba(255,255,255,.04);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.lobby-primary-lamp { width: 7px; height: 10px; border-radius: 50% 50% 42% 58%; background: var(--lamp); box-shadow: 0 0 10px rgba(224,168,86,.8); }
+.lobby-primary:disabled .lobby-primary-lamp { background: rgba(255,255,255,.2); box-shadow: none; }
+.lobby-route-note { display: block; margin-top: 9px; color: var(--glass-ink-faint); font-size: 11px; text-align: center; }
+
+.lobby-quest { padding-top: 18px; border-top: 1px solid rgba(255,255,255,.1); }
+.lobby-quest > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; color: var(--glass-ink-faint); font-size: 11px; letter-spacing: .12em; }
+.lobby-quest > header i { padding: 2px 8px; border: 1px solid rgba(169,208,201,.32); border-radius: 999px; color: var(--teal); font-size: 10.5px; font-style: normal; letter-spacing: .04em; }
+.lobby-quest h3 { margin: 0 0 6px; font: 600 16px/1.4 "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+.lobby-quest-goal { margin: 0 0 8px; color: var(--glass-ink-soft); font-size: 12.5px; line-height: 1.6; }
+.lobby-quest-starter { margin: 0 0 8px; padding-left: 10px; border-left: 1px solid rgba(169,208,201,.36); color: var(--glass-ink-soft); font-size: 12px; line-height: 1.55; }
+.lobby-quest-starter small { display: block; color: var(--glass-ink-faint); font-size: 10px; letter-spacing: .1em; }
+.lobby-quest-status { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--glass-ink-faint); font-size: 11px; }
+.lobby-quest-status i { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+.lobby-quest-empty p { margin: 0 0 12px; color: var(--glass-ink-soft); font-size: 13px; line-height: 1.6; }
+.lobby-quest-empty button {
+  padding: 9px 16px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 16px;
+  color: var(--glass-ink);
+  background: rgba(255,255,255,.06);
+  font: 500 13px "Noto Sans TC", sans-serif;
+  cursor: pointer;
+}
+.lobby-quest-empty button:hover { border-color: rgba(255,236,204,.42); background: rgba(255,255,255,.11); }
+.lobby-quest > footer { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 12px; }
+.lobby-quest > footer button,
+.lobby-sides-toggle {
+  padding: 4px 0;
+  border: 0;
+  color: var(--glass-ink-faint);
+  background: none;
+  font: 12px "Noto Sans TC", sans-serif;
+  text-shadow: var(--glass-shadow);
+  cursor: pointer;
+}
+.lobby-quest > footer button:hover { color: var(--glass-ink); }
+.lobby-quest > footer button.danger:hover { color: #e9aa9f; }
+.lobby-quest button:focus-visible,
+.lobby-sides-toggle:focus-visible { outline: 2px solid #d9c38f; outline-offset: 3px; }
+
+.lobby-sides { margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.1); }
+.lobby-sides-toggle { display: flex; align-items: center; gap: 10px; width: 100%; }
+.lobby-sides-toggle span { color: var(--glass-ink-soft); }
+.lobby-sides-toggle small { margin-left: auto; font-size: 11px; }
+.lobby-sides-toggle i { width: 7px; height: 7px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform 200ms ease; }
+.lobby-sides.is-open .lobby-sides-toggle i { transform: translateY(1px) rotate(-135deg); }
+.lobby-sides-body { padding-top: 10px; }
+.lobby-sides-body[hidden] { display: none; }
+.lobby-side-grid { grid-template-columns: 1fr; gap: 10px; }
+.lobby-side-grid .task-card {
+  padding: 14px;
+  border-color: rgba(255,255,255,.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,.045);
+  box-shadow: none;
+  animation: none;
+}
+.lobby-side-grid .task-card h3 { margin: 6px 0; font-size: 14px; }
+.lobby-side-grid .task-card .task-meta,
+.lobby-side-grid .task-card .starter-note { display: none; }
+.lobby-side-grid .empty-slot.compact { min-height: 56px; border-radius: 12px; }
+
+/* ── Smaller windows (down to 1040 × 700) ───────────────────────── */
+@media (max-width: 1180px) {
+  .today-lobby { --panel-w: 286px; --panel-gap: 12px; }
+  .lobby-panel-scroll { padding: 20px 18px 14px; gap: 18px; }
+  .lobby-activity { max-width: 250px; }
+  .lobby-route-marker { width: 186px; }
+  .lobby-marker-time strong { font-size: 20px; }
+}
+@media (max-height: 760px) {
+  .lobby-header { padding-top: 16px; padding-bottom: 14px; }
+  .lobby-title h1 { font-size: 22px; }
+  .lobby-route-facts > strong { font-size: 34px; }
+  .lobby-route-copy { font-size: 12.5px; line-height: 1.55; }
+  .lobby-primary { min-height: 44px; margin-top: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby-route-marker, .lobby-marker-lamp, .lobby-primary, .lobby-sides-toggle i { transition: none; }
+}

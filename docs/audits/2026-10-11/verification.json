@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-11",
+  "method": "Vitest + :memory: SQLite, fake clock; no player save or UI used",
+  "afterFive": {
+    "phase": "choose_route",
+    "displaySegment": 6,
+    "total": 5,
+    "nextRoutes": [
+      "area-07-glass-nursery",
+      "area-02-moss-station"
+    ],
+    "completedJourneys": 0
+  },
+  "hidden": {
+    "h1Revealed": true,
+    "routeGeneratorAcceptsHiddenState": false,
+    "hiddenCandidate": false
+  },
+  "firstRoute": {
+    "owned": [
+      "area-01-cloud-ruins",
+      "area-02-moss-station",
+      "area-03-reflection-lake"
+    ],
+    "unowned": "area-07-glass-nursery",
+    "offered": [
+      "area-01-cloud-ruins",
+      "area-02-moss-station"
+    ],
+    "note": "Nursery deliberately excluded from first segment; specification exception needed"
+  },
+  "cloudRetry": {
+    "visit": 3,
+    "records": [],
+    "scheduled": [],
+    "note": "Missing well clue has no retry after exact visit 2; reachability depends on short-session route switching",
+    "actualRouteReproduction": true,
+    "steps": 7,
+    "interruptedSecondSeconds": 10,
+    "thirdVisitCluePresent": false,
+    "thirdVisitWellScheduled": false
+  }
+}

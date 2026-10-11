@@ -1,11 +1,28 @@
-import { useEffect, useRef, useState } from 'react'
-import { ArchiveGame } from './ArchiveGame'
+import { TravelLoading } from './loading/TravelLoading'
+import { FOREST_MAP_ID } from '../../shared/specialFinds'
+import { litLampCount } from '../../shared/lampTiming'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
+import { canRetainFocus, isReviewReturn } from './focusExitTransition'
+import './focusExitTransition.css'
+import { ExpeditionLobby } from './ExpeditionLobby'
+import { AfterPreview, LobbyPreview, afterPreviewFromHash, lobbyPreviewFromHash } from './lobby/LobbyPreview'
+import { AreaFocusScene } from './AreaFocusScene'
+import { CollectionRoom } from './CollectionRoom'
+import { ConnectedLobby, ConnectedAfterFocus } from './lobby/ConnectedLobby'
+import { AllTasksPanel, LogPanel, SettingsPanel } from './AppShellPanels'
+import { lobbyFromSnapshot } from './lobby/fromSnapshot'
 import travelerGraphicUrl from './assets/lantern-traveler-silhouette.svg'
 import { suggestStartingActions } from '../../shared/decomposition'
+import { fullThresholdSeconds } from '../../shared/expedition'
+import { focusElapsedMs, focusElapsedSeconds } from '../../shared/focusTime'
+import { area01Departure } from '../../shared/area01'
+import { WORLD_STAGES, worldStageIndex } from '../../shared/world'
 import type {
   AppSettings,
   AppSnapshot,
   CreateTaskInput,
+  ExpeditionNode,
   FocusOutcome,
   FocusResult,
   FocusSession,
@@ -13,17 +30,19 @@ import type {
   OverlayState,
   QuestTask,
   ReminderPolicy,
-  RpgChoice,
   RunningApplication,
   TaskKind,
   TaskRole
 } from '../../shared/types'
 
-type View = 'today' | 'library' | 'journey' | 'insights' | 'settings'
+type View = 'today' | 'collection' | 'log' | 'settings'
 
 function initialView(): View {
-  const candidate = window.location.hash.replace(/^#\/?qa\//, '')
-  return (['today', 'library', 'journey', 'insights', 'settings'] as View[]).includes(candidate as View) ? candidate as View : 'today'
+  const candidate = new URLSearchParams(window.location.search).get('view') ?? window.location.hash.replace(/^#\/?/, '').replace(/^qa\//, '')
+  if (candidate.startsWith('collection-') || candidate === 'journey') return 'collection'
+  if (candidate === 'insights') return 'log'
+  if (candidate === 'library') return 'today'
+  return (['today', 'collection', 'log', 'settings'] as View[]).includes(candidate as View) ? candidate as View : 'today'
 }
 
 const KIND_LABELS: Record<TaskKind, string> = {
@@ -55,29 +74,91 @@ function formatClock(totalSeconds: number): string {
     : `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`
 }
 
-function sessionSeconds(session: FocusSession, now: number): number {
-  const end = session.endedAt ? new Date(session.endedAt).getTime() : now
-  return Math.max(0, Math.floor((end - new Date(session.startedAt).getTime()) / 1000) - session.pausedSeconds)
+function formatFocusDuration(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.floor(totalSeconds))
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  return hours > 0 ? `${hours} 小時 ${minutes} 分鐘` : `${Math.max(1, minutes)} 分鐘`
 }
 
-function useSnapshot(): [AppSnapshot | null, (next: AppSnapshot) => void, string | null, (message: string | null) => void] {
+const QA_DEPARTURE_STARTED_AT = new Date().toISOString()
+
+function qaDepartureFromHash(): 'exit_high' | 'exit_pines' | null {
+  const match = window.location.hash.match(/^#\/?qa\/cloud-departure-(high|pines)$/)
+  return match ? (match[1] === 'high' ? 'exit_high' : 'exit_pines') : null
+}
+
+function qaDepartureSnapshot(snapshot: AppSnapshot, exit: 'exit_high' | 'exit_pines'): AppSnapshot {
+  return {
+    ...snapshot,
+    activeSession: {
+      id: `qa-departure-${exit}`, taskId: snapshot.tasks[0]?.id ?? 'qa-task', stepId: 'qa-step',
+      taskTitle: '雲上遺庭 · 離開演出', stepText: 'QA：新路線的第一次專注',
+      startedAt: QA_DEPARTURE_STARTED_AT, endedAt: null, minimumMinutes: 10, pausedSeconds: 0, suspendedAt: null, manuallyPaused: false, outcome: null,
+      blockedAttempts: 0, earnedLight: 0, runId: null, nodeId: null, plannedMinutes: null,
+      departure: area01Departure('qa-previous-route', exit)
+    }
+  }
+}
+
+function stableSeed(text: string): number {
+  let hash = 2166136261
+  for (let index = 0; index < text.length; index += 1) hash = Math.imul(hash ^ text.charCodeAt(index), 16777619)
+  return hash >>> 0
+}
+
+function sessionSeconds(session: FocusSession, now: number): number {
+  // A resume snapshot can arrive between timer ticks (or immediately after system wake).
+  // Do not subtract the newly settled pause from a stale pre-resume timestamp: that would
+  // briefly rewind progress and make the scene's setProgress() reset the traveller.
+  return focusElapsedSeconds(session, Math.max(now, Date.now()))
+}
+
+function useSnapshot(animateExit = false): [AppSnapshot | null, (next: AppSnapshot) => void, string | null, (message: string | null) => void] {
   const [snapshot, setSnapshot] = useState<AppSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const latest = useRef<AppSnapshot | null>(null)
+  const delivering = useRef(false)
+  const receive = useCallback((next: AppSnapshot): void => {
+    const previous = latest.current
+    latest.current = next
+    // IPC broadcasts and the action response deliver the same save. Coalesce
+    // them while Chromium captures the old screen, otherwise it captures too late.
+    if (delivering.current) return
+    if (!animateExit || !isReviewReturn(previous, next) || !document.startViewTransition || document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setSnapshot(next)
+      return
+    }
+    delivering.current = true
+    document.documentElement.classList.add('focus-exit-transition')
+    const release = (): void => { delivering.current = false; setSnapshot(latest.current) }
+    try {
+      const transition = document.startViewTransition(() => {
+        flushSync(() => setSnapshot(latest.current))
+      })
+      // Failure/skipping must never strand the UI on an already-dismissed review.
+      void transition.updateCallbackDone.then(release, release)
+      void transition.ready.catch(() => undefined)
+      void transition.finished.catch(() => undefined).finally(() => document.documentElement.classList.remove('focus-exit-transition'))
+    } catch {
+      release()
+      document.documentElement.classList.remove('focus-exit-transition')
+    }
+  }, [animateExit])
   useEffect(() => {
-    void window.focusQuest.getSnapshot().then(setSnapshot).catch((reason) => setError(friendlyError(reason)))
-    return window.focusQuest.onSnapshotChanged(setSnapshot)
-  }, [])
-  return [snapshot, setSnapshot, error, setError]
+    void window.focusQuest.getSnapshot().then(receive).catch((reason) => setError(friendlyError(reason)))
+    return window.focusQuest.onSnapshotChanged(receive)
+  }, [receive])
+  return [snapshot, receive, error, setError]
 }
 
-type UiIconName = 'today' | 'library' | 'journey' | 'insights' | 'settings'
+type UiIconName = 'today' | 'collection' | 'log' | 'settings'
 
 function UiIcon({ name }: { name: UiIconName }): React.JSX.Element {
   return <svg className="ui-icon" viewBox="0 0 24 24" aria-hidden="true">
     {name === 'today' && <path d="M12.2 3.2c.8 3.7 2.2 6.1 6.2 7.4-3.8 1-5.8 3.4-6.4 7.8-.8-4.1-2.6-6.5-6.5-7.6 3.8-1.4 5.5-3.5 6.7-7.6Z" />}
-    {name === 'library' && <><path d="M5 4.3c3.2-.7 5.4-.2 7 1.3v14c-2-1.6-4.2-2.1-7-1.3Z" /><path d="M19 4.5c-3.2-.7-5.5-.3-7 1.1v14c2-1.5 4.2-2 7-1.2Z" /><path d="M7.3 8.2c1.3-.2 2.2 0 3 .4M14 8.5c1-.4 1.9-.5 3-.3" /></>}
-    {name === 'journey' && <><path d="M12 3.2c4.8 2.2 7.4 5.1 8 8.7-1.4 3.9-4 6.8-8.1 8.8-4.1-2.1-6.8-5-7.9-8.8.9-3.8 3.4-6.6 8-8.7Z" /><path d="m14.8 8.4-1.4 5.1-4.2 2 1.5-5.1 4.1-2Z" /></>}
-    {name === 'insights' && <><path d="M4 18.8c2.5-1 3.4-5 5.4-4.7 2.1.3 2.3 2.5 4.2 1.4 2.2-1.2 2.5-5.9 6.4-8" /><path d="M4.2 5v14.1h15.5" /></>}
+    {name === 'collection' && <><path d="M12 3.2c4.8 2.2 7.4 5.1 8 8.7-1.4 3.9-4 6.8-8.1 8.8-4.1-2.1-6.8-5-7.9-8.8.9-3.8 3.4-6.6 8-8.7Z" /><path d="m14.8 8.4-1.4 5.1-4.2 2 1.5-5.1 4.1-2Z" /></>}
+    {name === 'log' && <><path d="M4 18.8c2.5-1 3.4-5 5.4-4.7 2.1.3 2.3 2.5 4.2 1.4 2.2-1.2 2.5-5.9 6.4-8" /><path d="M4.2 5v14.1h15.5" /></>}
     {name === 'settings' && <><path d="M9.9 3.7 11 2.8l2.7.4.7 1.4 2 .7 1.4-.6 1.8 2.2-.5 1.5.7 2-.6 1.4.5 1.9-1.9 1.8-1.5-.4-1.8 1-.6 1.5-2.7.4-1.1-1.2-2-.7-1.5.7-1.8-2 .5-1.7-.8-1.9.8-1.5-.4-2 1.8-1.7 1.7.3 1.8-1-.1-1.6Z" /><path d="M14.9 11.9c0 1.7-1.3 3-3 3s-2.9-1.3-2.9-3 1.3-2.9 2.9-2.9 3 1.3 3 2.9Z" /></>}
   </svg>
 }
@@ -271,8 +352,9 @@ function TaskWizard({ snapshot, onClose, onSaved }: {
   )
 }
 
-function FocusSetup({ task, snapshot, onClose, onStarted }: {
+function FocusSetup({ task, node, snapshot, onClose, onStarted }: {
   task: QuestTask
+  node?: ExpeditionNode
   snapshot: AppSnapshot
   onClose: () => void
   onStarted: (snapshot: AppSnapshot) => void
@@ -305,7 +387,15 @@ function FocusSetup({ task, snapshot, onClose, onStarted }: {
     try {
       const chosen = apps.filter((app) => selected.has(app.processName))
       await window.focusQuest.saveBlockRules(chosen)
-      const next = await window.focusQuest.startFocus({ taskId: task.id, stepId: step.id, minimumMinutes: minimum, blockedProcessNames: [...selected] })
+      const next = await window.focusQuest.startFocus({
+        taskId: task.id,
+        stepId: step.id,
+        minimumMinutes: minimum,
+        blockedProcessNames: [...selected],
+        ...(node && snapshot.todayRun
+          ? { runId: snapshot.todayRun.id, nodeId: node.id, plannedMinutes: node.plannedMinutes }
+          : {})
+      })
       onStarted(next)
       onClose()
     } catch (reason) {
@@ -315,127 +405,309 @@ function FocusSetup({ task, snapshot, onClose, onStarted }: {
     }
   }
 
-  return <div className="modal-backdrop"><section className="modal focus-setup departure-sheet">
-    <div className="departure-stamp" aria-hidden="true">READY<br />TO BEGIN</div>
-    <div className="modal-header"><div><p className="eyebrow">準備啟程</p><h2>{task.title}</h2></div><button className="icon-button" onClick={onClose}>×</button></div>
-    <div className="focus-intention"><span>這次想留下的進展</span><strong>{task.progressDefinition}</strong></div>
-    {task.starterAction && <div className="starter-prompt"><span>如果一時卡住，可以先從這裡開始</span><strong>↳ {task.starterAction}</strong><small>這只是起跑提示，不是必須完成的關卡。</small></div>}
-    <div className="field"><span>最低承諾</span><div className="option-grid three">{([5, 10, 15] as const).map((value) => <button key={value} className={minimum === value ? 'option active' : 'option'} onClick={() => setMinimum(value)}><strong>{value} 分鐘</strong><small>{value === 5 ? '先跨出去' : value === 10 ? '建議' : '已經熱身'}</small></button>)}</div></div>
-    {snapshot.settings.phoneRitual && <label className="phone-ritual"><input type="checkbox" checked={phoneParked} onChange={(event) => setPhoneParked(event.target.checked)} /><span><strong>手機已經離開伸手範圍</strong><small>Windows 版無法替你封鎖 iPhone，先用環境替自己減少一次選擇。</small></span></label>}
-    <div className="field"><span>這次要攔下的桌面程式</span>{loadingApps ? <p className="muted">正在讀取目前執行的程式…</p> : apps.length ? <div className="app-picker">{apps.map((app) => <label key={app.processName}><input type="checkbox" checked={selected.has(app.processName)} onChange={() => toggleApp(app.processName)} /><span>{app.displayName}</span></label>)}</div> : <p className="muted">目前沒有其他可選的桌面程式，仍可直接開始。</p>}</div>
+  return <div className="modal-backdrop"><section className="modal focus-setup calm-departure">
+    <div className="modal-header"><div><p className="eyebrow">準備探索</p><h2>{task.title}</h2></div><button className="icon-button" onClick={onClose}>×</button></div>
+    <div className="calm-focus-intention"><span aria-hidden="true">↳</span><p>{task.progressDefinition}</p></div>
+    {task.starterAction && <div className="starter-prompt compact-starter"><span>不知道怎麼開頭時</span><strong>{task.starterAction}</strong></div>}
+    {node && <p className="world-follows-note"><i aria-hidden="true">⌁</i> 本次路線：{node.title} · {node.plannedMinutes} 分鐘</p>}
+    <div className="field commitment-field"><span>最低專注時間</span><div className="option-grid three">{([5, 10, 15] as const).map((value) => <button key={value} className={minimum === value ? 'option active' : 'option'} onClick={() => setMinimum(value)}><strong>{value}</strong><small>分鐘</small></button>)}</div></div>
+    {snapshot.settings.phoneRitual && <label className="phone-ritual calm-phone"><input type="checkbox" checked={phoneParked} onChange={(event) => setPhoneParked(event.target.checked)} /><span><strong>手機已放到伸手拿不到的位置</strong></span></label>}
+    <details className="blocker-details">
+      <summary><span aria-hidden="true">⌁</span>需要擋住哪些程式？<small>{selected.size ? `已選 ${selected.size} 個` : '選填'}</small></summary>
+      <div>{loadingApps ? <p className="muted">正在讀取目前執行的程式…</p> : apps.length ? <div className="app-picker">{apps.map((app) => <label key={app.processName}><input type="checkbox" checked={selected.has(app.processName)} onChange={() => toggleApp(app.processName)} /><span>{app.displayName}</span></label>)}</div> : <p className="muted">目前沒有其他可選的桌面程式。</p>}</div>
+    </details>
     {error && <p className="form-error">{error}</p>}
-    <div className="modal-footer"><button className="ghost-button" onClick={onClose}>取消</button><button className="primary-button" disabled={!phoneParked || starting} onClick={() => void start()}>{starting ? '點亮星燈…' : '開始專注'}</button></div>
+    <div className="modal-footer"><button className="text-button quiet" onClick={onClose}>返回</button><button className="primary-button begin-focus-button" disabled={!phoneParked || starting} onClick={() => void start()}>{starting ? '正在進入路線…' : '▶ 開始探索'}</button></div>
   </section></div>
 }
 
-function FocusActive({ snapshot, onEnded }: { snapshot: AppSnapshot; onEnded: (result: FocusResult) => void }): React.JSX.Element {
+const IMMERSIVE_IDLE_MS = 20000
+
+function FocusActive({ snapshot, onEnded, onDebriefStarted, onSnapshot, onSceneReady, skipCampfire = false, reviewing = false, audioActive = true }: {
+  snapshot: AppSnapshot
+  reviewing?: boolean
+  audioActive?: boolean
+  onEnded: (result: FocusResult) => void
+  onDebriefStarted: (snapshot: AppSnapshot) => void
+  onSnapshot: (snapshot: AppSnapshot) => void
+  onSceneReady?: () => void
+  skipCampfire?: boolean
+}): React.JSX.Element {
   const session = snapshot.activeSession!
   const activeTask = snapshot.tasks.find((task) => task.id === session.taskId)
+  const expeditionNode = session.nodeId ? snapshot.expeditionNodes.find((node) => node.id === session.nodeId) : undefined
   const [now, setNow] = useState(Date.now())
   const [choosing, setChoosing] = useState(false)
+  const [selectedOutcome, setSelectedOutcome] = useState<FocusOutcome | null>(null)
   const [ending, setEnding] = useState(false)
   const [error, setError] = useState('')
-  useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer) }, [])
-  const elapsed = sessionSeconds(session, now)
+  const [activity, setActivity] = useState('旅人在雲上遺庭')
+  const [cinematic, setCinematic] = useState(false)
+  const [cinematicControls, setCinematicControls] = useState(false)
+  const [focusSettingsOpen, setFocusSettingsOpen] = useState(false)
+  const [settingsNotice, setSettingsNotice] = useState('')
+  const focusSettingsPanel = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (!focusSettingsOpen) return
+    const previous = document.activeElement as HTMLElement | null
+    focusSettingsPanel.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    return () => { if (previous?.isConnected) previous.focus() }
+  }, [focusSettingsOpen])
+  // Pause is saved by the back end (activeSession.suspendedAt). While the request is in flight the screen
+  // shows the requested state at once; the saved snapshot replaces it, and a failure reverts to the save.
+  const [pauseRequest, setPauseRequest] = useState<'pause' | 'resume' | null>(null)
+  const [optimisticPaused, setOptimisticPaused] = useState<boolean | null>(null)
+  const heldElapsed = useRef<number | null>(null)
+  const [immersed, setImmersed] = useState(false)
+  useEffect(() => {
+    if (reviewing) return
+    const timer = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [reviewing])
+  const savedPaused = session.suspendedAt !== null
+  const paused = optimisticPaused ?? savedPaused
+  const liveElapsed = sessionSeconds(session, now)
+  // Hold the clock at the pressed second until the saved pause (which fixes the time) arrives.
+  const lastElapsed = useRef(liveElapsed)
+  if (!reviewing) lastElapsed.current = optimisticPaused === true && !savedPaused && heldElapsed.current !== null ? heldElapsed.current : liveElapsed
+  const elapsed = lastElapsed.current
+  const busy = ending || pauseRequest !== null
+  const hideCinematicControls = cinematic && !cinematicControls && !paused && !busy && !error && !focusSettingsOpen
+  useEffect(() => {
+    setCinematicControls(false)
+    if (!cinematic) return
+    const wake = (): void => setCinematicControls(true)
+    const events = ['pointermove', 'pointerdown', 'keydown', 'wheel', 'focusin'] as const
+    events.forEach(name => window.addEventListener(name, wake, { passive: true }))
+    // A quiet opening must not leave the player without any indication of progress indefinitely.
+    const timer = window.setTimeout(wake, IMMERSIVE_IDLE_MS)
+    return () => { window.clearTimeout(timer); events.forEach(name => window.removeEventListener(name, wake)) }
+  }, [cinematic])
+  // The departure (from the previous route's exit) plays at the start of this Focus. The scene reads how far
+  // into the Focus we are when it mounts, so a reopen after the 5 seconds goes straight to the new route.
+  const departureElapsedMs = focusElapsedMs(session)
   const minimum = session.minimumMinutes * 60
   const reached = elapsed >= minimum
-  const end = async (outcome: FocusOutcome): Promise<void> => {
+  const commitmentProgress = Math.min(1, elapsed / Math.max(1, minimum))
+  const worldProgressSeconds = (expeditionNode?.progressSeconds ?? 0) + elapsed
+  const worldTargetSeconds = expeditionNode ? fullThresholdSeconds(expeditionNode.plannedMinutes) : minimum
+  const worldComplete = worldProgressSeconds >= worldTargetSeconds
+  // Five lamps at equal fifths of the planned time; the fifth is due at 100%.
+  const litLamps = litLampCount(worldProgressSeconds, worldTargetSeconds)
+  const end = async (outcome: FocusOutcome, completeTask: boolean): Promise<void> => {
     setEnding(true)
-    try { onEnded(await window.focusQuest.endFocus({ sessionId: session.id, outcome })) }
+    try { onEnded(await window.focusQuest.endFocus({ sessionId: session.id, outcome, completeTask })) }
     catch (reason) { setError(friendlyError(reason)); setEnding(false) }
   }
-  return <main className="focus-active">
-    <div className="focus-stars" aria-hidden="true"><i /><i /><i /><i /><i /></div>
-    <div className="focus-margin-note" aria-hidden="true"><span>FIELD SESSION</span><b>{session.minimumMinutes}</b><small>MINIMUM</small></div>
-    <div className="focus-core">
-      <div className="focus-lantern" aria-hidden="true"><span /><i /></div>
-      <p className="eyebrow">星燈已點亮</p>
-      <h1>{session.taskTitle}</h1>
-      <p className="focus-step">{activeTask?.progressDefinition ?? session.stepText}</p>
-      {activeTask?.starterAction && <p className="focus-starter">起跑提示　↳ {activeTask.starterAction}</p>}
-      <div className={reached ? 'focus-timer reached' : 'focus-timer'}>{formatClock(reached ? elapsed : minimum - elapsed)}</div>
-      <p className="timer-caption">{reached ? `已越過 ${session.minimumMinutes} 分鐘最低承諾，現在可以自由繼續。` : `再 ${formatClock(minimum - elapsed)} 就完成最低承諾。`}</p>
-      <div className="minimum-track"><span style={{ width: `${Math.min(100, (elapsed / minimum) * 100)}%` }} /></div>
-      {!choosing ? <button className="ghost-button end-button" onClick={() => setChoosing(true)}>結束這次專注</button> : <div className="outcome-panel">
-        <p>這次留下了什麼？</p>
-        <button disabled={ending} onClick={() => void end('completed')}><strong>完成今天的目標</strong><span>記錄星頁並完成這次任務</span></button>
-        <button disabled={ending} onClick={() => void end('progress')}><strong>有推進，還沒完成</strong><span>保留時間與真實進度</span></button>
-        <button disabled={ending} onClick={() => void end('blocked')}><strong>仍然卡住</strong><span>不處罰，下次可以換一個起跑方式</span></button>
-        <button className="text-button" onClick={() => setChoosing(false)}>繼續專注</button>
+  // Ending a Focus goes straight to Debrief. The traveller's walk out of the Area now plays at the
+  // start of the next Focus, driven by FocusSession.departure, so nothing here waits for an animation.
+  const togglePause = async (): Promise<void> => {
+    if (busy) return
+    const wantPaused = !paused
+    heldElapsed.current = wantPaused ? elapsed : null
+    setError('')
+    setOptimisticPaused(wantPaused)
+    setPauseRequest(wantPaused ? 'pause' : 'resume')
+    try {
+      onSnapshot(await (wantPaused ? window.focusQuest.pauseFocus(session.id) : window.focusQuest.resumeFocus(session.id)))
+    } catch (reason) {
+      setError(`${wantPaused ? '暫停' : '繼續'}沒有成功：${friendlyError(reason)}`)
+      // Re-read the save so the screen matches what the back end actually holds.
+      try { onSnapshot(await window.focusQuest.getSnapshot()) } catch { /* keep the last saved snapshot */ }
+    } finally {
+      setOptimisticPaused(null)
+      setPauseRequest(null)
+      heldElapsed.current = null
+    }
+  }
+  // Immersive mode: after 20 s without mouse or keyboard input the text and its glass fade to about 40%.
+  // It only changes opacity. It never pauses the Focus, and it stays off while paused or while a panel,
+  // error or save is showing.
+  useEffect(() => {
+    if (reviewing || paused || choosing || busy || error || focusSettingsOpen) { setImmersed(false); return }
+    let timer = 0
+    const wake = (): void => {
+      setImmersed(false)
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => setImmersed(true), IMMERSIVE_IDLE_MS)
+    }
+    const events = ['pointermove', 'pointerdown', 'keydown', 'wheel', 'focusin'] as const
+    wake()
+    events.forEach((name) => window.addEventListener(name, wake, { passive: true }))
+    return () => {
+      window.clearTimeout(timer)
+      events.forEach((name) => window.removeEventListener(name, wake))
+    }
+  }, [reviewing, paused, choosing, busy, error, focusSettingsOpen])
+  const openDebrief = async (): Promise<void> => {
+    if (busy) return
+    setEnding(true)
+    try { onDebriefStarted(await window.focusQuest.beginSessionDebrief(session.id)) }
+    catch (reason) { setError(friendlyError(reason)); setEnding(false) }
+  }
+  return <main inert={reviewing} aria-hidden={reviewing || undefined} className={`focus-active focus-adventure${paused ? ' is-paused' : ''}${immersed ? ' is-immersed' : ''}${hideCinematicControls ? ' is-cinematic' : ''}${reviewing ? ' is-review-backdrop' : ''}${focusSettingsOpen ? ' focus-settings-open' : ''}`}>
+    <header inert={focusSettingsOpen} className="focus-adventure-header" data-glass="top">
+      <div className="focus-adventure-task" data-glass-zone>
+        <p><i className={reached ? 'reached' : ''} />現在專注</p>
+        <h1>{session.taskTitle}</h1>
+        <span>{activeTask?.progressDefinition ?? session.stepText}</span>
+      </div>
+      <div className="focus-adventure-clock" data-glass-zone>
+        <time className={`${reached ? 'reached' : ''}${paused ? ' paused' : ''}`}>{formatClock(elapsed)}</time>
+        {paused
+          ? <span className="focus-paused-note"><i aria-hidden="true" />已暫停 · 計時與世界停在這一刻</span>
+          : <span>{reached ? '最低承諾已完成 · 可以自由繼續' : `還有 ${formatClock(minimum - elapsed)} 完成最低承諾`}</span>}
+        <div className="focus-commitment-track" aria-label={`最低承諾進度 ${Math.round(commitmentProgress * 100)}%`}>
+          <i style={{ width: `${commitmentProgress * 100}%` }} />
+        </div>
+      </div>
+      <div className="focus-adventure-actions" data-glass-zone>
+        <small>{expeditionNode ? `${expeditionNode.title} · ${expeditionNode.plannedMinutes} 分鐘路線` : `${session.minimumMinutes} 分鐘最低承諾`}</small>
+        <div className="focus-action-row">
+          <button
+            type="button"
+            className={`focus-pause-button${paused ? ' is-paused' : ''}`}
+            data-glass-card
+            disabled={busy}
+            aria-label={paused ? '繼續專注' : '暫停專注'}
+            onClick={() => void togglePause()}
+          >
+            <i className="focus-pause-glyph" aria-hidden="true" />
+            <span>{pauseRequest ? '保存中…' : paused ? '繼續' : '暫停'}</span>
+          </button>
+          <button type="button" className="focus-end-button" data-glass-card disabled={busy} onClick={() => expeditionNode ? void openDebrief() : setChoosing(true)}>
+            {ending ? '正在保存…' : '結束這次專注'}
+          </button>
+          <button type="button" className="focus-settings-button" data-glass-card aria-label="專注設定" title="設定" disabled={busy} onClick={() => { setSettingsNotice(''); setFocusSettingsOpen(true) }}><UiIcon name="settings" /></button>
+        </div>
+        <p className="sr-only" role="status">{paused ? '專注已暫停，計時與探索都停止了。' : ''}</p>
+      </div>
+    </header>
+
+    <section inert={focusSettingsOpen} className="focus-world-shell">
+      <AreaFocusScene
+        audioActive={audioActive}
+        onReady={onSceneReady}
+        skipCampfire={skipCampfire}
+        snapshot={snapshot}
+        session={session}
+        node={expeditionNode}
+        progressSeconds={worldProgressSeconds}
+        targetSeconds={worldTargetSeconds}
+        seed={(snapshot.todayRun?.seed ?? 0) + stableSeed(session.nodeId ?? session.id)}
+        departureElapsedMs={departureElapsedMs}
+        specialFinds={snapshot.specialFinds.filter((find) => find.sessionId === session.id)}
+        onWorldMark={(mark) => { if (!reviewing) void window.focusQuest.recordWorldMark(session.id, mark).then(onSnapshot).catch((reason) => setError(friendlyError(reason))) }}
+        onStoryRecord={(clueId) => { if (!reviewing) void window.focusQuest.recordCloudStoryClue(session.id, clueId).then(onSnapshot).catch((reason) => setError(friendlyError(reason))) }}
+        onCinematicChange={setCinematic}
+        paused={paused || reviewing}
+        retainForLobby={reviewing}
+        uiFade={reviewing || hideCinematicControls ? 0 : immersed ? 0.5 : 1}
+        onActivityChange={setActivity}
+      />
+      <div className="focus-world-vignette" aria-hidden="true" />
+      <footer className="focus-world-status" data-glass="bottom" data-glass-card>
+        <div className="traveler-activity"><i aria-hidden="true">⌁</i><span><small>{paused ? '暫停中' : '旅人動向'}</small><strong>{paused ? '旅人停在原地，等你回來' : activity}</strong></span></div>
+        <i className="focus-status-divider" aria-hidden="true" />
+        <div className="lamp-progress" aria-label={`已點亮 ${litLamps} 盞，共 5 盞`}>
+          <span>{litLamps} / 5 路燈</span>
+          <div>{Array.from({ length: 5 }, (_, index) => <i key={index} className={index < litLamps ? 'lit' : ''} />)}</div>
+          <small>{worldComplete ? '這一段路已走完' : '旅人正沿著這段路前進'}</small>
+        </div>
+      </footer>
+
+      {choosing && <div className="focus-outcome-backdrop">
+        {!selectedOutcome
+          ? <div className="outcome-panel quiet-outcome-panel focus-outcome-panel">
+            <p>這段工作進行得怎麼樣？</p>
+            <button disabled={ending} onClick={() => setSelectedOutcome('completed')}><strong>完成了這段目標</strong><span>不代表整件任務一定完成</span></button>
+            <button disabled={ending} onClick={() => setSelectedOutcome('progress')}><strong>有推進，還沒完成</strong><span>保留時間與真實進度</span></button>
+            <button disabled={ending} onClick={() => setSelectedOutcome('blocked')}><strong>仍然卡住</strong><span>不處罰，紀錄這段投入</span></button>
+            <button className="text-button" onClick={() => setChoosing(false)}>回到探索</button>
+          </div>
+          : <div className="outcome-panel quiet-outcome-panel focus-outcome-panel">
+            <p>整件任務已經全部完成了嗎？</p>
+            <button disabled={ending} onClick={() => void end(selectedOutcome, true)}><strong>完成整個任務</strong><span>將任務與步驟標記完成</span></button>
+            <button disabled={ending} onClick={() => void end(selectedOutcome, false)}><strong>還沒完成</strong><span>保留任務，之後繼續</span></button>
+            <button className="text-button" onClick={() => setSelectedOutcome(null)}>返回上一題</button>
+          </div>}
       </div>}
-      {error && <p className="form-error">{error}</p>}
-    </div>
+      {error && <p className="focus-adventure-error form-error">{error}</p>}
+    </section>
+    {focusSettingsOpen && <div className="shell-sheet-layer focus-settings-layer" onPointerDown={event => { if (event.target === event.currentTarget) setFocusSettingsOpen(false) }} onKeyDown={event => {
+      if (event.key === 'Escape') { event.stopPropagation(); setFocusSettingsOpen(false) }
+      if (event.key === 'Tab') {
+        const controls = focusSettingsPanel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),[tabindex="0"]')
+        if (!controls?.length) return
+        const first = controls[0], last = controls[controls.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
+      }
+    }}><section ref={focusSettingsPanel} className="shell-sheet focus-settings-sheet" role="dialog" aria-modal="true" aria-label="設定"><header className="shell-sheet-head"><div><small>旅途工具</small><h2>設定</h2></div><button aria-label="關閉設定" onClick={() => setFocusSettingsOpen(false)}>×</button></header><div className="shell-sheet-scroll"><SettingsPanel snapshot={snapshot} onChanged={onSnapshot} onError={setError} onNotice={setSettingsNotice} />{settingsNotice && <p role="status">{settingsNotice}</p>}</div></section></div>}
   </main>
 }
 
-function RewardModal({ result, onClose }: { result: FocusResult; onClose: () => void }): React.JSX.Element {
-  return <div className="modal-backdrop"><section className="modal reward-modal">
-    <div className="reward-artifact" aria-hidden="true"><span className="reward-glyph">✦</span><i /><b>ARCHIVE<br />RECORD</b></div>
-    <div className="reward-copy">
-      <p className="eyebrow">進展已被檔案館記住</p>
-      <h2>{result.storyAdvanced ? '一張星頁重新發光' : '星燈記下了這段旅程'}</h2>
-      <div className="reward-row"><div><strong>+{result.earnedLight}</strong><span>燈火</span></div>{result.earnedStarPage && <div><strong>+1</strong><span>星頁</span></div>}{result.earnedMaterial && <div><strong>+1</strong><span>修復素材</span></div>}</div>
-      {result.loot && <p className="loot-line"><span>FOUND</span>{result.loot}</p>}
-      <button className="primary-button" onClick={onClose}>回到今日冒險</button>
-    </div>
-  </section></div>
+function RewardModal({ result, snapshot, onClose }: { result: FocusResult; snapshot: AppSnapshot; onClose: () => void }): React.JSX.Element {
+  const stage = WORLD_STAGES[worldStageIndex(result.totalFocusSeconds)]
+  return <main className="session-debrief reward-sequence simple-reward">
+    <div className="reward-room-wash" aria-hidden="true" />
+    <div className="reward-ink-river" aria-hidden="true"><i /><i /><i /></div>
+    <section className="world-reveal">
+      <p className="reward-overline">FOCUS SAVED</p>
+      <strong className="reward-duration">{formatFocusDuration(result.effectiveSeconds)}</strong>
+      <div className="reward-world-line"><i /><span>✦</span><i /></div>
+      <h1>{result.worldStageAdvanced ? stage.title : '專注已保存'}</h1>
+      <p>{result.worldStageAdvanced ? stage.change : '這段時間已經留在旅程紀錄裡。'}</p>
+      {result.loot && <div className="single-discovery"><span aria-hidden="true">◇</span><div><small>新發現</small><strong>{result.loot}</strong></div></div>}
+      <p className="total-focus-record"><span>累積專注</span>{formatFocusDuration(result.totalFocusSeconds)}</p>
+      <button className="primary-button" onClick={onClose}>回到旅程</button>
+    </section>
+  </main>
 }
 
-function TodayView({ snapshot, onCreate, onStart, onMove, onParkMain, onArchive, onDelete }: {
+function TodayView({ snapshot, onCreate, onStartRun, onSelectNode, onContinueNode, onStartTask, onMove, onParkMain, onArchive, onDelete }: {
   snapshot: AppSnapshot
   onCreate: () => void
-  onStart: (task: QuestTask) => void
+  onStartRun: (task: QuestTask) => void
+  onSelectNode: (node: ExpeditionNode) => void
+  onContinueNode: (task: QuestTask, node: ExpeditionNode) => void
+  onStartTask: (task: QuestTask) => void
   onMove: (id: string, role: TaskRole) => void
   onParkMain: (id: string) => void
   onArchive: (id: string) => void
   onDelete: (task: QuestTask) => void
 }): React.JSX.Element {
   const today = snapshot.tasks.filter((task) => task.role !== 'backlog' && task.status === 'active')
-  const main = today.find((task) => task.role === 'main')
+  const activeMain = today.find((task) => task.role === 'main')
+  const runMain = snapshot.todayRun ? snapshot.tasks.find((task) => task.id === snapshot.todayRun?.mainTaskId && task.status === 'active') : undefined
+  const main = runMain ?? activeMain
   const sides = today.filter((task) => task.role === 'side')
-  const next = main?.steps.find((step) => step.status === 'pending')
   const dateLabel = new Intl.DateTimeFormat('zh-TW', { month: 'long', day: 'numeric', weekday: 'long' }).format(new Date())
 
-  return <div className="view-content today-view">
-    <section className="today-hero">
-      <div className="hero-painting" aria-hidden="true" />
-      <div className="hero-grid" aria-hidden="true" />
-      <div className="hero-orbit orbit-one" aria-hidden="true" /><div className="hero-orbit orbit-two" aria-hidden="true" />
-      <div className="hero-copy visual-quest-map">
-        <div className="hero-kicker"><span className="signal-dot" />{dateLabel}</div>
-        <div className="map-heading"><span aria-hidden="true">✦</span><h1>{main ? '走下一步' : '選一條路'}</h1></div>
-        <QuestPath task={main} onCreate={onCreate} />
-        <div className="hero-actions">
-          {main && next
-            ? <button className="primary-button hero-start" onClick={() => onStart(main)}><span>啟程</span><b>→</b></button>
-            : <button className="primary-button hero-start" onClick={onCreate}><span>選擇</span><b>＋</b></button>}
-          {main && <button className="park-task-button" title="保留這項任務與所有紀錄，暫時換一件事" onClick={() => onParkMain(main.id)}><span>↙</span><b>暫放，換一件</b></button>}
-          {main && <button className="delete-task-button" title="永久刪除輸入錯誤的任務" onClick={() => onDelete(main)}>刪除</button>}
-          <button className="map-tool-button" aria-label="新增其他任務" title="新增其他任務" onClick={onCreate}>＋</button>
-        </div>
-      </div>
+  const mainStatus = snapshot.activeSession ? '進行中' : snapshot.todayRun?.mainTaskId !== main?.id ? '可接續現有遠征' : snapshot.todayRun ? '等待開始' : '尚未開啟遠征'
 
-      <aside className="hero-focus-card">
-        <span className="paper-pin" aria-hidden="true" />
-        <div className="focus-card-top"><span className="quest-seal" aria-label="主線任務">✦</span><small>{main ? KIND_LABELS[main.kind] : '未選擇'}</small></div>
-        <h2>{main?.title ?? '今天的主線'}</h2>
-        <small className="goal-label">今日想看見的進展</small>
-        <div className="next-mark"><span aria-hidden="true">↳</span><strong>{main?.progressDefinition ?? '選一件值得前進的事'}</strong></div>
-        {main?.starterAction && <p className="hero-starter"><span>起跑提示</span>{main.starterAction}</p>}
-      </aside>
-
-      <div className="hero-resources" aria-label="檔案館資源">
-        <div aria-label={`${snapshot.rpg.light} 點燈火`} title="燈火"><span className="resource-glyph amber">✦</span><strong>{snapshot.rpg.light.toString().padStart(2, '0')}</strong></div>
-        <div aria-label={`${snapshot.rpg.starPages} 張星頁`} title="星頁"><span className="resource-glyph cyan">◇</span><strong>{snapshot.rpg.starPages.toString().padStart(2, '0')}</strong></div>
-        <div aria-label={`第一章，第 ${snapshot.rpg.node} 個節點`} title="旅程進度"><span className="resource-glyph paper">Ⅰ</span><strong>{snapshot.rpg.node.toString().padStart(2, '0')}</strong></div>
-      </div>
-    </section>
-
-    <section className="quest-section side-quest-section">
-      <div className="section-title rich-title"><div><span aria-hidden="true">⋯</span><h2>支線</h2></div><p>{sides.length} / 2</p></div>
-      <div className="task-grid">{sides.map((task) => <TaskCard key={task.id} task={task} onStart={onStart} onMove={onMove} onArchive={onArchive} onDelete={onDelete} />)}{sides.length < 2 && <button className="empty-slot compact" onClick={onCreate}><span>＋</span><strong>加支線</strong></button>}</div>
-    </section>
-    <section className="daily-note"><span>↶</span><div><strong>明天再排也可以</strong></div></section>
+  // The lobby: the Area and today's fork fill the view; the Main Quest and side quests live in its panel.
+  return <div className="view-content today-view today-lobby-view">
+    <ExpeditionLobby coreTaken={snapshot.mapCores.some((core) => core.mapId === FOREST_MAP_ID)}
+      dateLabel={dateLabel}
+      run={snapshot.todayRun}
+      task={main}
+      taskKindLabel={main ? KIND_LABELS[main.kind] : null}
+      taskStatus={mainStatus}
+      nodes={snapshot.expeditionNodes}
+      relics={snapshot.runRelics}
+      onStartRun={() => main && onStartRun(main)}
+      onSelectNode={onSelectNode}
+      onContinueNode={(node) => main && onContinueNode(main, node)}
+      onCreateTask={onCreate}
+      onParkMain={!snapshot.todayRun && main ? () => onParkMain(main.id) : null}
+      onDeleteMain={!snapshot.todayRun && main ? () => onDelete(main) : null}
+      sideCount={sides.length}
+      sideQuests={<div className="task-grid lobby-side-grid">
+        {sides.map((task) => <TaskCard key={task.id} task={task} onStart={onStartTask} onMove={onMove} onArchive={onArchive} onDelete={onDelete} />)}
+        {sides.length < 2 && <button className="empty-slot compact" onClick={onCreate}><span>＋</span><strong>加支線</strong></button>}
+      </div>}
+    />
   </div>
 }
 
@@ -447,26 +719,6 @@ function LibraryView({ snapshot, onCreate, onMove, onArchive, onDelete }: {
   return <div className="view-content"><header className="page-heading compact-heading"><div><p className="eyebrow">任務庫</p><h1>未出發的路</h1></div><button className="primary-button" onClick={onCreate}>＋ 新增</button></header>
     <section className="quest-section"><div className="section-title"><h2>暫放與待選</h2><span>{tasks.length}</span></div>{tasks.length ? <div className="task-grid">{tasks.map((task) => <TaskCard key={task.id} task={task} onStart={() => undefined} onMove={onMove} onArchive={onArchive} onDelete={onDelete} />)}</div> : <div className="panel quiet-empty">沒有暫放或待選任務</div>}</section>
     {!!completed.length && <section className="completed-list"><h2>完成</h2>{completed.map((task) => <div key={task.id}><span>✓</span><strong>{task.title}</strong><small>{task.updatedAt.slice(0, 10)}</small></div>)}</section>}
-  </div>
-}
-
-const STORY_NODES = ['第一盞桌燈', '漂浮索引', '缺頁走廊', '失序閱覽廳', '溫室入口', '黃銅藤蔓', '星種甦醒', '星盤溫室', '觀測階梯', '碎裂透鏡', '無聲觀測塔', '遺忘風暴']
-
-function JourneyView({ snapshot, onChanged, onError }: { snapshot: AppSnapshot; onChanged: (value: AppSnapshot) => void; onError: (value: string) => void }): React.JSX.Element {
-  const choose = async (choice: RpgChoice): Promise<void> => {
-    try { onChanged(await window.focusQuest.makeRpgChoice(choice)) } catch (reason) { onError(friendlyError(reason)) }
-  }
-  return <div className="journey-view">
-    <ArchiveGame rpg={snapshot.rpg} />
-    <img className="journey-traveler" src={travelerGraphicUrl} alt="提燈旅人" />
-    <div className="journey-overlay">
-      <div className="journey-title"><p className="eyebrow">第一章</p><h1>星光檔案館</h1><p>{snapshot.rpg.node < 4 ? '失序閱覽廳' : snapshot.rpg.node < 8 ? '星盤溫室' : '無聲觀測塔'}</p></div>
-      <div className="resource-strip"><span><i>✦</i><b>{snapshot.rpg.light}</b> 燈火</span><span><i>◇</i><b>{snapshot.rpg.starPages}</b> 星頁</span><span><i>∴</i><b>{snapshot.rpg.materials}</b> 素材</span></div>
-      <section className="repair-panel"><header><span>ROUTE NOTE / 01</span><p>用一點燈火決定接下來的修復方式</p></header><div>{[
-        ['restore', '修復', '讓褪色的文字重新出現'], ['illuminate', '照明', '揭露下一段隱藏路線'], ['catalogue', '編目', '整理散落的記憶索引']
-      ].map(([value, title, description], index) => <button key={value} disabled={snapshot.rpg.light < 1} className={snapshot.rpg.ability === value ? 'active' : ''} onClick={() => void choose(value as RpgChoice)}><i>0{index + 1}</i><strong>{title}</strong><span>{description}</span></button>)}</div></section>
-    </div>
-    <div className="story-map">{STORY_NODES.map((label, index) => <div key={label} className={index < snapshot.rpg.node ? 'complete' : index === snapshot.rpg.node ? 'current' : ''}><span>{index < snapshot.rpg.node ? '✦' : index + 1}</span><small>{label}</small></div>)}</div>
   </div>
 }
 
@@ -522,12 +774,6 @@ function SettingsView({ snapshot, onChanged, onError, onNotice }: {
         <label className="ink-check" title="開始專注前確認手機已放遠"><input aria-label="手機放遠儀式" type="checkbox" checked={snapshot.settings.phoneRitual} onChange={(event) => void update({ phoneRitual: event.target.checked })} /><span><i>✓</i></span></label>
       </section>
 
-      <section className="setting-entry binary-entry">
-        <div className="setting-symbol"><SettingGlyph name="timer" /></div>
-        <div className="setting-name"><h2>角落計時</h2><small>收起視窗後</small></div>
-        <label className="ink-check" title="在桌面角落顯示迷你計時器"><input aria-label="桌面迷你計時器" type="checkbox" checked={snapshot.settings.miniTimer} onChange={(event) => void update({ miniTimer: event.target.checked })} /><span><i>✓</i></span></label>
-      </section>
-
       <section className="setting-entry appearance-entry">
         <div className="setting-symbol"><SettingGlyph name="traveler" /></div>
         <div className="setting-name"><h2>旅人</h2></div>
@@ -547,19 +793,67 @@ function SettingsView({ snapshot, onChanged, onError, onNotice }: {
 }
 
 export function App(): React.JSX.Element {
-  const [snapshot, setSnapshot, loadError, setError] = useSnapshot()
+  const [snapshot, setSnapshot, loadError, setError] = useSnapshot(true)
+  // Keep only the current session's last presentation. This is never a saved
+  // session or timer authority, and is released as soon as review is dismissed.
+  const lastFocus = useRef<AppSnapshot | null>(null)
+  if (snapshot?.activeSession) lastFocus.current = snapshot
+  else if (!snapshot?.pendingDebrief) lastFocus.current = null
   const [view, setView] = useState<View>(initialView)
+  const [scene, setScene] = useState<'today' | 'collection'>(() => initialView() === 'collection' ? 'collection' : 'today')
+  const todayMounted = useRef(scene === 'today')
+  if (scene === 'today') todayMounted.current = true
+  const [collectionMounted, setCollectionMounted] = useState(scene === 'collection')
+  const [collectionReady, setCollectionReady] = useState(false)
+  const markCollectionReady = useCallback(() => setCollectionReady(true), [])
+  useEffect(() => {
+    if (!snapshot || snapshot.activeSession || collectionMounted) return
+    const timer = window.setTimeout(() => setCollectionMounted(true), 1200)
+    return () => window.clearTimeout(timer)
+  }, [Boolean(snapshot), snapshot?.activeSession?.id, collectionMounted])
+  const lastIdleSnapshot = useRef<AppSnapshot | null>(null)
+  if (snapshot && !snapshot.activeSession && !snapshot.pendingDebrief) lastIdleSnapshot.current = snapshot
+  const [readyFocusSession, setReadyFocusSession] = useState<string | null>(null)
+  const [completedCampfireSession, setCompletedCampfireSession] = useState<string | null>(null)
+  const [, tickDeparture] = useState(0)
+  const activeNode = snapshot?.activeSession?.nodeId ? snapshot.expeditionNodes.find((entry) => entry.id === snapshot.activeSession?.nodeId) : null
+  const rootCampfireFocus = Boolean(snapshot?.activeSession && lastIdleSnapshot.current && activeNode?.depth === 0 && !activeNode.parentNodeId && activeNode.progressSeconds === 0)
+  const departureMs = snapshot?.activeSession ? focusElapsedMs(snapshot.activeSession) : 0
+  const keepCampfire = rootCampfireFocus && departureMs < 30000 && (completedCampfireSession !== snapshot?.activeSession?.id || readyFocusSession !== snapshot?.activeSession?.id)
+  useEffect(() => {
+    if (!rootCampfireFocus || !keepCampfire) return
+    const timer = window.setInterval(() => tickDeparture((value) => value + 1), 100)
+    return () => window.clearInterval(timer)
+  }, [rootCampfireFocus, keepCampfire])
+  const [sheet, setSheet] = useState<null | 'all'>(() => ['library', 'all'].includes(new URLSearchParams(window.location.search).get('view') ?? window.location.hash.replace(/^#\/?/, '').replace(/^qa\//, '')) ? 'all' : null)
+  const [seenCollectionSignature, setSeenCollectionSignature] = useState(() => window.localStorage.getItem('focusquest-collection-seen') ?? '')
+  useEffect(() => {
+    if (!snapshot || snapshot.activeSession || snapshot.pendingDebrief || !(sheet || view === 'log' || view === 'settings')) return
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return
+      setSheet(null); setView('today'); setScene('today')
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [snapshot?.activeSession, snapshot?.pendingDebrief, view, sheet])
+  // Dev-only: the §47 lobby with sample data (#/qa/lobby-a-<scenario>) until the back end supplies it.
+  const [lobbyPreview] = useState(() => import.meta.env.DEV ? lobbyPreviewFromHash(window.location.hash) : null)
+  const [afterPreview] = useState(() => import.meta.env.DEV ? afterPreviewFromHash(window.location.hash) : null)
   const [viewTransition, setViewTransition] = useState<'idle' | 'cover' | 'reveal'>('idle')
   const transitionTimers = useRef<number[]>([])
   const [wizard, setWizard] = useState(() => window.location.hash === '#/qa/wizard')
-  const [focusTask, setFocusTask] = useState<QuestTask | null>(null)
+  const [focusTarget, setFocusTarget] = useState<{ task: QuestTask; node?: ExpeditionNode } | null>(null)
   const [reward, setReward] = useState<FocusResult | null>(() => window.location.hash === '#/qa/reward' ? {
-    session: { id: 'qa', taskId: 'qa-task', stepId: 'qa-step', taskTitle: '完成手繪介面', stepText: '建立第一套動態 UI 語言', startedAt: new Date().toISOString(), endedAt: new Date().toISOString(), minimumMinutes: 10, pausedSeconds: 0, outcome: 'completed', blockedAttempts: 1, earnedLight: 2 },
+    session: { id: 'qa', taskId: 'qa-task', stepId: 'qa-step', taskTitle: '完成手繪介面', stepText: '建立第一套動態 UI 語言', startedAt: new Date().toISOString(), endedAt: new Date().toISOString(), minimumMinutes: 10, pausedSeconds: 0, suspendedAt: null, manuallyPaused: false, outcome: 'completed', blockedAttempts: 1, earnedLight: 2, runId: null, nodeId: null, plannedMinutes: null, departure: null },
+    effectiveSeconds: 5022,
+    totalFocusSeconds: 5400,
+    worldStageAdvanced: true,
     earnedLight: 2,
     earnedStarPage: true,
     earnedMaterial: false,
     loot: '沾著石墨的黃銅書籤',
-    storyAdvanced: true
+    storyAdvanced: true,
+    expeditionResolution: null
   } : null)
   const [notice, setNotice] = useState('')
   const previousLayerCount = useRef(0)
@@ -582,15 +876,29 @@ export function App(): React.JSX.Element {
     }
   }, [])
   useEffect(() => {
-    const count = Number(wizard) + Number(Boolean(focusTask)) + Number(Boolean(reward))
+    const count = Number(wizard) + Number(Boolean(focusTarget)) + Number(Boolean(reward))
     if (reward) emitUiCue('reward-accent')
     else if (count > previousLayerCount.current) emitUiCue('paper-open')
     else if (count < previousLayerCount.current) emitUiCue('paper-close')
     previousLayerCount.current = count
-  }, [wizard, focusTask, reward])
+  }, [wizard, focusTarget, reward])
 
-  if (!snapshot) return <div className="loading-screen"><div className="loading-sketch"><LanternMark /><svg viewBox="0 0 180 36" aria-hidden="true"><path d="M4 25c21-9 37 5 58-3 21-8 35-2 54-8 20-7 37-5 60 2" /></svg></div><p>{loadError ?? '正在描出星光檔案館…'}</p></div>
-  if (snapshot.activeSession) return <FocusActive snapshot={snapshot} onEnded={(result) => { setReward(result); void window.focusQuest.getSnapshot().then(setSnapshot) }} />
+  if (!snapshot) return <div className="loading-screen">{!loadError && <TravelLoading />}<div className="loading-sketch"><LanternMark /><svg viewBox="0 0 180 36" aria-hidden="true"><path d="M4 25c21-9 37 5 58-3 21-8 35-2 54-8 20-7 37-5 60 2" /></svg></div><p>{loadError ?? '正在整理旅人的行李…'}</p></div>
+  // Dev-only visual QA: the real Focus screen with a fresh departure cue, so a capture can start at 0 s.
+  const qaDepartureExit = import.meta.env.DEV ? qaDepartureFromHash() : null
+  if (qaDepartureExit) return <FocusActive snapshot={qaDepartureSnapshot(snapshot, qaDepartureExit)} onEnded={() => undefined} onDebriefStarted={() => undefined} onSnapshot={() => undefined} />
+  // Dev-only: the §47 after-Focus screens with sample data (#/qa/after-<scenario>).
+  if (afterPreview) return <AfterPreview scenario={afterPreview} />
+  const reviewBackdrop = canRetainFocus(lastFocus.current, snapshot)
+  if ((snapshot.activeSession && !rootCampfireFocus) || reviewBackdrop) return <><FocusActive
+    snapshot={snapshot.activeSession ? snapshot : lastFocus.current!}
+    reviewing={reviewBackdrop}
+    onEnded={(result) => { setReward(result); void window.focusQuest.getSnapshot().then(setSnapshot) }}
+    onDebriefStarted={setSnapshot}
+    onSnapshot={setSnapshot}
+  />{reviewBackdrop && <ConnectedAfterFocus snapshot={snapshot} onChanged={setSnapshot} onError={setError} onReturned={() => setView('today')} retainFocusBackdrop />}
+    {loadError && <div className="toast error">{loadError}<button onClick={() => setError(null)}>×</button></div>}</>
+  if (snapshot.pendingDebrief) return <><ConnectedAfterFocus snapshot={snapshot} onChanged={setSnapshot} onError={setError} onReturned={() => setView('today')} />{loadError && <div className="toast error">{loadError}<button onClick={() => setError(null)}>×</button></div>}</>
 
   const move = async (id: string, role: TaskRole): Promise<void> => {
     try { setSnapshot(await window.focusQuest.setTaskRole(id, role)) } catch (reason) { setError(friendlyError(reason)) }
@@ -610,51 +918,84 @@ export function App(): React.JSX.Element {
     }
   }
 
+  const startRun = async (task: QuestTask): Promise<void> => {
+    try {
+      setSnapshot(await window.focusQuest.startDailyRun(task.id))
+    }
+    catch (reason) { setError(friendlyError(reason)) }
+  }
+
+  const selectNode = async (node: ExpeditionNode): Promise<void> => {
+    if (!snapshot.todayRun) return
+    try {
+      const next = await window.focusQuest.selectExpeditionNode(snapshot.todayRun.id, node.id)
+      setSnapshot(next)
+    } catch (reason) {
+      setError(friendlyError(reason))
+    }
+  }
+
   const navigate = (next: View): void => {
-    if (next === view && viewTransition === 'idle') return
-    transitionTimers.current.forEach((timer) => window.clearTimeout(timer))
-    transitionTimers.current = []
-    setViewTransition('cover')
-    transitionTimers.current.push(window.setTimeout(() => {
-      setView(next)
-      setViewTransition('reveal')
-    }, 220))
-    transitionTimers.current.push(window.setTimeout(() => setViewTransition('idle'), 500))
+    if (next === view && (next === 'log' || next === 'settings')) { setView('today'); setScene('today'); setSheet(null); return }
+    setSheet(null)
+    setView(next)
+    if (next === 'today' || next === 'collection') setScene(next)
+    if (next === 'collection') {
+      const signature = JSON.stringify({ cores: snapshot.mapCores.map((core) => core.itemKey), tray: snapshot.collection.clues.filter((clue) => !clue.pinnedAt).map((clue) => clue.id) })
+      window.localStorage.setItem('focusquest-collection-seen', signature)
+      setSeenCollectionSignature(signature)
+    }
   }
 
   const parkMain = async (id: string): Promise<void> => {
     try {
       setSnapshot(await window.focusQuest.setTaskRole(id, 'backlog'))
       setNotice('任務已暫放；內容與紀錄都保留在任務庫。')
-      navigate('library')
+      setView('today'); setScene('today'); setSheet('all')
     } catch (reason) {
       setError(friendlyError(reason))
     }
   }
 
-  return <div className="app-shell">
+  const collectionSignature = JSON.stringify({ cores: snapshot.mapCores.map((core) => core.itemKey), tray: snapshot.collection.clues.filter((clue) => !clue.pinnedAt).map((clue) => clue.id) })
+  const collectionHasNew = lobbyFromSnapshot(snapshot).collectionHasNew && collectionSignature !== seenCollectionSignature
+  const activeSheet = sheet === 'all' ? 'all' : view === 'log' || view === 'settings' ? view : null
+  const todayMinutes = Math.floor((snapshot.activityLog.days.at(-1)?.seconds ?? 0) / 60)
+  const closeSheet = (): void => { setSheet(null); setView('today'); setScene('today') }
+
+  return <>
+    {rootCampfireFocus && <FocusActive
+      snapshot={snapshot}
+      onEnded={(result) => { setReward(result); void window.focusQuest.getSnapshot().then(setSnapshot) }}
+      onDebriefStarted={setSnapshot}
+      onSnapshot={setSnapshot}
+      onSceneReady={() => setReadyFocusSession(snapshot.activeSession!.id)}
+      skipCampfire
+      audioActive={!keepCampfire}
+    />}
+    {(!rootCampfireFocus || keepCampfire) && <div className={`app-shell shell-v51${activeSheet ? ' sheet-open' : ''}${rootCampfireFocus ? ' is-departing' : ''}`} onKeyDown={(event) => { if (event.key === 'Escape' && activeSheet) closeSheet() }}>
     <aside className="sidebar">
-      <div className="brand"><LanternMark /><div><strong>Focus Quest</strong><small>星光檔案館</small></div></div>
-      <nav>{[
-        ['today', '今日冒險'], ['library', '任務庫'], ['journey', '檔案館'], ['insights', '進展觀測'], ['settings', '設定']
-      ].map(([value, label], index) => <button key={value} aria-label={label} title={label} style={{ '--nav-order': index } as React.CSSProperties} className={view === value ? 'active' : ''} onClick={() => navigate(value as View)}><span><UiIcon name={value as UiIconName} /></span><b>{label}</b></button>)}</nav>
-      <div className="sidebar-progress" aria-label={`第一章，已前進 ${snapshot.rpg.node} 個節點`}><span>章一</span><div className="chapter-marks">{Array.from({ length: 12 }, (_, index) => <i key={index} className={index < snapshot.rpg.node ? 'done' : index === snapshot.rpg.node ? 'current' : ''} />)}</div><small>{snapshot.rpg.node < 4 ? '失序閱覽廳' : snapshot.rpg.node < 8 ? '星盤溫室' : '無聲觀測塔'}</small></div>
+      <div className="shell-logo"><LanternMark /></div>
+      <nav>{([
+        ['today', '今天'], ['collection', '收藏室'], ['log', '紀錄'], ['settings', '設定']
+      ] as const).map(([value, label]) => <button key={value} aria-label={label} title={label} className={(sheet === 'all' ? value === 'today' : view === value) ? 'active' : ''} aria-current={(sheet === 'all' ? value === 'today' : view === value) ? 'page' : undefined} onClick={() => navigate(value)}><span><UiIcon name={value} />{value === 'collection' && collectionHasNew && <i className="shell-new-dot" />}</span><b>{label}</b></button>)}</nav>
+      <div className="shell-today-minutes">今天 <strong>{todayMinutes}</strong> 分鐘</div>
     </aside>
     <main className="main-stage">
-      <div className="view-transition" key={view}>
-        {view === 'today' && <TodayView snapshot={snapshot} onCreate={() => setWizard(true)} onStart={setFocusTask} onMove={(id, role) => void move(id, role)} onParkMain={(id) => void parkMain(id)} onArchive={(id) => void archive(id)} onDelete={(task) => void remove(task)} />}
-        {view === 'library' && <LibraryView snapshot={snapshot} onCreate={() => setWizard(true)} onMove={(id, role) => void move(id, role)} onArchive={(id) => void archive(id)} onDelete={(task) => void remove(task)} />}
-        {view === 'journey' && <JourneyView snapshot={snapshot} onChanged={setSnapshot} onError={setError} />}
-        {view === 'insights' && <InsightsView snapshot={snapshot} />}
-        {view === 'settings' && <SettingsView snapshot={snapshot} onChanged={setSnapshot} onError={setError} onNotice={setNotice} />}
+      <div className="shell-scene">
+        {todayMounted.current && <div className={`shell-today-layer${scene === 'today' || !collectionReady ? '' : ' is-hidden'}`} aria-hidden={scene !== 'today' && collectionReady}>
+          {lobbyPreview ? <LobbyPreview scenario={lobbyPreview} /> : <ConnectedLobby snapshot={rootCampfireFocus ? lastIdleSnapshot.current! : snapshot} active={scene === 'today'} departureSession={rootCampfireFocus ? snapshot.activeSession : null} onDepartureComplete={() => setCompletedCampfireSession(snapshot.activeSession!.id)} onChanged={setSnapshot} onError={setError} onAllTasks={() => { setView('today'); setSheet('all') }} />}
+        </div>}
+        {(collectionMounted || scene === 'collection') && <CollectionRoom snapshot={snapshot} active={scene === 'collection' && collectionReady} onReady={markCollectionReady} onChanged={setSnapshot} onError={setError} onBack={() => navigate('today')} />}
       </div>
-      <div className={`ink-wipe ${viewTransition}`} aria-hidden="true"><span /><span /><span /></div>
+      {activeSheet && <div className="shell-sheet-layer" onPointerDown={(event) => { if (event.target === event.currentTarget) closeSheet() }}><section className="shell-sheet" role="dialog" aria-modal="true" aria-label={activeSheet === 'all' ? '全部事項' : activeSheet === 'log' ? '紀錄' : '設定'}><header className="shell-sheet-head"><div><small>{activeSheet === 'all' ? '清單' : activeSheet === 'log' ? '留下的足跡' : '旅途工具'}</small><h2>{activeSheet === 'all' ? '全部事項' : activeSheet === 'log' ? '紀錄' : '設定'}</h2></div><button aria-label="關閉面板" onClick={closeSheet}>×</button></header><div className="shell-sheet-scroll">{activeSheet === 'all' ? <AllTasksPanel snapshot={snapshot} onChanged={setSnapshot} onError={setError} onNotice={setNotice} /> : activeSheet === 'log' ? <LogPanel snapshot={snapshot} /> : <SettingsPanel snapshot={snapshot} onChanged={setSnapshot} onError={setError} onNotice={setNotice} />}</div></section></div>}
     </main>
     {wizard && <TaskWizard snapshot={snapshot} onClose={() => setWizard(false)} onSaved={setSnapshot} />}
-    {focusTask && <FocusSetup task={focusTask} snapshot={snapshot} onClose={() => setFocusTask(null)} onStarted={setSnapshot} />}
-    {reward && <RewardModal result={reward} onClose={() => setReward(null)} />}
+    {focusTarget && <FocusSetup task={focusTarget.task} node={focusTarget.node} snapshot={snapshot} onClose={() => setFocusTarget(null)} onStarted={setSnapshot} />}
+    {reward && <RewardModal result={reward} snapshot={snapshot} onClose={() => { setReward(null); navigate('collection') }} />}
     {(loadError || notice) && <div className={loadError ? 'toast error' : 'toast'}>{loadError ?? notice}<button onClick={() => { setError(null); setNotice('') }}>×</button></div>}
-  </div>
+  </div>}
+  </>
 }
 
 export function BlockerView(): React.JSX.Element {
@@ -694,5 +1035,6 @@ export function MiniTimerView(): React.JSX.Element {
   if (!snapshot?.activeSession) return <div className="mini-timer"><span className="mini-lantern">✦</span><p>等待下一次啟程</p></div>
   const seconds = sessionSeconds(snapshot.activeSession, now)
   const remaining = snapshot.activeSession.minimumMinutes * 60 - seconds
-  return <button className="mini-timer active" onClick={() => void window.focusQuest.overlayReturn()}><span className="mini-lantern">✦</span><div><strong>{formatClock(remaining > 0 ? remaining : seconds)}</strong><small>{remaining > 0 ? '距離最低承諾' : '正在自由專注'}</small></div><i aria-hidden="true" /></button>
+  const paused = snapshot.activeSession.suspendedAt !== null
+  return <button className={`mini-timer active${paused ? ' paused' : ''}`} onClick={() => void window.focusQuest.overlayReturn()}><span className="mini-lantern">{paused ? '❙❙' : '✦'}</span><div><strong>{formatClock(remaining > 0 ? remaining : seconds)}</strong><small>{paused ? '已暫停 · 點一下回到專注' : remaining > 0 ? '距離最低承諾' : '正在自由專注'}</small></div><i aria-hidden="true" /></button>
 }

@@ -1,0 +1,192 @@
+{
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "grass": {
+    "grass_astrolabe_west": {
+      "x": 307,
+      "y": 261,
+      "width": 164,
+      "height": 245,
+      "pivot": {
+        "x": 389.0,
+        "y": 505
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_astrolabe_east": {
+      "x": 471,
+      "y": 262,
+      "width": 265,
+      "height": 289,
+      "pivot": {
+        "x": 603.5,
+        "y": 550
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_left_ruins": {
+      "x": 15,
+      "y": 539,
+      "width": 316,
+      "height": 107,
+      "pivot": {
+        "x": 173.0,
+        "y": 645
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_center_path_west": {
+      "x": 599,
+      "y": 402,
+      "width": 247,
+      "height": 200,
+      "pivot": {
+        "x": 722.5,
+        "y": 601
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_center_path_east": {
+      "x": 846,
+      "y": 294,
+      "width": 270,
+      "height": 318,
+      "pivot": {
+        "x": 981.0,
+        "y": 611
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_archive_arch_base": {
+      "x": 974,
+      "y": 110,
+      "width": 317,
+      "height": 400,
+      "pivot": {
+        "x": 1132.5,
+        "y": 509
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_right_upper_path": {
+      "x": 1291,
+      "y": 0,
+      "width": 379,
+      "height": 466,
+      "pivot": {
+        "x": 1480.5,
+        "y": 465
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_bridge_edge": {
+      "x": 1116,
+      "y": 466,
+      "width": 556,
+      "height": 385,
+      "pivot": {
+        "x": 1394.0,
+        "y": 850
+      },
+      "motion": "bottom-fixed sway"
+    },
+    "grass_lower_left_stairs": {
+      "x": 0,
+      "y": 575,
+      "width": 723,
+      "height": 366,
+      "pivot": {
+        "x": 361.5,
+        "y": 940
+      },
+      "motion": "bottom-fixed sway"
+    }
+  },
+  "vines": {
+    "vines_west": {
+      "x": 67,
+      "y": 344,
+      "width": 294,
+      "height": 317,
+      "pivot": {
+        "x": 214.0,
+        "y": 345
+      },
+      "motion": "top-fixed sway"
+    },
+    "vines_astrolabe": {
+      "x": 361,
+      "y": 153,
+      "width": 348,
+      "height": 473,
+      "pivot": {
+        "x": 535.0,
+        "y": 154
+      },
+      "motion": "top-fixed sway"
+    },
+    "vines_center_bridge": {
+      "x": 667,
+      "y": 250,
+      "width": 344,
+      "height": 661,
+      "pivot": {
+        "x": 839.0,
+        "y": 251
+      },
+      "motion": "top-fixed sway"
+    },
+    "vines_archive_arch": {
+      "x": 982,
+      "y": 108,
+      "width": 319,
+      "height": 593,
+      "pivot": {
+        "x": 1141.5,
+        "y": 109
+      },
+      "motion": "top-fixed sway"
+    },
+    "vines_east": {
+      "x": 1260,
+      "y": 29,
+      "width": 389,
+      "height": 762,
+      "pivot": {
+        "x": 1454.5,
+        "y": 30
+      },
+      "motion": "top-fixed sway"
+    },
+    "vines_lower_stairs": {
+      "x": 74,
+      "y": 626,
+      "width": 566,
+      "height": 315,
+      "pivot": {
+        "x": 357.0,
+        "y": 627
+      },
+      "motion": "top-fixed sway"
+    }
+  },
+  "atmosphere": {
+    "fog_mid": {
+      "x": 0,
+      "y": 0,
+      "width": 1672,
+      "height": 941
+    }
+  },
+  "sourceAudit": {
+    "disabledBroadLayers": [
+      "grass_left",
+      "grass_center",
+      "grass_right",
+      "vines_all"
+    ],
+    "reason": "Broad alpha cut-outs contain paths, pillars, arch masonry, plaza stones, and the astrolabe."
+  }
+}

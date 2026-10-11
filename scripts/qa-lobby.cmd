@@ -1,0 +1,55 @@
+@echo off
+rem Visual QA for the Today lobby (route choice on the live Cloud Ruins scene).
+rem Typecheck + tests, then real-App captures of three lobby states in the default and the minimum window:
+rem   norun   - a fresh day, no expedition opened yet (traveller on the entry stones, dawn)
+rem   map     - expedition opened, first fork shown, nothing selected (markers stacked by the entry)
+rem   archive - one Area cleared and the next route chosen (markers beside the high / pine exits)
+rem Every run uses its own QA data folder under %TEMP%; the real save is never opened.
+setlocal
+cd /d "%~dp0.."
+set "OUT=%CD%\previews\lobby-qa"
+set "DATA=%TEMP%\focusquest-lobby-qa"
+if exist "%DATA%" rmdir /s /q "%DATA%"
+if not exist "%OUT%" mkdir "%OUT%"
+
+echo [1/4] typecheck
+call npm run typecheck > "%OUT%\typecheck.log" 2>&1
+echo exit code %errorlevel%>> "%OUT%\typecheck.log"
+
+echo [2/4] tests
+call npm test > "%OUT%\tests.log" 2>&1
+echo exit code %errorlevel%>> "%OUT%\tests.log"
+
+echo [3/4] default window 1366x768
+for %%S in (norun map archive) do call :shot %%S 1366 768 wide
+
+echo [4/4] minimum window 1040x700
+for %%S in (norun map archive) do call :shot %%S 1040 700 min
+
+echo done> "%OUT%\captures-finished.txt"
+goto :eof
+
+:shot
+rem %1 = lobby state, %2 x %3 = window size, %4 = size label
+call :clear
+set "FOCUSQUEST_QA_USER_DATA=%DATA%\%4-%1"
+set "FOCUSQUEST_QA_SEED=1"
+if not "%1"=="norun" set "FOCUSQUEST_QA_EXPEDITION=%1"
+set "FOCUSQUEST_QA_WINDOW_WIDTH=%2"
+set "FOCUSQUEST_QA_WINDOW_HEIGHT=%3"
+set "FOCUSQUEST_QA_CAPTURE_PATH=%OUT%\%4-%1.png"
+set "FOCUSQUEST_QA_CAPTURE_DELAY_MS=8000"
+echo    %4 %1
+call npx electron-vite dev > "%OUT%\run-%4-%1.log" 2>&1
+exit /b 0
+
+:clear
+set "FOCUSQUEST_QA_USER_DATA="
+set "FOCUSQUEST_QA_SEED="
+set "FOCUSQUEST_QA_EXPEDITION="
+set "FOCUSQUEST_QA_VIEW="
+set "FOCUSQUEST_QA_CAPTURE_PATH="
+set "FOCUSQUEST_QA_CAPTURE_DELAY_MS="
+set "FOCUSQUEST_QA_WINDOW_WIDTH="
+set "FOCUSQUEST_QA_WINDOW_HEIGHT="
+exit /b 0

@@ -1,5 +1,6 @@
 import { Notification } from 'electron'
 import type { FocusQuestDatabase } from './database'
+import { localDay } from './database'
 
 export class ReminderScheduler {
   private timer: NodeJS.Timeout | null = null
@@ -22,7 +23,7 @@ export class ReminderScheduler {
     const now = new Date()
     const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
     const day = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
-    for (const task of snapshot.tasks.filter((entry) => entry.scheduledDate && entry.status === 'active')) {
+    for (const task of snapshot.tasks.filter((entry) => entry.scheduledDate === localDay(now) && entry.status === 'active')) {
       if (task.startCue.type !== 'time' || !task.startCue.value) continue
       const cueKey = `${day}:${task.id}:cue`
       if (hhmm === task.startCue.value && !this.sent.has(cueKey)) {
@@ -45,7 +46,7 @@ export class ReminderScheduler {
       const key = `${day}:evening`
       if (!this.sent.has(key)) {
         this.sent.add(key)
-        new Notification({ title: '今晚的檔案整理', body: '看看今天留下了哪些真實進展，未完成的可以安心放回任務庫。' }).show()
+        new Notification({ title: '今晚的檔案整理', body: '看看今天留下了哪些真實進展，未完成的事項會保留，明天再決定。' }).show()
       }
     }
   }

@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { FocusQuestDatabase } from '../src/main/database'
 import { suggestStartingActions } from '../src/shared/decomposition'
 import { calculateLight, effectiveSeconds } from '../src/shared/rewards'
+import { nextWorldStage, worldStageIndex } from '../src/shared/world'
 
 describe('local starting action suggestions', () => {
   it('returns three alternative ways to begin', () => {
@@ -60,5 +61,14 @@ describe('focus rewards', () => {
 
   it('removes suspended time', () => {
     expect(effectiveSeconds('2026-01-01T10:00:00.000Z', '2026-01-01T10:20:00.000Z', 300)).toBe(900)
+  })
+})
+
+describe('living world growth', () => {
+  it('changes the world from accumulated focus time', () => {
+    expect(worldStageIndex(0)).toBe(0)
+    expect(worldStageIndex(10 * 60)).toBe(1)
+    expect(worldStageIndex(60 * 60)).toBe(4)
+    expect(nextWorldStage(25 * 60)?.minimumSeconds).toBe(45 * 60)
   })
 })

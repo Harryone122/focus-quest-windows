@@ -1,0 +1,814 @@
+{
+ "coords": "world units, y up; camera ortho az 45° el 31°; machine centre at (0.4, 0.4)",
+ "camera": {
+  "home": [
+   -0.4,
+   2.8,
+   -0.4
+  ],
+  "viewHeight": 16.5,
+  "minViewWidth": 20,
+  "dragPeek": {
+   "yaw": 0.45,
+   "pitch": [
+    -0.25,
+    0.45
+   ]
+  }
+ },
+ "nodes": {
+  "H": [
+   2.2,
+   0.12,
+   3.7
+  ],
+  "A": [
+   -1,
+   0.12,
+   5
+  ],
+  "RP": [
+   2.9,
+   0.12,
+   5.6
+  ],
+  "P": [
+   -3.2,
+   0.12,
+   1.6
+  ],
+  "P2": [
+   -5.4,
+   0.12,
+   -0.3
+  ],
+  "L2": [
+   -6.4,
+   0.12,
+   4.6
+  ],
+  "T": [
+   -4.4,
+   0.12,
+   7.95
+  ],
+  "T1": [
+   -2.8,
+   0.12,
+   7.8
+  ],
+  "T2": [
+   -6,
+   0.12,
+   7.9
+  ],
+  "B": [
+   -8.8,
+   0.12,
+   6.2
+  ],
+  "C": [
+   -7.3,
+   0.12,
+   10.9
+  ],
+  "C1": [
+   -5.6,
+   0.12,
+   10.9
+  ],
+  "C2": [
+   -9.3,
+   0.12,
+   10.9
+  ],
+  "K": [
+   -6.1,
+   0.12,
+   8
+  ],
+  "L3": [
+   -0.6,
+   0.12,
+   -5.4
+  ],
+  "WL": [
+   -9.8,
+   0.12,
+   -1.6
+  ],
+  "D": [
+   -9.8,
+   0.12,
+   1.5
+  ],
+  "Q": [
+   -7.6,
+   0.12,
+   3.5
+  ],
+  "E": [
+   5.7,
+   0.12,
+   1.9
+  ],
+  "ME": [
+   3.7,
+   0.12,
+   -0.2
+  ],
+  "MSE": [
+   2.8,
+   0.12,
+   -2.4
+  ],
+  "MS": [
+   0.2,
+   0.12,
+   -3.2
+  ],
+  "G": [
+   -1.2,
+   0.12,
+   -3.6
+  ],
+  "G2": [
+   -1.8,
+   0.12,
+   -7.8
+  ],
+  "TR": [
+   4.8,
+   0.12,
+   -3.5
+  ],
+  "PV": [
+   9.3,
+   0.12,
+   1.3
+  ],
+  "X2": [
+   8.4,
+   0.12,
+   0.5
+  ],
+  "MT": [
+   3.36,
+   0.12,
+   1.48
+  ],
+  "SP": [
+   -4.6,
+   0.12,
+   -1.75
+  ]
+ },
+ "edges": [
+  [
+   "H",
+   "A"
+  ],
+  [
+   "H",
+   "E"
+  ],
+  [
+   "H",
+   "RP"
+  ],
+  [
+   "A",
+   "RP"
+  ],
+  [
+   "A",
+   "T1"
+  ],
+  [
+   "T1",
+   "T"
+  ],
+  [
+   "A",
+   "P"
+  ],
+  [
+   "P",
+   "L2"
+  ],
+  [
+   "L2",
+   "T2"
+  ],
+  [
+   "T2",
+   "T"
+  ],
+  [
+   "T2",
+   "K"
+  ],
+  [
+   "L2",
+   "B"
+  ],
+  [
+   "T",
+   "C1"
+  ],
+  [
+   "C1",
+   "C"
+  ],
+  [
+   "B",
+   "C2"
+  ],
+  [
+   "C2",
+   "C"
+  ],
+  [
+   "P",
+   "P2"
+  ],
+  [
+   "P2",
+   "WL"
+  ],
+  [
+   "WL",
+   "D"
+  ],
+  [
+   "L2",
+   "D"
+  ],
+  [
+   "H",
+   "Q"
+  ],
+  [
+   "Q",
+   "D"
+  ],
+  [
+   "Q",
+   "L2"
+  ],
+  [
+   "H",
+   "MT"
+  ],
+  [
+   "MT",
+   "ME"
+  ],
+  [
+   "E",
+   "ME"
+  ],
+  [
+   "ME",
+   "MSE"
+  ],
+  [
+   "MSE",
+   "MS"
+  ],
+  [
+   "MS",
+   "G"
+  ],
+  [
+   "G",
+   "P2"
+  ],
+  [
+   "ME",
+   "TR"
+  ],
+  [
+   "MSE",
+   "TR"
+  ],
+  [
+   "E",
+   "PV"
+  ],
+  [
+   "E",
+   "X2"
+  ],
+  [
+   "X2",
+   "PV"
+  ],
+  [
+   "G",
+   "G2"
+  ],
+  [
+   "G",
+   "L3"
+  ],
+  [
+   "SP",
+   "P2"
+  ]
+ ],
+ "stair": {
+  "note": "scenery only since 2026-10-04: the traveller never goes upstairs"
+ },
+ "lamps": [
+  {
+   "index": 1,
+   "post": [
+    -0.6,
+    0.12,
+    6.2
+   ],
+   "standNode": "A"
+  },
+  {
+   "index": 2,
+   "post": [
+    6.6,
+    0.12,
+    2.7
+   ],
+   "standNode": "E"
+  },
+  {
+   "index": 3,
+   "post": [
+    -5.4,
+    0.12,
+    5.6
+   ],
+   "standNode": "L2"
+  },
+  {
+   "index": 4,
+   "post": [
+    0.3,
+    0.12,
+    -6.2
+   ],
+   "standNode": "L3"
+  },
+  {
+   "index": 5,
+   "post": [
+    -9,
+    0.12,
+    0.4
+   ],
+   "standNode": "D"
+  }
+ ],
+ "exits": {
+  "exit_corridor": {
+   "via": "D",
+   "tail": [
+    [
+     -11.6,
+     0.12,
+     1.5
+    ],
+    [
+     -14.8,
+     0.12,
+     1.5
+    ]
+   ],
+   "fadeSec": [
+    6.8,
+    8
+   ]
+  },
+  "exit_cellar": {
+   "via": "X2",
+   "tail": [
+    [
+     8.4,
+     0.12,
+     -0.7
+    ],
+    [
+     8.4,
+     -0.9,
+     -1.5
+    ],
+    [
+     8.4,
+     -2.2,
+     -2.3
+    ]
+   ],
+   "fadeSec": [
+    6.4,
+    8
+   ]
+  }
+ },
+ "departure": {
+  "totalSec": 8,
+  "standUpSec": 0.9,
+  "speed": "pathLength / 6 s, clamped 1.1–2.6",
+  "fromRest": "starts wherever the turning disc has carried him; first step is off the disc rim"
+ },
+ "rest": {
+  "boardPoint": [
+   1.813,
+   0.12,
+   2.99
+  ],
+  "seatRadius": 2.12,
+  "seatY": 0.42,
+  "seatGapsDiscFrame": "30° + 60°·k (between trays)",
+  "boardSec": 1.1,
+  "poseCycleSec": 36,
+  "cycle": [
+   "sitEdge 0–40%",
+   "write 40–75%",
+   "sitGaze 75–100%"
+  ]
+ },
+ "machine": {
+  "centre": [
+   0.4,
+   0.36,
+   0.4
+  ],
+  "discRadius": 2.25,
+  "trays": 6,
+  "emptyTray": 5,
+  "discSpin": 0.06,
+  "headSpin": -0.1,
+  "timer": "disc angle follows effective time: one turn per lamp segment (600 s); tray k grows when lamp k+1 lights",
+  "stoppedAtNight": true,
+  "workLamp": [
+   0.72,
+   2.35,
+   0.72
+  ]
+ },
+ "core": {
+  "jar": [
+   -7.3,
+   0.12,
+   8
+  ],
+  "standNode": "K",
+  "keyOnChart": [
+   -11,
+   2.78,
+   6
+  ],
+  "chartStandNode": "B",
+  "jarDims": {
+   "plinthR": [
+    0.62,
+    0.66
+   ],
+   "plinthH": 0.2,
+   "glassR": 0.52,
+   "glassH": 1,
+   "domeR": 0.52
+  }
+ },
+ "ambient": {
+  "machineWalk": {
+   "node": "MT",
+   "durSec": 4,
+   "pose": "look",
+   "text": "旅人沿著育苗機外圈慢慢走了半圈，停下來低頭看苗盤。",
+   "arc": true
+  },
+  "wipe": {
+   "node": "WL",
+   "durSec": 5,
+   "pose": "wipe",
+   "text": "玻璃起了霧，旅人用袖子擦出一塊，看看外面。",
+   "arc": false
+  },
+  "potRight": {
+   "node": "RP",
+   "durSec": 7,
+   "pose": "crouch",
+   "text": "旅人蹲下來，把倒在地上的盆栽慢慢扶正，再把撒出來的土一把一把撥回盆裡。",
+   "arc": false
+  },
+  "pool": {
+   "node": "P",
+   "durSec": 5,
+   "pose": "crouch",
+   "text": "旅人蹲在積水池邊，看浮葉慢慢轉。",
+   "arc": false
+  },
+  "lean": {
+   "node": "CRL",
+   "durSec": 6,
+   "pose": "look",
+   "text": "旅人在空中走道上靠著欄杆，往下看整座苗圃。",
+   "arc": false
+  },
+  "valve": {
+   "node": "PV",
+   "durSec": 5,
+   "pose": "turn",
+   "text": "旅人轉了一下幫浦的閥門，灑水臂噴出一陣水霧。",
+   "arc": false
+  },
+  "trough": {
+   "node": "TR",
+   "durSec": 4.5,
+   "pose": "crouch",
+   "text": "旅人用手指撥了一下育苗水槽的水。",
+   "arc": false
+  },
+  "stairSit": {
+   "node": "G2",
+   "durSec": 5,
+   "pose": "sit",
+   "text": "旅人在螺旋梯下坐了一會兒。",
+   "arc": false
+  },
+  "tree": {
+   "node": "G",
+   "durSec": 5,
+   "pose": "up",
+   "text": "旅人停下來，抬頭看伸進玻璃裡的那棵大樹。",
+   "arc": false
+  }
+ },
+ "ambientPerLampSegment": [
+  [
+   "potRight",
+   "pool"
+  ],
+  [
+   "machineWalk",
+   "trough"
+  ],
+  [
+   "tree",
+   "stairSit"
+  ],
+  [
+   "valve",
+   "trough"
+  ],
+  [
+   "wipe",
+   "pool"
+  ]
+ ],
+ "id": "area-07-glass-nursery",
+ "title": "玻璃苗圃",
+ "spawn": "D",
+ "weather": {
+  "kind": "nightFog",
+  "everyNight": "glass condensation (glass opacity ~0.35)",
+  "heavyFogChance": 0.5,
+  "rollAt": "each time the day/night line enters night; seeded per focus",
+  "buildSec": 120,
+  "clearAtDawnSec": [
+   60,
+   90
+  ],
+  "clear": "vortex from the machine outward; window-frame shadows appear behind it; light shafts only after a heavy-fog night",
+  "affectsLampsOrRewards": false
+ },
+ "lightShafts": {
+  "dawnAfterFog": {
+   "count": 12,
+   "dir": [
+    -0.72,
+    0.56,
+    -0.42
+   ]
+  },
+  "moonOnFoggyNights": {
+   "count": 7,
+   "dir": [
+    -0.42,
+    0.82,
+    -0.4
+   ]
+  },
+  "floorPools": true
+ },
+ "specialFinds": [
+  {
+   "id": "find_pressed_leaf",
+   "tier": "journey",
+   "itemKey": "pressed_leaf",
+   "label": "壓葉標本",
+   "standNode": "T",
+   "pose": "read",
+   "sec": 4,
+   "where": "specimen table book (-4.4, 0.9, 6.8)"
+  },
+  {
+   "id": "find_mulch_cloth",
+   "tier": "journey",
+   "itemKey": "mulch_cloth",
+   "label": "護根布",
+   "standNode": "B",
+   "pose": "reach",
+   "sec": 4,
+   "where": "workbench corner"
+  },
+  {
+   "id": "find_core",
+   "tier": "core",
+   "itemKey": "sealed_seed_pod",
+   "label": "封存種莢",
+   "sequence": [
+    "B: take key from chart nail (3 s)",
+    "walk to K",
+    "K: unlock cage, door opens, jar glows blue, jar rises and shrinks into the luggage (11 s)"
+   ],
+   "afterTaken": "empty plinth + open cage stay (world mark coreTaken)"
+  }
+ ],
+ "storyEvents": [
+  {
+   "id": "story_first_tray",
+   "rule": "no clue m07_tray",
+   "standNode": "MT",
+   "pose": "crouch",
+   "sec": 14,
+   "discGoal": -1.396,
+   "camera": {
+    "at": [
+     2.7,
+     0.8,
+     1.1
+    ],
+    "zoom": 3.0
+   },
+   "clue": "m07_tray"
+  },
+  {
+   "id": "story_second_chart",
+   "rule": "has m07_tray, no m07_chart",
+   "standNode": "B",
+   "pose": "trace",
+   "sec": 12,
+   "camera": {
+    "at": [
+     -10.6,
+     2.2,
+     6.0
+    ],
+    "zoom": 2.6
+   },
+   "clue": "m07_chart"
+  },
+  {
+   "id": "carry_silvered_shard",
+   "rule": "carrying silvered_shard (03); forces heavy-fog look",
+   "standNode": "WL",
+   "pose": "reach",
+   "sec": 11,
+   "camera": {
+    "at": [
+     -11.0,
+     2.2,
+     -1.0
+    ],
+    "zoom": 2.6
+   },
+   "clue": "m07_glass (first time only)"
+  },
+  {
+   "id": "carry_sapling",
+   "rule": "carrying the wrapped sapling in the luggage (taken at 02 in any earlier journey, kept until planted); not yet planted",
+   "standNode": "MT",
+   "pose": "crouch",
+   "sec": 12,
+   "discGoal": -1.396,
+   "camera": {
+    "at": [
+     2.7,
+     0.8,
+     1.1
+    ],
+    "zoom": 3.0
+   },
+   "clue": "m07_planted",
+   "worldMark": "saplingStage = 0 (planted in tray 6); +1 on each later visit to 07, max 2"
+  },
+  {
+   "id": "caretaker_transplant",
+   "kind": "branch ending (照料者支線結局)",
+   "rule": "saplingStage == 2 (planted, then 2 later visits) and not transplanted; after that focus the lobby asks 「要把它移出苗盤嗎？」 / 「再讓它長一陣子」; plays only if the player chooses to move it; the journey continues normally afterwards",
+   "playsIn": "lobby, at this map's rest point (after the choice), never auto-played during focus",
+   "beats": [
+    {
+     "standNode": "MT",
+     "pose": "crouch",
+     "sec": 6.5,
+     "discGoal": -1.396,
+     "camera": {
+      "at": [
+       2.6,
+       0.9,
+       1.0
+      ],
+      "zoom": 2.7
+     },
+     "what": "dig the young tree out of tray 6 with its soil ball; picked up at 60%"
+    },
+    {
+     "walkTo": "SP",
+     "carry": true,
+     "camera": {
+      "at": [
+       -2.4,
+       0.9,
+       -0.6
+      ],
+      "zoom": 1.6
+     },
+     "what": "walk carrying it in front of the chest (pose carry)"
+    },
+    {
+     "standNode": "SP",
+     "pose": "crouch",
+     "sec": 8,
+     "camera": {
+      "at": [
+       -4.7,
+       0.8,
+       -1.9
+      ],
+      "zoom": 2.7
+     },
+     "plantAt": [
+      -5.0,
+      0.12,
+      -2.3
+     ],
+     "what": "lower into the ground where the old tree's root broke the tiles, mound of soil grows"
+    },
+    {
+     "walkTo": "B",
+     "standNode": "B",
+     "pose": "trace",
+     "sec": 8,
+     "camera": {
+      "at": [
+       -10.95,
+       2.2,
+       6.35
+      ],
+      "zoom": 4.2
+     },
+     "what": "draw 3 new ticks beside the stopped ones, widely spaced (y 1.92/2.24/2.56, z 6.62)"
+    },
+    {
+     "pose": "idle",
+     "sec": 6,
+     "discGoal": -1.396,
+     "drip": true,
+     "camera": {
+      "at": [
+       2.4,
+       0.9,
+       1.0
+      ],
+      "zoom": 2.4
+     },
+     "what": "tray 6 is empty again and the arm still waters it"
+    }
+   ],
+   "clue": "m07_transplant",
+   "notebookPage": "兩棵樹的素描；「第六盤又空了。機器照樣澆它。」",
+   "worldMark": "saplingTransplanted"
+  }
+ ],
+ "clues": {
+  "m07_tray": "機器每一圈都還在澆一盤什麼都沒種的土。",
+  "m07_chart": "刻度越畫越密，然後停了。旁邊寫著：不要為了趕上日期，讓它長得太快。",
+  "m07_glass": "起霧的玻璃上有兩個一樣大的手印，一個很舊，一個比較新。",
+  "m07_planted": "灑水臂澆的，從此是那株從驛站帶來的苗。",
+  "m07_transplant": "第六盤又空了。機器照樣澆它。"
+ },
+ "worldMarks": {
+  "potUpright": "potRight ambient (7 s animation) then stays upright",
+  "glassWiped": "wipe ambient; covered again by the next heavy fog",
+  "shardPile": "pile of glass by the corridor door",
+  "saplingPlanted": "m07_planted; young tree in tray 6, size by saplingStage (0 sapling, 1 scale 0.13, 2 scale 0.20; trunk scaled x0.8 xz / x1.25 y)",
+  "coreTaken": "empty plinth + open cage",
+  "saplingTransplanted": "young tree on the floor at (-5.0,-2.3), scale 0.28, soil mound, root from the old bed, 3 new chart ticks; tray 6 empty again (machine timer unchanged)"
+ },
+ "caretakerState": {
+  "saplingInLuggage": "set when the player takes the sapling at 02 (lobby choice); persists across journeys until planted at 07; shown in the collection room as a cloth-wrapped cup",
+  "saplingStage": "-1 none, 0 planted, 1 one later visit, 2 two later visits (outgrown, transplant offered)",
+  "saplingTransplanted": "permanent"
+ }
+}

@@ -1,0 +1,4175 @@
+{
+ "areaId": "area-02-moss-station",
+ "title": "苔痕驛站",
+ "theme": "總有人替下一位旅人留好東西",
+ "coordinates": "u = 畫面右方, v = 畫面深處, y = 高度；世界座標 x = (u - v) / √2, z = -(u + v) / √2。旅人身高約 0.95。y 由前端地形與棧道、倒木、踏石、鐵道棧橋、溪尾棧橋的走面計算，JSON 內的 y 為參考值。",
+ "plannedMinutes": 50,
+ "nodes": [
+  {
+   "id": "entry0",
+   "u": -20.2,
+   "v": -10.7,
+   "kind": "entry",
+   "label": "霧中棧道（入口）",
+   "y": -2.51,
+   "world": [
+    -6.7175,
+    -2.51,
+    21.8496
+   ]
+  },
+  {
+   "id": "w_gate",
+   "u": -16.9,
+   "v": -8.2,
+   "kind": "spawn",
+   "label": "棧道口",
+   "y": 0.03,
+   "world": [
+    -6.1518,
+    0.03,
+    17.7484
+   ]
+  },
+  {
+   "id": "w_lamp1",
+   "u": -15.3,
+   "v": -6.9,
+   "kind": "lamp",
+   "label": "第一盞燈（棧道）",
+   "y": 0.41,
+   "world": [
+    -5.9397,
+    0.41,
+    15.6978
+   ]
+  },
+  {
+   "id": "w_top",
+   "u": -13.1,
+   "v": -2.4,
+   "kind": "path",
+   "label": "棧道上端",
+   "y": 0.44,
+   "world": [
+    -7.566,
+    0.44,
+    10.9602
+   ]
+  },
+  {
+   "id": "x_cross",
+   "u": -12.3,
+   "v": 0.95,
+   "kind": "path",
+   "label": "平交道",
+   "y": 0.34,
+   "world": [
+    -9.3692,
+    0.34,
+    8.0257
+   ]
+  },
+  {
+   "id": "t_west",
+   "u": -17.0,
+   "v": 0.93,
+   "kind": "path",
+   "label": "西側鐵軌",
+   "y": 0.34,
+   "world": [
+    -12.6784,
+    0.34,
+    11.3632
+   ]
+  },
+  {
+   "id": "t_trestle",
+   "u": -20.8,
+   "v": 0.9,
+   "kind": "spot",
+   "label": "鐵道棧橋",
+   "y": 0.34,
+   "world": [
+    -15.3442,
+    0.34,
+    14.0714
+   ]
+  },
+  {
+   "id": "j_jizo",
+   "u": -14.6,
+   "v": 2.7,
+   "kind": "spot",
+   "label": "樹根下的石地藏",
+   "y": 0.19,
+   "world": [
+    -12.2329,
+    0.19,
+    8.4146
+   ]
+  },
+  {
+   "id": "p_post",
+   "u": -10.95,
+   "v": 2.54,
+   "kind": "spot",
+   "label": "圓筒郵筒",
+   "y": 0.97,
+   "world": [
+    -9.5389,
+    0.97,
+    5.9468
+   ]
+  },
+  {
+   "id": "p_ramp",
+   "u": -9.6,
+   "v": 2.9,
+   "kind": "path",
+   "label": "月台西端",
+   "y": 1,
+   "world": [
+    -8.8388,
+    1,
+    4.7376
+   ]
+  },
+  {
+   "id": "p_bedw",
+   "u": -8.4,
+   "v": 3.4,
+   "kind": "spot",
+   "label": "西側花圃",
+   "y": 1,
+   "world": [
+    -8.3439,
+    1,
+    3.5355
+   ]
+  },
+  {
+   "id": "p_lamp2",
+   "u": -7.3,
+   "v": 2.55,
+   "kind": "lamp",
+   "label": "第二盞燈（月台西）",
+   "y": 1,
+   "world": [
+    -6.965,
+    1,
+    3.3588
+   ]
+  },
+  {
+   "id": "p_bench",
+   "u": -5.75,
+   "v": 3.85,
+   "kind": "rest",
+   "label": "候車室長椅（休息點）",
+   "seat": "bench",
+   "y": 1,
+   "world": [
+    -6.7882,
+    1,
+    1.3435
+   ]
+  },
+  {
+   "id": "p_door",
+   "u": -4.3,
+   "v": 3.6,
+   "kind": "spot",
+   "label": "候車室門口（傘架）",
+   "y": 1,
+   "world": [
+    -5.5861,
+    1,
+    0.495
+   ]
+  },
+  {
+   "id": "p_edge",
+   "u": -3.0,
+   "v": 2.15,
+   "kind": "spot",
+   "label": "月台邊",
+   "y": 1,
+   "world": [
+    -3.6416,
+    1,
+    0.601
+   ]
+  },
+  {
+   "id": "p_mid",
+   "u": -2.0,
+   "v": 3.0,
+   "kind": "path",
+   "label": "月台中央",
+   "y": 1,
+   "world": [
+    -3.5355,
+    1,
+    -0.7071
+   ]
+  },
+  {
+   "id": "p_window",
+   "u": -1.63,
+   "v": 3.5,
+   "kind": "spot",
+   "label": "售票窗口",
+   "y": 1,
+   "world": [
+    -3.6275,
+    1,
+    -1.3223
+   ]
+  },
+  {
+   "id": "p_sign",
+   "u": -9.0,
+   "v": 2.12,
+   "kind": "spot",
+   "label": "站名牌",
+   "y": 1,
+   "world": [
+    -7.863,
+    1,
+    4.8649
+   ]
+  },
+  {
+   "id": "p_bench2",
+   "u": 1.45,
+   "v": 3.85,
+   "kind": "spot",
+   "label": "東側長椅",
+   "seat": "bench",
+   "y": 1,
+   "world": [
+    -1.6971,
+    1,
+    -3.7477
+   ]
+  },
+  {
+   "id": "p_lamp3",
+   "u": 2.2,
+   "v": 2.55,
+   "kind": "lamp",
+   "label": "第三盞燈（月台東）",
+   "y": 1,
+   "world": [
+    -0.2475,
+    1,
+    -3.3588
+   ]
+  },
+  {
+   "id": "p_cart",
+   "u": 4.7,
+   "v": 2.25,
+   "kind": "spot",
+   "label": "行李推車",
+   "y": 1,
+   "world": [
+    1.7324,
+    1,
+    -4.9144
+   ]
+  },
+  {
+   "id": "p_bede",
+   "u": 6.35,
+   "v": 3.3,
+   "kind": "spot",
+   "label": "東側花圃與澆水壺",
+   "y": 1,
+   "world": [
+    2.1567,
+    1,
+    -6.8236
+   ]
+  },
+  {
+   "id": "p_east",
+   "u": 7.0,
+   "v": 2.75,
+   "kind": "path",
+   "label": "月台東端",
+   "y": 1,
+   "world": [
+    3.0052,
+    1,
+    -6.8943
+   ]
+  },
+  {
+   "id": "t_east",
+   "u": 9.0,
+   "v": 2.0,
+   "kind": "path",
+   "label": "東側彎道",
+   "y": 0.34,
+   "world": [
+    4.9497,
+    0.34,
+    -7.7782
+   ]
+  },
+  {
+   "id": "t_signal",
+   "u": 10.15,
+   "v": 1.95,
+   "kind": "spot",
+   "label": "腕木號誌",
+   "y": 0.23,
+   "world": [
+    5.7983,
+    0.23,
+    -8.556
+   ]
+  },
+  {
+   "id": "t_lamp5",
+   "u": 10.8,
+   "v": 4.7,
+   "kind": "lamp",
+   "label": "第五盞燈（隧道口）",
+   "y": 0.34,
+   "world": [
+    4.3134,
+    0.34,
+    -10.9602
+   ]
+  },
+  {
+   "id": "t_portal",
+   "u": 11.9,
+   "v": 5.75,
+   "kind": "spot",
+   "label": "隧道口",
+   "y": 0.34,
+   "world": [
+    4.3487,
+    0.34,
+    -12.4804
+   ]
+  },
+  {
+   "id": "exit_tunnel",
+   "u": 12.39,
+   "v": 6.57,
+   "kind": "exit",
+   "label": "隧道出口",
+   "y": 0.34,
+   "world": [
+    4.1154,
+    0.34,
+    -13.4067
+   ]
+  },
+  {
+   "id": "t_mid",
+   "u": -3.0,
+   "v": 0.95,
+   "kind": "spot",
+   "label": "鐵軌中段",
+   "y": 0.34,
+   "world": [
+    -2.7931,
+    0.34,
+    1.4496
+   ]
+  },
+  {
+   "id": "s_switch",
+   "u": 4.8,
+   "v": 0.45,
+   "kind": "path",
+   "label": "支線岔口",
+   "y": 0.34,
+   "world": [
+    3.0759,
+    0.34,
+    -3.7123
+   ]
+  },
+  {
+   "id": "s_wagon",
+   "u": 8.35,
+   "v": -2.75,
+   "kind": "spot",
+   "label": "支線上的廢棄貨車",
+   "shelter": "wagon",
+   "y": 0.13,
+   "world": [
+    7.8489,
+    0.13,
+    -3.9598
+   ]
+  },
+  {
+   "id": "s_spring",
+   "u": 13.64,
+   "v": -0.75,
+   "kind": "spot",
+   "label": "湧泉",
+   "y": 0.02,
+   "world": [
+    10.1753,
+    0.02,
+    -9.1146
+   ]
+  },
+  {
+   "id": "exit_boat",
+   "u": 15.5,
+   "v": -2.2,
+   "kind": "exit",
+   "label": "棧橋小舟（出口）",
+   "y": -0.04,
+   "world": [
+    12.5158,
+    -0.04,
+    -9.4045
+   ]
+  },
+  {
+   "id": "f_west",
+   "u": -10.8,
+   "v": -2.0,
+   "kind": "path",
+   "label": "西側草地",
+   "y": 0.02,
+   "world": [
+    -6.2225,
+    0.02,
+    9.051
+   ]
+  },
+  {
+   "id": "f_stones_n",
+   "u": -8.3,
+   "v": -4.5,
+   "kind": "path",
+   "label": "踏石北端",
+   "y": -0.34,
+   "world": [
+    -2.687,
+    -0.34,
+    9.051
+   ]
+  },
+  {
+   "id": "f_boulder",
+   "u": -7.8,
+   "v": -2.7,
+   "kind": "spot",
+   "label": "苔石",
+   "y": -0.09,
+   "world": [
+    -3.6062,
+    -0.09,
+    7.4246
+   ]
+  },
+  {
+   "id": "f_tablet",
+   "u": -1.6,
+   "v": -3.8,
+   "kind": "spot",
+   "label": "舊道標",
+   "y": -0.09,
+   "world": [
+    1.5556,
+    -0.09,
+    3.8184
+   ]
+  },
+  {
+   "id": "f_brook",
+   "u": -0.9,
+   "v": -4.85,
+   "kind": "spot",
+   "label": "溪邊",
+   "y": -0.64,
+   "world": [
+    2.7931,
+    -0.64,
+    4.0659
+   ]
+  },
+  {
+   "id": "f_log_n",
+   "u": 1.9,
+   "v": -4.0,
+   "kind": "path",
+   "label": "倒木北端",
+   "y": 0.63,
+   "world": [
+    4.1719,
+    0.63,
+    1.4849
+   ]
+  },
+  {
+   "id": "f_log_s",
+   "u": 6.0,
+   "v": -7.6,
+   "kind": "spot",
+   "label": "倒木南端（蕈菇）",
+   "y": 0.56,
+   "world": [
+    9.6167,
+    0.56,
+    1.1314
+   ]
+  },
+  {
+   "id": "f_stones_s",
+   "u": -8.9,
+   "v": -8.1,
+   "kind": "path",
+   "label": "踏石南端",
+   "y": -0.34,
+   "world": [
+    -0.5657,
+    -0.34,
+    12.0208
+   ]
+  },
+  {
+   "id": "r_falls",
+   "u": -9.4,
+   "v": -9.9,
+   "kind": "spot",
+   "label": "瀑布邊",
+   "y": -0.23,
+   "world": [
+    0.3536,
+    -0.23,
+    13.6472
+   ]
+  },
+  {
+   "id": "r_rim",
+   "u": 0.5,
+   "v": -9.7,
+   "kind": "spot",
+   "label": "崖邊（看霧海）",
+   "y": -0.06,
+   "world": [
+    7.2125,
+    -0.06,
+    6.5054
+   ]
+  },
+  {
+   "id": "l_path",
+   "u": -9.7,
+   "v": 6.3,
+   "kind": "path",
+   "label": "站房後的小徑",
+   "y": 1,
+   "world": [
+    -11.3137,
+    1,
+    2.4042
+   ]
+  },
+  {
+   "id": "l_basin",
+   "u": -8.6,
+   "v": 8.9,
+   "kind": "spot",
+   "label": "手水鉢與竹筧",
+   "y": 0.92,
+   "world": [
+    -12.3744,
+    0.92,
+    -0.2121
+   ]
+  },
+  {
+   "id": "l_lamp4",
+   "u": -10.1,
+   "v": 9.9,
+   "kind": "lamp",
+   "label": "第四盞燈（住宿小徑）",
+   "y": 1.07,
+   "world": [
+    -14.1421,
+    1.07,
+    0.1414
+   ]
+  },
+  {
+   "id": "l_arch",
+   "u": -10.35,
+   "v": 11.1,
+   "kind": "spot",
+   "label": "大樹根拱下",
+   "shelter": "arch",
+   "y": 0.77,
+   "world": [
+    -15.1674,
+    0.77,
+    -0.5303
+   ]
+  },
+  {
+   "id": "l_hut",
+   "u": -9.99,
+   "v": 11.52,
+   "kind": "spot",
+   "label": "住宿小屋前",
+   "shelter": "eaves",
+   "y": 0.52,
+   "world": [
+    -15.2099,
+    0.52,
+    -1.0819
+   ]
+  },
+  {
+   "id": "l_wood",
+   "u": -8.6,
+   "v": 13.15,
+   "kind": "spot",
+   "label": "柴堆",
+   "y": 0.56,
+   "world": [
+    -15.5563,
+    0.56,
+    -3.3941
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "a": "entry0",
+   "b": "w_gate",
+   "kind": "boardwalk",
+   "via": [
+    [
+     -18.4,
+     -9.6,
+     -1.03
+    ]
+   ],
+   "length": 5.07
+  },
+  {
+   "a": "w_gate",
+   "b": "w_lamp1",
+   "kind": "boardwalk",
+   "length": 2.1
+  },
+  {
+   "a": "w_lamp1",
+   "b": "w_top",
+   "kind": "boardwalk",
+   "via": [
+    [
+     -14.4,
+     -4.6,
+     0.39
+    ]
+   ],
+   "length": 5.03
+  },
+  {
+   "a": "w_top",
+   "b": "x_cross",
+   "kind": "boardwalk",
+   "via": [
+    [
+     -12.6,
+     -0.7,
+     0.59
+    ]
+   ],
+   "length": 3.48
+  },
+  {
+   "a": "w_top",
+   "b": "f_west",
+   "kind": "ground",
+   "length": 2.37
+  },
+  {
+   "a": "x_cross",
+   "b": "t_west",
+   "kind": "track",
+   "length": 4.7
+  },
+  {
+   "a": "t_west",
+   "b": "t_trestle",
+   "kind": "trestle",
+   "length": 3.8
+  },
+  {
+   "a": "x_cross",
+   "b": "t_mid",
+   "kind": "track",
+   "length": 9.3
+  },
+  {
+   "a": "t_mid",
+   "b": "s_switch",
+   "kind": "track",
+   "via": [
+    [
+     2.2,
+     1.0,
+     0.34
+    ]
+   ],
+   "length": 7.86
+  },
+  {
+   "a": "x_cross",
+   "b": "p_post",
+   "kind": "ramp",
+   "via": [
+    [
+     -11.7,
+     1.9,
+     0.79
+    ]
+   ],
+   "length": 2.22
+  },
+  {
+   "a": "p_post",
+   "b": "j_jizo",
+   "kind": "ground",
+   "length": 3.74
+  },
+  {
+   "a": "p_post",
+   "b": "p_ramp",
+   "kind": "platform",
+   "length": 1.52,
+   "via": [
+    [
+     -10.5,
+     2.95,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_ramp",
+   "b": "p_bedw",
+   "kind": "platform",
+   "length": 1.3
+  },
+  {
+   "a": "p_ramp",
+   "b": "p_lamp2",
+   "kind": "platform",
+   "length": 2.42,
+   "via": [
+    [
+     -8.0,
+     2.95,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_bedw",
+   "b": "p_lamp2",
+   "kind": "platform",
+   "length": 1.39
+  },
+  {
+   "a": "p_ramp",
+   "b": "p_sign",
+   "kind": "platform",
+   "length": 1.29,
+   "via": [
+    [
+     -9.75,
+     2.5,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_sign",
+   "b": "p_lamp2",
+   "kind": "platform",
+   "length": 3.61,
+   "via": [
+    [
+     -9.75,
+     2.5,
+     1
+    ],
+    [
+     -9.0,
+     3.0,
+     1
+    ],
+    [
+     -8.0,
+     2.95,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_mid",
+   "b": "p_lamp3",
+   "kind": "platform",
+   "via": [
+    [
+     -1.4,
+     2.5,
+     1
+    ],
+    [
+     0.5,
+     2.45,
+     1
+    ]
+   ],
+   "length": 4.4
+  },
+  {
+   "a": "p_lamp2",
+   "b": "p_bench",
+   "kind": "platform",
+   "length": 2.46,
+   "via": [
+    [
+     -6.7,
+     2.45,
+     1
+    ],
+    [
+     -5.95,
+     2.95,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_lamp2",
+   "b": "p_edge",
+   "kind": "platform",
+   "via": [
+    [
+     -6.6,
+     2.42,
+     1
+    ]
+   ],
+   "length": 4.32
+  },
+  {
+   "a": "p_bench",
+   "b": "p_door",
+   "kind": "platform",
+   "length": 4.11,
+   "via": [
+    [
+     -5.95,
+     2.9,
+     1
+    ],
+    [
+     -5.0,
+     2.45,
+     1
+    ],
+    [
+     -3.9,
+     2.95,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_door",
+   "b": "p_mid",
+   "kind": "platform",
+   "length": 3.11,
+   "via": [
+    [
+     -3.9,
+     2.95,
+     1
+    ],
+    [
+     -3.0,
+     2.45,
+     1
+    ],
+    [
+     -2.3,
+     2.5,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_edge",
+   "b": "p_mid",
+   "kind": "platform",
+   "length": 1.45,
+   "via": [
+    [
+     -2.2,
+     2.45,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_mid",
+   "b": "p_window",
+   "kind": "platform",
+   "length": 0.62
+  },
+  {
+   "a": "p_window",
+   "b": "p_bench2",
+   "kind": "platform",
+   "length": 3.24,
+   "via": [
+    [
+     0.8,
+     3.4,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_bench2",
+   "b": "p_lamp3",
+   "kind": "platform",
+   "length": 1.68,
+   "via": [
+    [
+     1.9,
+     3.35,
+     1
+    ],
+    [
+     2.3,
+     3.0,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_lamp3",
+   "b": "p_cart",
+   "kind": "platform",
+   "length": 2.52,
+   "via": [
+    [
+     3.0,
+     2.4,
+     1
+    ]
+   ]
+  },
+  {
+   "a": "p_cart",
+   "b": "p_east",
+   "kind": "platform",
+   "via": [
+    [
+     5.8,
+     2.35,
+     1
+    ]
+   ],
+   "length": 2.37
+  },
+  {
+   "a": "p_bede",
+   "b": "p_east",
+   "kind": "platform",
+   "length": 0.85
+  },
+  {
+   "a": "p_east",
+   "b": "t_east",
+   "kind": "ramp",
+   "length": 2.24
+  },
+  {
+   "a": "t_east",
+   "b": "t_signal",
+   "kind": "ground",
+   "length": 1.16
+  },
+  {
+   "a": "t_signal",
+   "b": "t_lamp5",
+   "kind": "track",
+   "via": [
+    [
+     10.4,
+     3.4,
+     0.34
+    ]
+   ],
+   "length": 2.84
+  },
+  {
+   "a": "t_lamp5",
+   "b": "t_portal",
+   "kind": "track",
+   "length": 1.52
+  },
+  {
+   "a": "t_portal",
+   "b": "exit_tunnel",
+   "kind": "track",
+   "length": 0.96
+  },
+  {
+   "a": "t_east",
+   "b": "s_switch",
+   "kind": "track",
+   "via": [
+    [
+     7.4,
+     1.0,
+     0.34
+    ]
+   ],
+   "length": 4.55
+  },
+  {
+   "a": "s_switch",
+   "b": "s_wagon",
+   "kind": "track",
+   "via": [
+    [
+     6.7,
+     -2.0,
+     0.12
+    ]
+   ],
+   "length": 4.94
+  },
+  {
+   "a": "s_wagon",
+   "b": "s_spring",
+   "kind": "ground",
+   "via": [
+    [
+     9.7,
+     -2.9,
+     0.14
+    ],
+    [
+     11.4,
+     -1.1,
+     0.22
+    ]
+   ],
+   "length": 6.17
+  },
+  {
+   "a": "s_spring",
+   "b": "exit_boat",
+   "kind": "pier",
+   "via": [
+    [
+     14.4,
+     -0.5,
+     -0.17
+    ],
+    [
+     14.9,
+     -1.1,
+     -0.04
+    ]
+   ],
+   "length": 2.9
+  },
+  {
+   "a": "s_wagon",
+   "b": "f_log_n",
+   "kind": "ground",
+   "via": [
+    [
+     5.2,
+     -3.2,
+     0.05
+    ]
+   ],
+   "length": 6.63
+  },
+  {
+   "a": "f_log_n",
+   "b": "f_brook",
+   "kind": "ground",
+   "length": 4.3,
+   "via": [
+    [
+     0.8,
+     -3.2,
+     0.12
+    ],
+    [
+     -0.55,
+     -3.8,
+     0.04
+    ]
+   ]
+  },
+  {
+   "a": "f_brook",
+   "b": "f_tablet",
+   "kind": "ground",
+   "length": 1.91
+  },
+  {
+   "a": "f_tablet",
+   "b": "f_boulder",
+   "kind": "ground",
+   "via": [
+    [
+     -0.95,
+     -1.5,
+     0.1
+    ],
+    [
+     -2.5,
+     0.4,
+     0.22
+    ],
+    [
+     -5.5,
+     0.6,
+     0.22
+    ],
+    [
+     -7.7,
+     -0.3,
+     0.22
+    ]
+   ],
+   "length": 13.5
+  },
+  {
+   "a": "f_boulder",
+   "b": "f_stones_n",
+   "kind": "ground",
+   "length": 2.8
+  },
+  {
+   "a": "f_stones_n",
+   "b": "f_west",
+   "kind": "ground",
+   "length": 3.55
+  },
+  {
+   "a": "f_log_n",
+   "b": "f_log_s",
+   "kind": "log",
+   "via": [
+    [
+     3.9,
+     -5.9,
+     0.44
+    ]
+   ],
+   "length": 5.47
+  },
+  {
+   "a": "f_stones_n",
+   "b": "f_stones_s",
+   "kind": "stones",
+   "via": [
+    [
+     -8.45,
+     -5.35,
+     -0.34
+    ],
+    [
+     -8.6,
+     -6.1,
+     -0.34
+    ],
+    [
+     -8.5,
+     -6.85,
+     -0.34
+    ],
+    [
+     -8.8,
+     -7.55,
+     -0.34
+    ]
+   ],
+   "closedInRain": true,
+   "length": 3.71
+  },
+  {
+   "a": "f_stones_s",
+   "b": "r_falls",
+   "kind": "ground",
+   "length": 1.87
+  },
+  {
+   "a": "f_stones_s",
+   "b": "r_rim",
+   "kind": "ground",
+   "via": [
+    [
+     -5.6,
+     -8.5,
+     0.13
+    ],
+    [
+     -4.4,
+     -9.5,
+     -0.03
+    ]
+   ],
+   "length": 9.89
+  },
+  {
+   "a": "r_rim",
+   "b": "f_log_s",
+   "kind": "ground",
+   "via": [
+    [
+     3.6,
+     -8.9,
+     0.06
+    ]
+   ],
+   "length": 5.99
+  },
+  {
+   "a": "p_ramp",
+   "b": "l_path",
+   "kind": "ground",
+   "via": [
+    [
+     -10.4,
+     3.7,
+     1
+    ]
+   ],
+   "length": 3.87
+  },
+  {
+   "a": "l_path",
+   "b": "l_basin",
+   "kind": "ground",
+   "length": 2.82
+  },
+  {
+   "a": "l_basin",
+   "b": "l_lamp4",
+   "kind": "stones",
+   "length": 1.81
+  },
+  {
+   "a": "l_lamp4",
+   "b": "l_arch",
+   "kind": "stones",
+   "length": 1.26
+  },
+  {
+   "a": "l_arch",
+   "b": "l_hut",
+   "kind": "stones",
+   "length": 0.61
+  },
+  {
+   "a": "l_hut",
+   "b": "l_wood",
+   "kind": "ground",
+   "length": 2.75,
+   "via": [
+    [
+     -9.4,
+     11.6,
+     0.35
+    ],
+    [
+     -8.7,
+     12.3,
+     0.44
+    ]
+   ]
+  }
+ ],
+ "ports": {
+  "entry": "entry0",
+  "spawn": "w_gate",
+  "exits": [
+   {
+    "id": "exit_boat",
+    "node": "exit_boat",
+    "label": "霧瀑小舟"
+   },
+   {
+    "id": "exit_tunnel",
+    "node": "exit_tunnel",
+    "label": "苔痕隧道"
+   }
+  ]
+ },
+ "lamps": [
+  {
+   "index": 1,
+   "node": "w_lamp1",
+   "prop": [
+    -16.3,
+    -6.35
+   ],
+   "style": "hang",
+   "dueAt": 0.2,
+   "propWorld": [
+    -7.0357,
+    -0.11,
+    16.016
+   ]
+  },
+  {
+   "index": 2,
+   "node": "p_lamp2",
+   "prop": [
+    -7.6,
+    2.08
+   ],
+   "style": "station",
+   "dueAt": 0.4,
+   "propWorld": [
+    -6.8448,
+    1,
+    3.9032
+   ]
+  },
+  {
+   "index": 3,
+   "node": "p_lamp3",
+   "prop": [
+    2.16,
+    2.08
+   ],
+   "style": "station",
+   "dueAt": 0.6,
+   "propWorld": [
+    0.0566,
+    1,
+    -2.9981
+   ]
+  },
+  {
+   "index": 4,
+   "node": "l_lamp4",
+   "prop": [
+    -10.8,
+    9.6
+   ],
+   "style": "hang",
+   "dueAt": 0.8,
+   "propWorld": [
+    -14.425,
+    0.97,
+    0.8485
+   ]
+  },
+  {
+   "index": 5,
+   "node": "t_lamp5",
+   "prop": [
+    10.2,
+    5.7
+   ],
+   "style": "hang",
+   "dueAt": 1.0,
+   "propWorld": [
+    3.182,
+    0.45,
+    -11.243
+   ]
+  }
+ ],
+ "lampLegs": [
+  {
+   "from": "entry0",
+   "to": "w_lamp1",
+   "distance": 7.14,
+   "distanceInRain": 7.14,
+   "walkSecondsAtAppPace": 21
+  },
+  {
+   "from": "w_lamp1",
+   "to": "p_lamp2",
+   "distance": 14.66,
+   "distanceInRain": 14.66,
+   "walkSecondsAtAppPace": 42
+  },
+  {
+   "from": "p_lamp2",
+   "to": "p_lamp3",
+   "distance": 10.18,
+   "distanceInRain": 10.18,
+   "walkSecondsAtAppPace": 30
+  },
+  {
+   "from": "p_lamp3",
+   "to": "l_lamp4",
+   "distance": 21.1,
+   "distanceInRain": 21.1,
+   "walkSecondsAtAppPace": 61
+  },
+  {
+   "from": "l_lamp4",
+   "to": "t_lamp5",
+   "distance": 32.22,
+   "distanceInRain": 32.22,
+   "walkSecondsAtAppPace": 93
+  },
+  {
+   "from": "t_lamp5",
+   "to": "p_bench",
+   "distance": 22.75,
+   "distanceInRain": 22.75,
+   "walkSecondsAtAppPace": 65
+  }
+ ],
+ "spots": [
+  {
+   "id": "j_jizo",
+   "name": "樹根下的石地藏",
+   "face": [
+    -15.6,
+    3.4
+   ]
+  },
+  {
+   "id": "p_post",
+   "name": "圓筒郵筒",
+   "face": [
+    -11.3,
+    3.3
+   ]
+  },
+  {
+   "id": "p_bedw",
+   "name": "西側花圃",
+   "face": [
+    -8.4,
+    4.1
+   ]
+  },
+  {
+   "id": "p_bench",
+   "name": "候車室長椅",
+   "face": "view",
+   "seat": "bench"
+  },
+  {
+   "id": "p_door",
+   "name": "候車室門口",
+   "face": [
+    -4.35,
+    4.5
+   ]
+  },
+  {
+   "id": "p_edge",
+   "name": "月台邊",
+   "face": [
+    -3.0,
+    0.4
+   ]
+  },
+  {
+   "id": "p_window",
+   "name": "售票窗口",
+   "face": [
+    -1.6,
+    4.6
+   ]
+  },
+  {
+   "id": "p_sign",
+   "name": "站名牌",
+   "face": [
+    -9.35,
+    2.55
+   ]
+  },
+  {
+   "id": "p_bench2",
+   "name": "東側長椅",
+   "face": "view",
+   "seat": "bench"
+  },
+  {
+   "id": "p_cart",
+   "name": "行李推車",
+   "face": [
+    4.6,
+    3.0
+   ]
+  },
+  {
+   "id": "p_bede",
+   "name": "東側花圃",
+   "face": [
+    6.35,
+    4.1
+   ]
+  },
+  {
+   "id": "t_signal",
+   "name": "腕木號誌",
+   "face": [
+    10.9,
+    1.4
+   ]
+  },
+  {
+   "id": "t_portal",
+   "name": "隧道口",
+   "face": [
+    12.9,
+    6.7
+   ]
+  },
+  {
+   "id": "t_mid",
+   "name": "鐵軌中段",
+   "face": [
+    -3.0,
+    0.2
+   ]
+  },
+  {
+   "id": "s_wagon",
+   "name": "廢棄貨車",
+   "face": [
+    8.62,
+    -2.0
+   ]
+  },
+  {
+   "id": "s_spring",
+   "name": "湧泉",
+   "face": [
+    14.3,
+    -1.45
+   ]
+  },
+  {
+   "id": "exit_boat",
+   "name": "溪尾棧橋與小舟",
+   "face": [
+    16.6,
+    -4.5
+   ]
+  },
+  {
+   "id": "f_boulder",
+   "name": "苔石",
+   "face": [
+    -4.6,
+    -2.3
+   ]
+  },
+  {
+   "id": "f_tablet",
+   "name": "舊道標",
+   "face": [
+    -2.7,
+    -3.2
+   ]
+  },
+  {
+   "id": "f_brook",
+   "name": "溪邊",
+   "face": [
+    -0.9,
+    -6.0
+   ]
+  },
+  {
+   "id": "f_log_s",
+   "name": "倒木",
+   "face": [
+    4.9,
+    -6.8
+   ]
+  },
+  {
+   "id": "r_falls",
+   "name": "瀑布邊",
+   "face": [
+    -11.6,
+    -10.7
+   ]
+  },
+  {
+   "id": "r_rim",
+   "name": "崖邊",
+   "face": [
+    0.5,
+    -14.0
+   ]
+  },
+  {
+   "id": "l_basin",
+   "name": "手水鉢",
+   "face": [
+    -8.1,
+    9.6
+   ]
+  },
+  {
+   "id": "l_arch",
+   "name": "大樹根拱",
+   "face": "view"
+  },
+  {
+   "id": "l_hut",
+   "name": "住宿小屋",
+   "face": [
+    -11.2,
+    13.2
+   ]
+  },
+  {
+   "id": "l_wood",
+   "name": "柴堆",
+   "face": [
+    -8.5,
+    14.6
+   ]
+  },
+  {
+   "id": "t_trestle",
+   "name": "鐵道棧橋",
+   "face": [
+    -26,
+    0.9
+   ]
+  }
+ ],
+ "events": [
+  {
+   "id": "ev_bench_chime",
+   "spot": "p_bench",
+   "name": "坐在長椅上聽風鈴",
+   "anim": "sitGaze",
+   "dur": [
+    40,
+    80
+   ],
+   "weight": 2.5,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_bench_notes",
+   "spot": "p_bench",
+   "name": "在長椅上整理筆記",
+   "anim": "write",
+   "dur": [
+    60,
+    100
+   ],
+   "weight": 1.5,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_door_peek",
+   "spot": "p_door",
+   "name": "探頭看候車室裡的木頭長椅和掛鐘",
+   "anim": "inspect",
+   "dur": [
+    25,
+    45
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_window_peek",
+   "spot": "p_window",
+   "name": "探頭看售票窗口裡",
+   "anim": "inspect",
+   "dur": [
+    20,
+    35
+   ],
+   "weight": 1.5,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_window_ledger",
+   "spot": "p_window",
+   "name": "翻開窗口上的住宿簿",
+   "anim": "inspect",
+   "dur": [
+    40,
+    70
+   ],
+   "weight": 1.6,
+   "outcome": "note",
+   "once": true,
+   "note": "住宿簿上的名字都被雨水暈開了，只有日期還看得清楚。",
+   "tagGain": [
+    "ARCHIVE",
+    "MEMORY"
+   ]
+  },
+  {
+   "id": "ev_sign_wipe",
+   "spot": "p_sign",
+   "name": "擦去站名牌上的青苔",
+   "anim": "reach",
+   "dur": [
+    30,
+    50
+   ],
+   "weight": 1.5,
+   "outcome": "note",
+   "once": true,
+   "note": "擦掉站名牌上的青苔，字已經褪到讀不出來。",
+   "tagGain": [
+    "MAP"
+   ]
+  },
+  {
+   "id": "ev_edge_sit",
+   "spot": "p_edge",
+   "name": "坐在月台邊晃腳，看著空鐵軌",
+   "anim": "sitEdge",
+   "dur": [
+    60,
+    100
+   ],
+   "weight": 2,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_bench2_sit",
+   "spot": "p_bench2",
+   "name": "在東側長椅坐一會",
+   "anim": "sit",
+   "dur": [
+    45,
+    90
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_cart_look",
+   "spot": "p_cart",
+   "name": "看行李推車上的舊皮箱",
+   "anim": "inspect",
+   "dur": [
+    25,
+    45
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_bede_water",
+   "spot": "p_bede",
+   "name": "拿起澆水壺替花澆水",
+   "anim": "water",
+   "dur": [
+    30,
+    50
+   ],
+   "weight": 2,
+   "outcome": "ambient",
+   "weather": "dry",
+   "effect": "flowersWatered"
+  },
+  {
+   "id": "ev_bedw_look",
+   "spot": "p_bedw",
+   "name": "蹲下來看花圃裡的小花",
+   "anim": "crouch",
+   "dur": [
+    30,
+    60
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_post_look",
+   "spot": "p_post",
+   "name": "看郵筒上的收件時間",
+   "anim": "inspect",
+   "dur": [
+    20,
+    40
+   ],
+   "weight": 1.5,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_post_drop",
+   "spot": "p_post",
+   "name": "投一張明信片進郵筒",
+   "anim": "reach",
+   "dur": [
+    25,
+    40
+   ],
+   "weight": 1,
+   "outcome": "note",
+   "once": true,
+   "note": "把一張寫給下一位旅人的明信片投進郵筒。",
+   "tagGain": [
+    "MEMORY"
+   ]
+  },
+  {
+   "id": "ev_jizo_stone",
+   "spot": "j_jizo",
+   "name": "在石地藏前放一顆小石頭",
+   "anim": "pickup",
+   "dur": [
+    20,
+    40
+   ],
+   "weight": 2,
+   "outcome": "ambient",
+   "worldMark": "jizoPebbles"
+  },
+  {
+   "id": "ev_jizo_cup",
+   "spot": "j_jizo",
+   "name": "替石地藏換上乾淨的小杯",
+   "anim": "crouch",
+   "dur": [
+    25,
+    40
+   ],
+   "weight": 1.2,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_jizo_rain",
+   "spot": "j_jizo",
+   "name": "看見石地藏前的杯子接滿了雨水",
+   "anim": "crouch",
+   "dur": [
+    25,
+    40
+   ],
+   "weight": 2.5,
+   "outcome": "note",
+   "once": true,
+   "weather": "afterRain",
+   "note": "地藏前的小杯接滿了雨水，水面上浮著一片葉子。",
+   "tagGain": [
+    "NATURE"
+   ]
+  },
+  {
+   "id": "ev_rail_listen",
+   "spot": "t_mid",
+   "name": "蹲下來把耳朵貼近鐵軌",
+   "anim": "crouch",
+   "dur": [
+    20,
+    40
+   ],
+   "weight": 1.2,
+   "outcome": "note",
+   "once": true,
+   "weather": "dry",
+   "note": "鐵軌很安靜，好像已經很久沒有車經過了。",
+   "tagGain": [
+    "OBSERVATION"
+   ]
+  },
+  {
+   "id": "ev_rail_walk",
+   "spot": "t_mid",
+   "name": "張開雙手，沿著一條鐵軌走平衡",
+   "anim": "balance",
+   "dur": [
+    25,
+    45
+   ],
+   "weight": 1.5,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_trestle_gaze",
+   "spot": "t_trestle",
+   "name": "站在鐵道棧橋上，看鐵軌消失在霧裡",
+   "anim": "gaze",
+   "dur": [
+    40,
+    80
+   ],
+   "weight": 2,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_signal_look",
+   "spot": "t_signal",
+   "name": "抬頭看生鏽的腕木號誌",
+   "anim": "gaze",
+   "dur": [
+    30,
+    60
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_signal_pull",
+   "spot": "t_signal",
+   "name": "試著扳動號誌，臂板吱一聲落下",
+   "anim": "reach",
+   "dur": [
+    30,
+    50
+   ],
+   "weight": 1,
+   "outcome": "note",
+   "once": true,
+   "weather": "dry",
+   "note": "扳了一下號誌，臂板落到「可通行」的位置。",
+   "tagGain": [
+    "MAP"
+   ],
+   "effect": "signalArm",
+   "worldMark": "signalLowered"
+  },
+  {
+   "id": "ev_tunnel_listen",
+   "spot": "t_portal",
+   "name": "站在隧道口聽自己的回聲",
+   "anim": "gaze",
+   "dur": [
+    30,
+    60
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_tunnel_wind",
+   "spot": "t_portal",
+   "name": "隧道深處吹出一陣涼風",
+   "anim": "idle",
+   "dur": [
+    20,
+    40
+   ],
+   "weight": 1.5,
+   "outcome": "note",
+   "once": true,
+   "note": "隧道深處吹出一陣風，帶著一點煤煙的味道。",
+   "tagGain": [
+    "UNDERGROUND"
+   ]
+  },
+  {
+   "id": "ev_wagon_look",
+   "spot": "s_wagon",
+   "name": "看貨車門上褪色的貨籤",
+   "anim": "inspect",
+   "dur": [
+    25,
+    45
+   ],
+   "weight": 2,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_wagon_shelter",
+   "spot": "s_wagon",
+   "name": "坐在貨車門口，聽雨打在車頂上",
+   "anim": "sitDoor",
+   "dur": [
+    60,
+    150
+   ],
+   "weight": 5,
+   "outcome": "ambient",
+   "weather": "rain",
+   "shelter": true
+  },
+  {
+   "id": "ev_wagon_label",
+   "spot": "s_wagon",
+   "name": "在貨車的乾草堆裡翻到一張舊貨籤",
+   "anim": "sitDoor",
+   "dur": [
+    40,
+    60
+   ],
+   "weight": 2,
+   "outcome": "note",
+   "once": true,
+   "weather": "rain",
+   "shelter": true,
+   "note": "在貨車的乾草堆裡翻到一張舊貨籤，上面寫著一個沒聽過的站名。",
+   "tagGain": [
+    "MAP"
+   ]
+  },
+  {
+   "id": "ev_spring_drink",
+   "spot": "s_spring",
+   "name": "在湧泉邊捧水喝",
+   "anim": "drink",
+   "dur": [
+    30,
+    50
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_boat_look",
+   "spot": "exit_boat",
+   "name": "蹲在棧橋上，看繫在旁邊的小舟輕輕搖晃",
+   "anim": "crouch",
+   "dur": [
+    25,
+    45
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_pier_falls",
+   "spot": "exit_boat",
+   "name": "站在棧橋盡頭，聽溪水從崖邊落進霧裡",
+   "anim": "gaze",
+   "dur": [
+    40,
+    80
+   ],
+   "weight": 2.5,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_boat_bail",
+   "spot": "exit_boat",
+   "name": "把小舟裡的雨水舀出去",
+   "anim": "crouch",
+   "dur": [
+    30,
+    50
+   ],
+   "weight": 2.5,
+   "outcome": "ambient",
+   "weather": "afterRain"
+  },
+  {
+   "id": "ev_boulder_touch",
+   "spot": "f_boulder",
+   "name": "伸手摸苔石上的青苔",
+   "anim": "reach",
+   "dur": [
+    20,
+    40
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_boulder_stack",
+   "spot": "f_boulder",
+   "name": "在苔石頂上疊一顆小石頭",
+   "anim": "reach",
+   "dur": [
+    25,
+    40
+   ],
+   "weight": 1.5,
+   "outcome": "ambient",
+   "worldMark": "boulderStones"
+  },
+  {
+   "id": "ev_boulder_snail",
+   "spot": "f_boulder",
+   "name": "看一隻蝸牛慢慢爬上苔石",
+   "anim": "crouch",
+   "dur": [
+    30,
+    60
+   ],
+   "weight": 3,
+   "outcome": "ambient",
+   "weather": "afterRain"
+  },
+  {
+   "id": "ev_tablet_read",
+   "spot": "f_tablet",
+   "name": "讀舊道標上的刻字",
+   "anim": "inspect",
+   "dur": [
+    30,
+    60
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_brook_look",
+   "spot": "f_brook",
+   "name": "蹲在溪邊看水流",
+   "anim": "crouch",
+   "dur": [
+    40,
+    80
+   ],
+   "weight": 2.5,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_brook_wash",
+   "spot": "f_brook",
+   "name": "在溪邊洗手",
+   "anim": "crouch",
+   "dur": [
+    20,
+    35
+   ],
+   "weight": 2,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_brook_high",
+   "spot": "f_brook",
+   "name": "看溪水漲起來，淹過了踏石",
+   "anim": "gaze",
+   "dur": [
+    25,
+    45
+   ],
+   "weight": 2.5,
+   "outcome": "ambient",
+   "weather": "rain"
+  },
+  {
+   "id": "ev_log_mushroom",
+   "spot": "f_log_s",
+   "name": "蹲下來看倒木上的蕈菇",
+   "anim": "crouch",
+   "dur": [
+    30,
+    50
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_rim_gaze",
+   "spot": "r_rim",
+   "name": "站在崖邊，看霧海底下若隱若現的山",
+   "anim": "gaze",
+   "dur": [
+    50,
+    100
+   ],
+   "weight": 3,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_rim_sit",
+   "spot": "r_rim",
+   "name": "坐在崖邊晃腳",
+   "anim": "sitEdge",
+   "dur": [
+    60,
+    100
+   ],
+   "weight": 2,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_rim_note",
+   "spot": "r_rim",
+   "name": "對著霧海畫下遠方的稜線",
+   "anim": "write",
+   "dur": [
+    60,
+    90
+   ],
+   "weight": 1,
+   "outcome": "discovery",
+   "once": true,
+   "weather": "dry",
+   "note": "畫下霧海對面的稜線，其中一座山頂有個像塔的影子。",
+   "tagGain": [
+    "OBSERVATION"
+   ]
+  },
+  {
+   "id": "ev_falls_watch",
+   "spot": "r_falls",
+   "name": "看溪水落進霧裡",
+   "anim": "gaze",
+   "dur": [
+    40,
+    80
+   ],
+   "weight": 2.5,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_basin_drink",
+   "spot": "l_basin",
+   "name": "用竹杓舀水喝",
+   "anim": "drink",
+   "dur": [
+    30,
+    50
+   ],
+   "weight": 2.5,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_basin_fill",
+   "spot": "l_basin",
+   "name": "把水壺裝滿",
+   "anim": "crouch",
+   "dur": [
+    25,
+    40
+   ],
+   "weight": 1.5,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_arch_vines",
+   "spot": "l_arch",
+   "name": "在樹根拱下抬頭看垂下來的藤",
+   "anim": "gaze",
+   "dur": [
+    30,
+    60
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_arch_shelter",
+   "spot": "l_arch",
+   "name": "躲在樹根拱下等雨小一點",
+   "anim": "idle",
+   "dur": [
+    60,
+    120
+   ],
+   "weight": 3,
+   "outcome": "ambient",
+   "weather": "rain",
+   "shelter": true
+  },
+  {
+   "id": "ev_arch_fern",
+   "spot": "l_arch",
+   "name": "碰了一下蕨葉，水珠一顆顆灑下來",
+   "anim": "reach",
+   "dur": [
+    20,
+    35
+   ],
+   "weight": 2.5,
+   "outcome": "ambient",
+   "weather": "afterRain"
+  },
+  {
+   "id": "ev_hut_peek",
+   "spot": "l_hut",
+   "name": "從窗口往住宿小屋裡看",
+   "anim": "inspect",
+   "dur": [
+    25,
+    45
+   ],
+   "weight": 2,
+   "outcome": "ambient"
+  },
+  {
+   "id": "ev_hut_bed",
+   "spot": "l_hut",
+   "name": "推開住宿小屋的門",
+   "anim": "inspect",
+   "dur": [
+    40,
+    60
+   ],
+   "weight": 1.2,
+   "outcome": "note",
+   "once": true,
+   "note": "小屋裡的床已經鋪好了，枕邊放著一包還溫溫的烤栗子。",
+   "tagGain": [
+    "MEMORY"
+   ]
+  },
+  {
+   "id": "ev_hut_eaves",
+   "spot": "l_hut",
+   "name": "站在小屋簷下看雨從蕨葉上滴下來",
+   "anim": "gaze",
+   "dur": [
+    60,
+    120
+   ],
+   "weight": 3,
+   "outcome": "ambient",
+   "weather": "rain",
+   "shelter": true
+  },
+  {
+   "id": "ev_wood_chop",
+   "spot": "l_wood",
+   "name": "劈幾塊柴，堆回柴堆",
+   "anim": "chop",
+   "dur": [
+    40,
+    70
+   ],
+   "weight": 1.5,
+   "outcome": "ambient",
+   "weather": "dry"
+  },
+  {
+   "id": "ev_door_rain",
+   "spot": "p_door",
+   "name": "站在候車室門口看雨",
+   "anim": "gaze",
+   "dur": [
+    60,
+    120
+   ],
+   "weight": 3,
+   "outcome": "ambient",
+   "weather": "rain",
+   "shelter": true
+  },
+  {
+   "id": "ev_bench_rain",
+   "spot": "p_bench",
+   "name": "坐在簷下的長椅上看雨",
+   "anim": "sitGaze",
+   "dur": [
+    60,
+    150
+   ],
+   "weight": 4,
+   "outcome": "ambient",
+   "weather": "rain",
+   "shelter": true
+  },
+  {
+   "id": "ev_umbrella_borrow",
+   "spot": "p_door",
+   "name": "從門口的傘架借了一把傘",
+   "anim": "reach",
+   "dur": [
+    15,
+    25
+   ],
+   "weight": 0,
+   "outcome": "note",
+   "once": true,
+   "weather": "rain",
+   "note": "候車室門口的傘架上，有人留了一把傘。",
+   "tagGain": [
+    "MEMORY"
+   ],
+   "effect": "umbrellaTake",
+   "system": "借傘：下雨時旅人要冒雨去點燈，先來這裡借"
+  },
+  {
+   "id": "ev_umbrella_return",
+   "spot": "p_door",
+   "name": "把傘掛回傘架，旁邊留一條擦乾的手巾",
+   "anim": "reach",
+   "dur": [
+    20,
+    30
+   ],
+   "weight": 0,
+   "outcome": "note",
+   "once": true,
+   "weather": "afterRain",
+   "note": "把傘掛回去，在旁邊留了一條擦乾的手巾，給下一個人。",
+   "effect": "umbrellaReturn",
+   "worldMark": "towelLeft",
+   "system": "還傘：雨停後有借傘時自動插入"
+  },
+  {
+   "id": "ev_drips_watch",
+   "spot": "p_mid",
+   "name": "看簷下的水珠一顆顆落下",
+   "anim": "gaze",
+   "dur": [
+    30,
+    60
+   ],
+   "weight": 3,
+   "outcome": "ambient",
+   "weather": "afterRain"
+  },
+  {
+   "id": "rare_cart_tag",
+   "spot": "p_cart",
+   "name": "翻看推車上的舊皮箱，解下掛在提把上的木牌",
+   "anim": "find",
+   "source": "cart",
+   "dur": [
+    70,
+    100
+   ],
+   "rare": true,
+   "outcome": "item",
+   "once": true,
+   "tier": "journey",
+   "item": {
+    "id": "old_luggage_tag",
+    "name": "舊荷札",
+    "kind": "journey",
+    "tags": [
+     "MAP"
+    ]
+   },
+   "tagGain": [
+    "MAP"
+   ],
+   "note": "取得旅程信物「舊荷札」：木牌上刻著一個站名和一組編號。"
+  },
+  {
+   "id": "rare_tablet_rubbing",
+   "spot": "f_tablet",
+   "name": "在舊道標上拓印，紙上浮現被磨掉的字",
+   "anim": "find",
+   "source": "tablet",
+   "dur": [
+    70,
+    100
+   ],
+   "rare": true,
+   "outcome": "item",
+   "once": true,
+   "tier": "journey",
+   "weather": "notRain",
+   "item": {
+    "id": "charcoal_rubbing",
+    "name": "炭印紙",
+    "kind": "journey",
+    "tags": [
+     "ARCHIVE"
+    ]
+   },
+   "tagGain": [
+    "ARCHIVE"
+   ],
+   "note": "取得旅程信物「炭印紙」：拓下道標上被磨掉的記號。"
+  },
+  {
+   "id": "rare_ledger_rubbing",
+   "spot": "p_window",
+   "name": "住宿簿裡夾著一張別人已經拓好的炭印紙",
+   "anim": "find",
+   "source": "ledger",
+   "dur": [
+    70,
+    100
+   ],
+   "rare": true,
+   "outcome": "item",
+   "once": true,
+   "tier": "journey",
+   "weather": "rain",
+   "rainVariantOf": "rare_tablet_rubbing",
+   "item": {
+    "id": "charcoal_rubbing",
+    "name": "炭印紙",
+    "kind": "journey",
+    "tags": [
+     "ARCHIVE"
+    ]
+   },
+   "tagGain": [
+    "ARCHIVE"
+   ],
+   "note": "取得旅程信物「炭印紙」：有人拓好了，夾在住宿簿裡。"
+  },
+  {
+   "id": "rare_drawer_compass",
+   "spot": "p_window",
+   "name": "拉開窗口下的遺失物抽屜，裡面有一個掛著行李牌的舊羅盤",
+   "anim": "find",
+   "source": "drawer",
+   "dur": [
+    80,
+    110
+   ],
+   "rare": true,
+   "outcome": "item",
+   "once": true,
+   "tier": "core",
+   "item": {
+    "id": "cracked_compass",
+    "name": "裂痕羅盤",
+    "kind": "core",
+    "tags": [
+     "MAP",
+     "MEMORY"
+    ]
+   },
+   "tagGain": [
+    "MAP",
+    "MEMORY"
+   ],
+   "note": "取得地圖核心「裂痕羅盤」：行李牌上寫著「給下一位旅人」。"
+  }
+ ],
+ "anywhereEvents": [
+  {
+   "id": "amb_stretch",
+   "name": "伸個懶腰",
+   "anim": "stretch",
+   "dur": [
+    8,
+    15
+   ],
+   "weather": "dry"
+  },
+  {
+   "id": "amb_clouds",
+   "name": "抬頭看霧慢慢飄過",
+   "anim": "gaze",
+   "dur": [
+    10,
+    25
+   ]
+  },
+  {
+   "id": "amb_pack",
+   "name": "蹲下來整理背包",
+   "anim": "crouch",
+   "dur": [
+    15,
+    25
+   ]
+  },
+  {
+   "id": "amb_fireflies",
+   "name": "停下來看溪邊的螢火蟲",
+   "anim": "gaze",
+   "dur": [
+    20,
+    40
+   ],
+   "time": [
+    "night"
+   ],
+   "weather": "dry"
+  },
+  {
+   "id": "amb_hat",
+   "name": "扶正帽子，抖掉帽簷上的雨水",
+   "anim": "shoulder",
+   "dur": [
+    8,
+    14
+   ],
+   "weather": "rain"
+  }
+ ],
+ "restActivities": [
+  {
+   "id": "rest_bench_first",
+   "node": "p_bench",
+   "name": "發現長椅上有人留下一條摺好的毯子和一壺熱茶",
+   "anim": "sequence",
+   "dur": [
+    46,
+    46
+   ],
+   "weight": 0,
+   "once": true,
+   "worldMark": "bench_tea_seen"
+  },
+  {
+   "id": "rest_notes",
+   "node": "p_bench",
+   "name": "坐在候車室長椅上整理筆記",
+   "anim": "write",
+   "dur": [
+    180,
+    600
+   ],
+   "weight": 3
+  },
+  {
+   "id": "rest_chime",
+   "node": "p_bench",
+   "name": "坐在長椅上聽風鈴",
+   "anim": "sitGaze",
+   "dur": [
+    120,
+    300
+   ],
+   "weight": 2,
+   "weather": "dry"
+  },
+  {
+   "id": "rest_tea",
+   "node": "p_bench",
+   "name": "倒一杯茶，看著月台",
+   "anim": "drinkSit",
+   "dur": [
+    90,
+    200
+   ],
+   "weight": 1.2,
+   "requires": "bench_tea_seen"
+  },
+  {
+   "id": "rest_edge",
+   "node": "p_edge",
+   "name": "坐在月台邊晃腳，看著空鐵軌",
+   "anim": "sitEdge",
+   "dur": [
+    120,
+    300
+   ],
+   "weight": 1.5,
+   "weather": "dry"
+  },
+  {
+   "id": "rest_rain",
+   "node": "p_bench",
+   "name": "坐在簷下看雨",
+   "anim": "sitGaze",
+   "dur": [
+    60,
+    300
+   ],
+   "weight": 6,
+   "weather": "rain"
+  }
+ ],
+ "shelters": {
+  "note": "下雨時旅人走到最近的遮蔽處。探索事件若是純環境（ambient）就提前結束；特殊發現與點燈不中斷。",
+  "nodes": [
+   "p_bench",
+   "p_door",
+   "s_wagon",
+   "l_arch",
+   "l_hut"
+  ]
+ },
+ "shelterFromLamp": [
+  {
+   "lamp": "w_lamp1",
+   "shelter": "p_bench",
+   "distance": 17.12,
+   "walkSecondsAtAppPace": 49
+  },
+  {
+   "lamp": "p_lamp2",
+   "shelter": "p_bench",
+   "distance": 2.46,
+   "walkSecondsAtAppPace": 8
+  },
+  {
+   "lamp": "p_lamp3",
+   "shelter": "p_door",
+   "distance": 7.52,
+   "walkSecondsAtAppPace": 22
+  },
+  {
+   "lamp": "l_lamp4",
+   "shelter": "l_arch",
+   "distance": 1.26,
+   "walkSecondsAtAppPace": 4
+  },
+  {
+   "lamp": "t_lamp5",
+   "shelter": "s_wagon",
+   "distance": 13.48,
+   "walkSecondsAtAppPace": 39
+  }
+ ],
+ "weather": {
+  "clock": "與日夜循環相同的有效專注秒數；暫停時凍結",
+  "rollEverySeconds": 180,
+  "rainChance": 0.15,
+  "rainSeconds": 300,
+  "cooldownSeconds": 900,
+  "fadeInSeconds": 30,
+  "fadeOutSeconds": 30,
+  "afterRainSeconds": 240,
+  "overcastWhileRain": true,
+  "affectsRewards": false,
+  "note": "天氣只影響畫面、旅人行為與可抽選的事件（weather 欄位：dry = 沒下雨、rain = 雨中、afterRain = 雨停後 240 秒內、notRain = 雨中以外皆可）。不影響點燈時間、信物、核心與保底。"
+ },
+ "worldMarks": {
+  "boulderStones": "ev_boulder_stack 每次 +1（上限 8）：苔石頂上的小石堆",
+  "jizoPebbles": "ev_jizo_stone 每次 +1（上限 12）：地藏前的小石頭",
+  "signalLowered": "ev_signal_pull 之後：號誌臂板停在「可通行」",
+  "towelLeft": "ev_umbrella_return 之後：傘架旁掛著一條手巾",
+  "bench_tea_seen": "rest_bench_first 播完：之後長椅上一直有毯子與茶壺，並開放 rest_tea",
+  "coreTaken": "裂痕羅盤取得後，遺失物抽屜保持半開、裡面是空的",
+  "persist": "跨天保留",
+  "carvingSeen": "story_open_carving 之後：第一盞燈燈柱上的青苔被撥掉，刻字露出來",
+  "drawerTagLeft": "story_core_newtag 之後：半開的遺失物抽屜裡放著那張新的行李牌"
+ },
+ "specialFinds": {
+  "journey": [
+   "rare_cart_tag",
+   "rare_tablet_rubbing"
+  ],
+  "journeyRainVariants": {
+   "rare_tablet_rubbing": "rare_ledger_rubbing"
+  },
+  "core": [
+   "rare_drawer_compass"
+  ],
+  "note": "§46：每次完整探索必得兩種旅程信物之一（可落在任一盞燈）；核心每盞 5%、第五次保底。抽中炭印紙時，若旅人出發去取得的當下正在下雨，改播 rare_ledger_rubbing（同一件物品、同一筆保存結果，只換取得地點）。"
+ },
+ "journeyTiers": {
+  "note": "與雲上遺庭相同（§46）：journey = 旅程信物，每次完整探索必得其一，可落在任一盞燈，琥珀色小型演出；core = 永久核心，每盞 5%、第五次保底，藍光與星點大型演出，加燈焰一閃與風聲靜止。"
+ },
+ "departures": [
+  {
+   "id": "depart_exit_boat",
+   "exit": "exit_boat",
+   "exitNode": "exit_boat",
+   "label": "霧瀑小舟",
+   "style": "boat",
+   "boatHome": [
+    15.98,
+    -1.92
+   ],
+   "offMap": [
+    [
+     16.35,
+     -3.1,
+     -0.5
+    ],
+    [
+     16.62,
+     -4.55,
+     -0.56
+    ],
+    [
+     16.909,
+     -5.238,
+     -0.95
+    ],
+    [
+     17.138,
+     -5.783,
+     -2.1
+    ],
+    [
+     17.371,
+     -6.338,
+     -4.0
+    ],
+    [
+     17.586,
+     -6.849,
+     -6.4
+    ],
+    [
+     17.766,
+     -7.28,
+     -8.9
+    ]
+   ],
+   "leaveMsg": "旅人坐上溪尾的小舟，解開纜繩。小舟順著水流滑過崖邊，沿著瀑布落進霧海。"
+  },
+  {
+   "id": "depart_exit_tunnel",
+   "exit": "exit_tunnel",
+   "exitNode": "exit_tunnel",
+   "label": "苔痕隧道",
+   "style": "tunnel",
+   "offMap": [
+    [
+     12.9,
+     6.75,
+     0.3
+    ],
+    [
+     13.55,
+     7.5,
+     0.3
+    ],
+    [
+     14.2,
+     8.3,
+     0.3
+    ],
+    [
+     14.75,
+     8.95,
+     0.3
+    ]
+   ],
+   "leaveMsg": "旅人沿著鐵軌走進長滿青苔的隧道，提燈的光在黑暗裡越來越小。",
+   "appearAt": [
+    11.75,
+    5.6
+   ]
+  }
+ ],
+ "departureDurationMs": 5000,
+ "appPacing": {
+  "walkUnitsPerSecond": 0.35,
+  "note": "與雲上遺庭相同。事件時長 dur 以正式 App 秒數表示。"
+ },
+ "graphDiameterInRain": {
+  "pair": [
+   "r_falls",
+   "l_wood"
+  ],
+  "distance": 68.81
+ },
+ "storyRules": {
+  "decided": "2026-09-29 使用者定案（企畫書 §49.8）",
+  "opening": "整個遊戲第一次探索選了苔痕驛站時，出生後固定播 story_open_carving（0:15 開始，0:55 前結束；天氣第一次擲骰在 180 秒，所以一定是晴天）。紀錄 m02_open 由第一次專注的回顧發放，不等動畫播完，未滿門檻或動畫中斷也照發。 播放期間比照雲上遺庭的開場（AREA_01_STORY_EVENTS.md）：隱藏所有 Focus 功能鍵與玻璃（reportCinematic(true)），演出結束再淡回，不能拖鏡頭。",
+  "visits": "首訪／第二次造訪用『有沒有拿過線索』判定，不用造訪次數：還沒拿到 h1b 的那次探索排 story_first_lantern；已經有 h1b、還沒有 h1c 的下一次探索排 story_second_sketch。舊存檔因此也拿得到。",
+  "schedule": "故事事件比照特殊發現：探索開始時就排進某兩盞燈之間（建議第 1–4 盞之間），不和同一次探索的信物／核心排在同一段，並預留走回燈的時間。雨天版本在旅人出發去做的那一刻依天氣決定（同 rare_tablet_rubbing），出發後不改。下雨不會取消已出發的故事事件。",
+  "coreGated": "擁有某件核心才發生的事件，核心是永久紀錄，所以可以給線索。每件只發生一次（拿到線索後不再排）。",
+  "itemCarry": "帶著特定旅程信物才發生的事件（2026-09-29 使用者決定：與雲上遺庭一致，第一次發生時留下永久線索）：畫面＋這一趟大廳的『新發現』卡片，第一次發生時另外寫一條永久線索（種類都是筆記，不指向地點）；之後再發生只有畫面與卡片。線索是『查到的紀錄』，收藏室裡的『看懂了一些』依然只讀永久紀錄，不讀此刻有沒有帶信物。因為信物每趟隨機，這類線索不能是隱藏地圖解鎖的唯一來源（沉燈灣的方位與樣子線索都來自不需要信物的事件）。每次探索最多一件，偽隨機、就近優先；苔痕自己的信物要在同一次探索取得之後才算『帶著』。",
+  "clues": "線索永久保存，由後端在事件結算時寫入；收藏室托盤顯示『新的線索』。還沒去過的地圖名稱依 mentions 顯示為「？？？」。"
+ },
+ "storyEvents": [
+  {
+   "id": "story_open_carving",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       -16.0,
+       -6.6,
+       0.95
+      ],
+      "z": 1.5
+     },
+     {
+      "p": 0.1,
+      "at": [
+       -16.0,
+       -6.6,
+       0.95
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 0.16,
+      "at": [
+       -16.1,
+       -6.5,
+       0.95
+      ],
+      "z": 10
+     },
+     {
+      "p": 0.4,
+      "at": [
+       -16.1,
+       -6.5,
+       0.95
+      ],
+      "z": 10
+     },
+     {
+      "p": 0.46,
+      "at": [
+       -16.0,
+       -6.6,
+       0.95
+      ],
+      "z": 4
+     },
+     {
+      "p": 0.8,
+      "at": [
+       -16.0,
+       -6.6,
+       0.95
+      ],
+      "z": 4
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "opening",
+   "name": "撥開第一盞燈燈柱上的青苔，讀到刻字",
+   "spot": "w_lamp1",
+   "face": [
+    -16.3,
+    -6.35
+   ],
+   "dur": [
+    40,
+    40
+   ],
+   "demoSeconds": 16,
+   "anim": "gaze",
+   "phases": [
+    [
+     0,
+     "gaze"
+    ],
+    [
+     0.1,
+     "reach"
+    ],
+    [
+     0.42,
+     "readBook"
+    ],
+    [
+     0.8,
+     "reach"
+    ],
+    [
+     0.92,
+     "idle"
+    ]
+   ],
+   "effect": "carving",
+   "worldMark": "carvingSeen",
+   "clue": "m02_open",
+   "status": [
+    [
+     0,
+     "旅人在第一盞燈的燈柱前停下來，柱子上長滿了青苔。"
+    ],
+    [
+     0.14,
+     "旅人伸手撥開青苔，下面刻著一行字。"
+    ],
+    [
+     0.42,
+     "旅人拿出筆記翻到第一頁。「從這裡開始。」字跡一模一樣。"
+    ],
+    [
+     0.8,
+     "旅人摸了一下燈柱，闔上筆記，繼續往上走。"
+    ]
+   ],
+   "requires": {
+    "firstExplorationOfGame": true
+   },
+   "visual": "刻字是永久場景物件，所有玩家都看得到；青苔墊在開場被撥掉（carvingSeen）。沒有看過開場的存檔，青苔保留，旅人不會停下來讀。"
+  },
+  {
+   "id": "story_first_lantern",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       15.6,
+       -3.0,
+       0.2
+      ],
+      "z": 1.6
+     },
+     {
+      "p": 0.1,
+      "at": [
+       15.6,
+       -3.0,
+       0.2
+      ],
+      "z": 2.0
+     },
+     {
+      "p": 0.16,
+      "at": "lantern",
+      "z": 2.6
+     },
+     {
+      "p": 0.3,
+      "at": "lantern",
+      "z": 3.2
+     },
+     {
+      "p": 0.45,
+      "at": "lantern",
+      "z": 2.8
+     },
+     {
+      "p": 0.58,
+      "at": "lantern",
+      "z": 2.2
+     },
+     {
+      "p": 0.66,
+      "at": [
+       17.0,
+       -5.0,
+       -3.5
+      ],
+      "z": 1.55
+     },
+     {
+      "p": 0.8,
+      "at": [
+       17.0,
+       -5.0,
+       -3.5
+      ],
+      "z": 1.55
+     },
+     {
+      "p": 0.9,
+      "at": [
+       17.9,
+       -7.6,
+       -6.5
+      ],
+      "z": 1.4
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "firstVisit",
+   "name": "看一盞熄掉的提燈漂過棧橋，落進霧瀑",
+   "spot": "exit_boat",
+   "face": [
+    16.3,
+    -3.4
+   ],
+   "weather": "notRain",
+   "rainVariant": "story_first_lantern_rain",
+   "dur": [
+    50,
+    50
+   ],
+   "demoSeconds": 18,
+   "anim": "crouch",
+   "phases": [
+    [
+     0,
+     "crouch"
+    ],
+    [
+     0.55,
+     "gaze"
+    ],
+    [
+     0.85,
+     "idle"
+    ]
+   ],
+   "effect": "drift",
+   "clue": "h1b",
+   "status": [
+    [
+     0,
+     "旅人蹲在溪尾的棧橋邊，看繫著的小舟輕輕晃。"
+    ],
+    [
+     0.12,
+     "上游漂下來一盞熄掉的提燈。"
+    ],
+    [
+     0.3,
+     "提燈碰了一下小舟，打了個轉。"
+    ],
+    [
+     0.55,
+     "它越過崖邊，順著霧瀑落進霧裡。旅人站起來目送它。"
+    ],
+    [
+     0.82,
+     "下游的霧裡，好像還有更多。"
+    ]
+   ],
+   "requires": {
+    "clueMissing": "h1b"
+   }
+  },
+  {
+   "id": "story_first_lantern_rain",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       11.2,
+       -3.6,
+       0.4
+      ],
+      "z": 1.5,
+      "el": 8,
+      "az": -30
+     },
+     {
+      "p": 0.12,
+      "at": [
+       11.2,
+       -3.6,
+       0.4
+      ],
+      "z": 1.7,
+      "el": 8,
+      "az": -30
+     },
+     {
+      "p": 0.18,
+      "at": "lantern",
+      "z": 2.8,
+      "el": 8,
+      "az": -30
+     },
+     {
+      "p": 0.5,
+      "at": "lantern",
+      "z": 3.2,
+      "el": 8,
+      "az": -30
+     },
+     {
+      "p": 0.8,
+      "at": "lantern",
+      "z": 2.6,
+      "el": 8,
+      "az": -30
+     },
+     {
+      "p": 0.88,
+      "at": [
+       6.3,
+       -5.5,
+       0.0
+      ],
+      "z": 1.8,
+      "el": 8,
+      "az": -30
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "firstVisit",
+   "name": "在貨車門口躲雨時，看漲起來的溪水沖走一盞熄燈",
+   "spot": "s_wagon",
+   "weather": "rain",
+   "shelter": true,
+   "rainVariantOf": "story_first_lantern",
+   "dur": [
+    50,
+    50
+   ],
+   "demoSeconds": 16,
+   "anim": "sitDoor",
+   "effect": "driftRain",
+   "clue": "h1b",
+   "status": [
+    [
+     0,
+     "旅人坐在貨車門口躲雨，溪水漲起來了。"
+    ],
+    [
+     0.15,
+     "漲起來的溪水沖來一盞熄掉的提燈。"
+    ],
+    [
+     0.5,
+     "提燈打著轉，被沖往下游，漂進霧裡。"
+    ],
+    [
+     0.82,
+     "下游的霧裡，好像還有更多。"
+    ]
+   ],
+   "requires": {
+    "clueMissing": "h1b"
+   }
+  },
+  {
+   "id": "story_second_sketch",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       -1.7,
+       3.9,
+       1.6
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 0.06,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 3.4,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.22,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 4.0,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.26,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 6.5,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.5,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 7.0,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.78,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 3.6,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.94,
+      "at": [
+       -1.7,
+       3.9,
+       1.6
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "secondVisit",
+   "name": "住宿簿裡滑出一張畫",
+   "spot": "p_window",
+   "dur": [
+    45,
+    45
+   ],
+   "demoSeconds": 14,
+   "anim": "inspect",
+   "phases": [
+    [
+     0,
+     "inspect"
+    ],
+    [
+     0.24,
+     "hold"
+    ],
+    [
+     0.8,
+     "inspect"
+    ]
+   ],
+   "effect": "sketch",
+   "clue": "h1c",
+   "status": [
+    [
+     0,
+     "旅人翻開售票窗口上的住宿簿。"
+    ],
+    [
+     0.24,
+     "一張摺起的畫從書頁間滑出來：半沉在水裡的提燈。"
+    ],
+    [
+     0.5,
+     "畫的角落寫著一個字：「灣」。"
+    ],
+    [
+     0.8,
+     "旅人把畫夾回原來那一頁。"
+    ]
+   ],
+   "rainNote": "售票窗口有屋簷，晴雨同一版；雨天第二句改成「一張摺起的畫從書頁間滑出來，紙被濕氣弄得有點捲。」",
+   "requires": {
+    "clueOwned": "h1b",
+    "clueMissing": "h1c",
+    "notSameExplorationAs": "h1b"
+   }
+  },
+  {
+   "id": "story_core_newtag",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       -1.7,
+       3.9,
+       1.6
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 0.06,
+      "at": [
+       -1.6,
+       4.38,
+       1.75
+      ],
+      "z": 3.6,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.2,
+      "at": [
+       -1.6,
+       4.38,
+       1.75
+      ],
+      "z": 5.0,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.34,
+      "at": [
+       -1.6,
+       4.38,
+       1.75
+      ],
+      "z": 6.0,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.78,
+      "at": [
+       -1.6,
+       4.38,
+       1.75
+      ],
+      "z": 3.8,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.94,
+      "at": [
+       -1.7,
+       3.9,
+       1.6
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "coreGated",
+   "name": "空抽屜裡多了一張新的行李牌",
+   "spot": "p_window",
+   "dur": [
+    45,
+    45
+   ],
+   "demoSeconds": 14,
+   "anim": "crouch",
+   "phases": [
+    [
+     0,
+     "crouch"
+    ],
+    [
+     0.3,
+     "hold"
+    ],
+    [
+     0.78,
+     "crouch"
+    ],
+    [
+     0.94,
+     "idle"
+    ]
+   ],
+   "effect": "newTag",
+   "worldMark": "drawerTagLeft",
+   "clue": "c02",
+   "status": [
+    [
+     0,
+     "旅人蹲下來，拉開窗口下的遺失物抽屜。"
+    ],
+    [
+     0.2,
+     "抽屜本來是空的，現在多了一張行李牌。"
+    ],
+    [
+     0.34,
+     "上面寫著：「燈點完再走。」和羅盤背面刻的字一樣。"
+    ],
+    [
+     0.78,
+     "旅人把行李牌放回抽屜，留給下一個人。"
+    ]
+   ],
+   "requires": {
+    "coreOwned": "cracked_compass",
+    "explorationStartedAfterCore": true,
+    "clueMissing": "c02"
+   }
+  },
+  {
+   "id": "story_core_ledger08",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       -1.7,
+       3.9,
+       1.6
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 0.06,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 3.4,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.35,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 4.6,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.6,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 5.4,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.88,
+      "at": [
+       -1.8,
+       4.18,
+       2.1
+      ],
+      "z": 3.0,
+      "el": -14,
+      "az": 32
+     },
+     {
+      "p": 0.96,
+      "at": [
+       -1.7,
+       3.9,
+       1.6
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "coreGated",
+   "name": "住宿簿上寫著自己住過的那一晚",
+   "spot": "p_window",
+   "dur": [
+    40,
+    40
+   ],
+   "demoSeconds": 12,
+   "anim": "inspect",
+   "effect": "ledger08",
+   "clue": "c08",
+   "status": [
+    [
+     0,
+     "旅人翻開住宿簿，一頁一頁往前找。"
+    ],
+    [
+     0.35,
+     "有一行寫著他住過的那一晚。"
+    ],
+    [
+     0.6,
+     "日期和那本日記裡寫的一樣。"
+    ],
+    [
+     0.88,
+     "旅人闔上住宿簿。"
+    ]
+   ],
+   "requires": {
+    "coreOwned": "08 未寫成的日記（id 待 08 設計時定）",
+    "clueMissing": "c08"
+   }
+  },
+  {
+   "id": "carry_old_wick",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       15.6,
+       -3.0,
+       0.2
+      ],
+      "z": 2.0
+     },
+     {
+      "p": 0.1,
+      "at": [
+       15.6,
+       -3.0,
+       0.2
+      ],
+      "z": 3.0
+     },
+     {
+      "p": 0.2,
+      "at": "lantern",
+      "z": 2.6
+     },
+     {
+      "p": 0.5,
+      "at": "lantern",
+      "z": 2.4
+     },
+     {
+      "p": 0.62,
+      "at": [
+       17.0,
+       -5.0,
+       -3.5
+      ],
+      "z": 1.55
+     },
+     {
+      "p": 0.84,
+      "at": [
+       17.0,
+       -5.0,
+       -3.5
+      ],
+      "z": 1.55
+     },
+     {
+      "p": 0.9,
+      "at": [
+       17.9,
+       -7.6,
+       -6.5
+      ],
+      "z": 1.4
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "itemCarry",
+   "name": "拿著舊燈芯，看熄燈漂過棧橋",
+   "spot": "exit_boat",
+   "face": [
+    16.3,
+    -3.4
+   ],
+   "weather": "notRain",
+   "dur": [
+    45,
+    45
+   ],
+   "demoSeconds": 18,
+   "anim": "crouch",
+   "phases": [
+    [
+     0,
+     "crouch"
+    ],
+    [
+     0.1,
+     "hold"
+    ],
+    [
+     0.6,
+     "gaze"
+    ],
+    [
+     0.88,
+     "idle"
+    ]
+   ],
+   "effect": "wick",
+   "status": [
+    [
+     0,
+     "旅人蹲在棧橋邊，拿出雲上遺庭帶來的舊燈芯。"
+    ],
+    [
+     0.2,
+     "一盞熄掉的提燈漂過去，裡面的燈芯和手上這根一模一樣。"
+    ],
+    [
+     0.6,
+     "提燈落進霧瀑。"
+    ],
+    [
+     0.86,
+     "旅人把燈芯收回行囊。"
+    ]
+   ],
+   "card": "一盞熄掉的提燈漂過棧橋，裡面的燈芯和舊燈芯一模一樣。",
+   "combo": {
+    "with": "old_luggage_tag",
+    "status": "旅人翻出舊荷札：編號旁邊，有人畫了一個小小的燈芯記號。",
+    "card": "舊荷札的編號旁邊，有人畫了一個小小的燈芯記號。"
+   },
+   "requires": {
+    "carrying": "old_wick"
+   },
+   "clue": "m02_wick",
+   "clueOnce": true
+  },
+  {
+   "id": "carry_weathered_lens",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": "traveller",
+      "z": 2.6,
+      "el": 28,
+      "az": 20
+     },
+     {
+      "p": 0.12,
+      "at": "traveller",
+      "z": 2.6,
+      "el": 28,
+      "az": 20
+     },
+     {
+      "p": 0.4,
+      "at": [
+       1.0,
+       17.5,
+       1.5
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 0.85,
+      "at": [
+       1.0,
+       17.5,
+       1.5
+      ],
+      "z": 1.8
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "itemCarry",
+   "name": "透過風化鏡片看霧那頭的塔",
+   "spot": "l_wood",
+   "face": [
+    5.5,
+    19.5
+   ],
+   "weather": "notRain",
+   "dur": [
+    40,
+    40
+   ],
+   "demoSeconds": 14,
+   "anim": "gaze",
+   "phases": [
+    [
+     0,
+     "gaze"
+    ],
+    [
+     0.12,
+     "lens"
+    ],
+    [
+     0.88,
+     "idle"
+    ]
+   ],
+   "effect": "lens",
+   "status": [
+    [
+     0,
+     "旅人走到柴堆後面，看著林外的霧。"
+    ],
+    [
+     0.14,
+     "他舉起風化鏡片。"
+    ],
+    [
+     0.35,
+     "霧那一頭的山頂上，有一座塔的輪廓慢慢清楚起來。"
+    ],
+    [
+     0.85,
+     "放下鏡片，塔又退回霧裡。"
+    ]
+   ],
+   "card": "透過風化鏡片，看得見霧那一頭山頂上的塔。",
+   "requires": {
+    "carrying": "weathered_lens"
+   },
+   "clue": "m02_lens",
+   "clueOnce": true
+  },
+  {
+   "id": "carry_charcoal_rubbing",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       -9.35,
+       2.5,
+       1.9
+      ],
+      "z": 2.4
+     },
+     {
+      "p": 0.1,
+      "at": [
+       -9.35,
+       2.5,
+       1.9
+      ],
+      "z": 3.6
+     },
+     {
+      "p": 0.22,
+      "at": [
+       -9.35,
+       2.5,
+       1.9
+      ],
+      "z": 4.4
+     },
+     {
+      "p": 0.6,
+      "at": [
+       -9.35,
+       2.5,
+       1.9
+      ],
+      "z": 4.4
+     },
+     {
+      "p": 0.86,
+      "at": [
+       -9.35,
+       2.5,
+       1.9
+      ],
+      "z": 2.4
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "itemCarry",
+   "name": "在褪色的站名牌上拓印",
+   "spot": "p_sign",
+   "weather": "notRain",
+   "dur": [
+    35,
+    35
+   ],
+   "demoSeconds": 12,
+   "anim": "reach",
+   "effect": "rubSign",
+   "status": [
+    [
+     0,
+     "旅人把炭印紙貼在褪色的站名牌上。"
+    ],
+    [
+     0.22,
+     "炭筆擦過，浮出兩個字：「苔痕」。"
+    ],
+    [
+     0.6,
+     "後面還有字，怎麼擦都拓不出來。"
+    ],
+    [
+     0.86,
+     "旅人把紙收起來。"
+    ]
+   ],
+   "card": "在站名牌上拓出「苔痕」兩個字，後面的拓不出來。",
+   "requires": {
+    "carrying": "charcoal_rubbing",
+    "note": "本圖的信物，同一次探索取得之後才可能發生"
+   },
+   "clue": "m02_sign",
+   "clueOnce": true
+  },
+  {
+   "id": "carry_mulch_cloth",
+   "camera": {
+    "keys": [
+     {
+      "p": 0,
+      "at": [
+       -15.3,
+       3.4,
+       0.35
+      ],
+      "z": 2.6
+     },
+     {
+      "p": 0.2,
+      "at": [
+       -15.3,
+       3.4,
+       0.35
+      ],
+      "z": 7,
+      "az": 28
+     },
+     {
+      "p": 0.55,
+      "at": [
+       -15.3,
+       3.4,
+       0.35
+      ],
+      "z": 7,
+      "az": 28
+     },
+     {
+      "p": 0.85,
+      "at": [
+       -15.3,
+       3.4,
+       0.35
+      ],
+      "z": 2.6
+     },
+     {
+      "p": 1.0,
+      "at": "home",
+      "z": 1
+     }
+    ]
+   },
+   "kind": "itemCarry",
+   "name": "用護根布包起地藏小杯裡的幼苗",
+   "spot": "j_jizo",
+   "dur": [
+    40,
+    40
+   ],
+   "demoSeconds": 12,
+   "anim": "crouch",
+   "effect": "mulch",
+   "worldMarkThisExploration": "saplingWrapped",
+   "status": [
+    [
+     0,
+     "地藏前的小杯裡長出了一株幼苗。"
+    ],
+    [
+     0.2,
+     "旅人拿出護根布，把幼苗的根輕輕包好。"
+    ],
+    [
+     0.55,
+     "他沒有把它拔起來，只是先包著。"
+    ],
+    [
+     0.85,
+     "要不要帶走，等這段專注結束再說。"
+    ]
+   ],
+   "card": "地藏的小杯裡長出一株幼苗，根已經用護根布包好。",
+   "lobbyChoice": "草案：專注結束後在大廳問「要帶走這株幼苗嗎？」帶走後接照料者支線（§46.7）；內容等玻璃苗圃設計時定。Focus 中不做選擇。",
+   "requires": {
+    "carrying": "護根布（07 玻璃苗圃，id 待定）"
+   },
+   "clue": "m02_sapling",
+   "clueOnce": true
+  }
+ ],
+ "clues": [
+  {
+   "id": "m02_open",
+   "kind": "note",
+   "fromMap": "m02",
+   "source": "苔痕驛站 · 第一盞燈（第一次專注）",
+   "text": "筆記第一頁的「從這裡開始。」，也刻在苔痕驛站第一盞燈的燈柱上。",
+   "grantedBy": "story_open_carving（第一次專注的回顧發放）",
+   "points": null
+  },
+  {
+   "id": "h1b",
+   "kind": "way",
+   "fromMap": "m02",
+   "place": "h1",
+   "source": "苔痕驛站 · 霧瀑小舟（首訪）",
+   "text": "溪尾漂來一盞熄掉的提燈，順著霧瀑落進霧裡。下游好像還有更多。",
+   "grantedBy": "story_first_lantern / story_first_lantern_rain"
+  },
+  {
+   "id": "h1c",
+   "kind": "look",
+   "fromMap": "m02",
+   "place": "h1",
+   "source": "苔痕驛站 · 住宿簿（第二次造訪）",
+   "text": "住宿簿夾著一張畫：半沉在水裡的提燈，角落寫著「灣」。",
+   "grantedBy": "story_second_sketch"
+  },
+  {
+   "id": "n_tag",
+   "kind": "note",
+   "fromMap": "m02",
+   "source": "苔痕驛站 · 行李推車（舊荷札）",
+   "text": "舊荷札上的編號，和風切斷橋橋頭寄物櫃的編號是同一種寫法。",
+   "grantedBy": "第一次取得 old_luggage_tag（rare_cart_tag）",
+   "combo": [
+    "old_luggage_tag",
+    "纜索扣（04）"
+   ],
+   "mentions": [
+    "m04"
+   ]
+  },
+  {
+   "id": "n_rub",
+   "kind": "note",
+   "fromMap": "m02",
+   "source": "苔痕驛站 · 舊道標（炭印紙）",
+   "text": "拓出來的不是字，是一排高低不同的刻痕，像在記錄聲音。",
+   "grantedBy": "第一次取得 charcoal_rubbing（晴天道標或雨天住宿簿都算）",
+   "itemUse": {
+    "item": "charcoal_rubbing",
+    "map": "m05"
+   }
+  },
+  {
+   "id": "c02",
+   "kind": "note",
+   "fromMap": "m02",
+   "understands": "cracked_compass",
+   "source": "苔痕驛站 · 遺失物抽屜",
+   "text": "空抽屜裡又多了一張行李牌：「燈點完再走。」和羅盤背面刻的字一樣。",
+   "grantedBy": "story_core_newtag"
+  },
+  {
+   "id": "c08",
+   "kind": "note",
+   "fromMap": "m02",
+   "understands": "08 未寫成的日記",
+   "source": "苔痕驛站 · 住宿簿",
+   "text": "住宿簿上，你住過的那一晚已經有人寫好了，日期和日記裡的一樣。",
+   "grantedBy": "story_core_ledger08"
+  },
+  {
+   "id": "m02_wick",
+   "kind": "note",
+   "fromMap": "m02",
+   "source": "苔痕驛站 · 溪尾棧橋（帶著舊燈芯）",
+   "text": "漂來的熄燈裡，燈芯的編法和舊燈芯一樣。",
+   "grantedBy": "carry_old_wick（第一次發生）",
+   "mentions": []
+  },
+  {
+   "id": "m02_lens",
+   "kind": "note",
+   "fromMap": "m02",
+   "source": "苔痕驛站 · 柴堆後（帶著風化鏡片）",
+   "text": "透過風化鏡片，霧那一頭的山頂上有一座塔。",
+   "grantedBy": "carry_weathered_lens（第一次發生）",
+   "mentions": [
+    "m10"
+   ]
+  },
+  {
+   "id": "m02_sign",
+   "kind": "note",
+   "fromMap": "m02",
+   "source": "苔痕驛站 · 站名牌（帶著炭印紙）",
+   "text": "站名牌上被磨掉的字，拓出來是「苔痕」兩個字，後面還有字，拓不出來。",
+   "grantedBy": "carry_charcoal_rubbing（第一次發生）"
+  },
+  {
+   "id": "m02_sapling",
+   "kind": "note",
+   "fromMap": "m02",
+   "source": "苔痕驛站 · 石地藏（帶著護根布）",
+   "text": "地藏小杯裡長出一株幼苗，根先用布包好，它沒有枯。",
+   "grantedBy": "carry_mulch_cloth（第一次發生；護根布出自 07，id 待定）",
+   "mentions": [
+    "m07"
+   ]
+  }
+ ],
+ "clipFix": {
+  "date": "2026-09-29",
+  "by": "Claude",
+  "note": "避免旅人穿過場景物件：移動站位、改走位繞開柱子與道具。下列邊的長度由原型曲線量得，其餘沿用原值；請 Codex 用正式方法重算 length、via 高度、lampLegs、shelterFromLamp、graphDiameterInRain。",
+  "movedNodes": [
+   "exit_tunnel",
+   "l_hut",
+   "l_wood",
+   "p_bede",
+   "p_cart",
+   "p_lamp2",
+   "p_lamp3",
+   "p_post",
+   "p_sign",
+   "p_window",
+   "s_spring",
+   "entry0（入口棧道坡度上限，高度改變）"
+  ],
+  "changedEdges": [
+   "entry0→w_gate",
+   "x_cross→p_post",
+   "p_post→j_jizo",
+   "p_post→p_ramp",
+   "p_ramp→p_lamp2",
+   "p_bedw→p_lamp2",
+   "p_ramp→p_sign",
+   "p_sign→p_lamp2",
+   "p_mid→p_lamp3",
+   "p_lamp2→p_bench",
+   "p_lamp2→p_edge",
+   "p_bench→p_door",
+   "p_door→p_mid",
+   "p_edge→p_mid",
+   "p_mid→p_window",
+   "p_window→p_bench2",
+   "p_bench2→p_lamp3",
+   "p_lamp3→p_cart",
+   "p_cart→p_east",
+   "p_bede→p_east",
+   "t_portal→exit_tunnel",
+   "t_east→s_switch",
+   "s_switch→s_wagon",
+   "s_wagon→s_spring",
+   "s_spring→exit_boat",
+   "f_log_n→f_brook",
+   "f_stones_s→r_rim",
+   "p_ramp→l_path",
+   "l_arch→l_hut",
+   "l_hut→l_wood"
+  ]
+ }
+}

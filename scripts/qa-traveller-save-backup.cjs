@@ -1,0 +1,15 @@
+const fs = require('node:fs'), path = require('node:path'), Database = require('better-sqlite3')
+const version = require('../package.json').version
+const out = path.resolve(__dirname, `../previews/release-v${version}-qa`)
+const directory = path.join(out, 'save-backup')
+fs.mkdirSync(directory, { recursive: true })
+const db = new Database(path.join(process.env.APPDATA, 'focus-quest-windows/focusquest.db'), { readonly: true })
+;(async () => {
+  if (db.prepare('SELECT COUNT(*) n FROM sessions WHERE ended_at IS NULL').get().n) throw Error('Active Focus: do not switch builds')
+  await db.backup(path.join(directory, 'focusquest.db'))
+  db.close()
+  const copy = new Database(path.join(directory, 'focusquest.db'), { readonly: true })
+  const integrity = copy.pragma('integrity_check', { simple: true }); copy.close()
+  if (integrity !== 'ok') throw Error('Backup integrity: ' + integrity)
+  fs.writeFileSync(path.join(out, 'user-save-backup.json'), JSON.stringify({ Directory: directory, integrity }, null, 2))
+})().catch(e => { console.error(e); process.exitCode = 1 })
