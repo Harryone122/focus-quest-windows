@@ -809,13 +809,21 @@
    "wall"
   ],
   "mouthEchoOnce": true,
-  "chooseProbability": 0.6,
   "notBeforeSeconds": 300,
   "notAfterRest": true,
   "visitEffectiveSeconds": 200,
   "lampBufferSeconds": 60,
   "fadeSeconds": 0.7,
-  "rule": "walkToMouthEff + visitEff + lampEtaFromCaveEff + 60 < nextLampDue - now (checked when choosing and again on arrival)"
+  "rule": "walkToMouthEff + visitEff + lampEtaFromCaveEff + 60 < nextLampDue - now (checked once, when the sound is made)",
+  "version": "v11 (2026-10-11 user-approved)",
+  "explorationProbability": 0.6,
+  "decidedAt": "exploration start, saved; never re-rolled mid-walk",
+  "committedWhen": "first sound after 300 s that passes the budget; the mouth echoes 4 s later and he goes straight in (no re-check on arrival)",
+  "arrivalFallback": "if the budget slipped on the way: short visit E1→L0 and back",
+  "afterCore": "no mouth hum, no cave echo, no echo visit; once per exploration a small echo from the luggage 4 s after his first sound (R 1.3, pale blue) and a glance back",
+  "chimeSecondNote": "before the core: from the cave mouth toward the stone chime; after: from the luggage",
+  "sacredRope": "four sides closed; the step side slackens and lies on the stone when the core is drawn, and stays down",
+  "capException": "core (5% per lamp / 5th-visit pity) and story events always take him in, outside this cap"
  },
  "wind": {
   "rollEverySeconds": 240,

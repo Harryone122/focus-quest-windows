@@ -680,9 +680,12 @@ function updateSound(dt) {
   dustG.attributes.position.needsUpdate = true; dustG.attributes.aAlpha.needsUpdate = true; dustG.attributes.aSize.needsUpdate = true;
   dustM.uniforms.uPx.value = renderer.domElement.height / ((cam.top - cam.bottom) / cam.zoom);
   // the hidden stone in the cave hums: a slow, faint, cool breath of sound from the mouth every few seconds
+  // v11: the echo is committed when the sound is made (budget already checked), so the mouth answers exactly 4 s later
+  if (caveLure && !caveCalling && tAcc - caveLure.at > 4 && !inCave) { caveCalling = true; const E = CAVE.ECHO[caveLure.kind]; pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 4.2, dur: 3.6, amp: 0.5, col: '#ffe4bf', dust: 10 }); pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 3.4, r0: 0.3, dur: 2.6, amp: 0.3, delay: 1.0, col: '#c4e2ff', dust: 0 }); if (TR.mode !== 'light') say(`共鳴洞的洞口傳出一聲回音，像剛才的${E.name}。`); }
+  // v11: once the stone is in the luggage, the cave no longer answers; the luggage does (once per exploration, purely visual)
+  if (packEchoAt != null && tAcc - packEchoAt > 4 && !inCave) { packEchoAt = null; const bx = TR.x - Math.sin(TR.hd) * 0.28, bz = TR.z - Math.cos(TR.hd) * 0.28; pulse(bx, TR.y + 0.95, bz, { R: 1.3, r0: 0.1, dur: 1.8, amp: 0.45, col: '#9fd2ff', dust: 0 }); TR.glance = 1.2; if (TR.mode !== 'light') say('旅人背後的行李裡傳出一聲很小的回音，像剛才那一下。他回頭看了一眼。'); }
   updateSound.cave = (updateSound.cave || 2) - dt; if (updateSound.cave <= 0) { updateSound.cave = 6.5 + Math.random() * 2;
-    if (caveLure && !caveCalling && tAcc - caveLure.at > 4 && !inCave) { caveCalling = true; const E = CAVE.ECHO[caveLure.kind]; pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 4.2, dur: 3.6, amp: 0.5, col: '#ffe4bf', dust: 10 }); pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 3.4, r0: 0.3, dur: 2.6, amp: 0.3, delay: 1.0, col: '#c4e2ff', dust: 0 }); if (TR.mode !== 'light') say(`共鳴洞的洞口傳出一聲回音，像剛才的${E.name}。`); }
-    else pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 3.2, dur: 3.4, amp: 0.32, col: '#c4e2ff', dust: 8 }); }
+    if (CAVE.hasStone()) pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 3.2, dur: 3.4, amp: 0.32, col: '#c4e2ff', dust: 8 }); }
 }
 // where things sound from
 const CAVE_MOUTH = [11.4, 2.6, -7.5];
@@ -695,13 +698,23 @@ const worldHorn = (hx, hz, ry, s) => [hx + Math.sin(ry) * 1.05 * s, H(hx, hz) + 
    never after the five lamps (resting), and only when the next lamp is far enough away for the whole visit (~3 min of focus) plus the walk to it. */
 const VISIT_EFF = 200; // effective seconds a visit takes (walk in 11 units, listen ~7 s, walk out), measured on the focus clock
 let caveLure = null, caveCalling = false, caveVisits = 0, fade = null;
+/* v11 (2026-10-11 user decision): whether the cave answers this exploration is decided once when the exploration starts (60%) and saved.
+   It only governs this purely visual visit; the core keeps its own 5%-per-lamp roll and always takes the traveller in. */
+const ECHO_RUN_P = 0.6; let echoRun = null, packEchoAt = null, packEchoDone = false;
+function rollEchoRun() { echoRun = (window.__seededRand ? window.__seededRand() : Math.random()) < ECHO_RUN_P; packEchoDone = false; packEchoAt = null; }
 function caveOK(walkEff = 0) { if (caveVisits >= 1 || TR.lit >= 5 || TR.done || sim < 300 || inCave) return false; const k = TR.lit; return dueOf(k) - sim > walkEff + VISIT_EFF + lampEta(k) * speed + 60; }
 const SOUND_OF = { 1: 'chime', 3: 'echo', 5: 'bell', 6: 'wind', 13: 'wall' };
 let swayChime = 0, bellSwing = 0, bellStrikes = 0, bellCool = 0, windSim = 0, wind = 0, windFirst = true, gondolaBoost = 0, cageBoost = 0;
 function actFx(id) {
-  const S0 = SOURCES[0]; if (SOUND_OF[id] && caveVisits < 1) caveLure = { kind: SOUND_OF[id], at: tAcc };
+  const S0 = SOURCES[0];
+  if (SOUND_OF[id]) {
+    if (!CAVE.hasStone()) { if (!packEchoDone) { packEchoDone = true; packEchoAt = tAcc; TR.dwell = Math.max(TR.dwell, 5.5); } }
+    else if (echoRun && !caveLure && !caveCalling && caveVisits < 1) { const pa = planTo(12); // budget checked NOW; if it fails the cave simply stays quiet this time
+      if (pa && caveOK(plen(pa) / (V_WALK * rate()) * speed + 20)) { caveLure = { kind: SOUND_OF[id], at: tAcc }; TR.dwell = Math.max(TR.dwell, 5.5); } } }
   switch (id) {
-    case 1: swayChime = 1; pulse(S0.x, S0.y, S0.z, { R: 2.6, amp: 0.85, delay: 0.15 }); pulse(S0.x, S0.y, S0.z, { R: 3.4, amp: 0.55, delay: 1.25, col: '#cfe6ff', dur: 2.2 }); break; // one strike, two notes come back
+    case 1: swayChime = 1; pulse(S0.x, S0.y, S0.z, { R: 2.6, amp: 0.85, delay: 0.15 }); // one strike, two notes come back: the second from the cave mouth (v11)
+      if (CAVE.hasStone()) { const d = Math.hypot(CAVE_MOUTH[0] - S0.x, CAVE_MOUTH[2] - S0.z); pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: d + 0.8, r0: 0.4, amp: 0.3, delay: 1.25, col: '#cfe6ff', dur: 2.8, dust: 0 }); }
+      else pulse(TR.x, TR.y + 0.95, TR.z, { R: 1.6, r0: 0.1, amp: 0.4, delay: 1.25, col: '#9fd2ff', dur: 1.8, dust: 0 }); break;
     case 2: { const h = worldHorn(HORN1[0], HORN1[1], HORN1[2], 1.15); pulse(h[0], h[1], h[2], { R: 4.5, r0: 3.5, inward: true, amp: 0.5, dur: 1.6, col: '#cfe6ff', dust: 0 }); break; } // far sounds gathered into the horn
     case 3: pulse(-3.6, H(-4.6, 3.4) + 1.0, 3.9, { R: 2.4, amp: 0.8, delay: 0.3 }); pulse(-3.6, H(-4.6, 3.4) + 1.0, 3.9, { R: 3.2, r0: 0.3, inward: true, amp: 0.55, delay: 1.5, dur: 1.4, col: '#cfe6ff', dust: 0 }); break; // the echo comes back a beat late
     case 5: BELL.pull(); bellSwing = 0.5; break;
@@ -996,7 +1009,7 @@ const caveAxis = (d) => { const g = window.__cave; return [g.position.x + Math.s
 function startWalk(path, goalId, why) { TR.path = path; TR.wi = 0; TR.goal = goalId; TR.mode = 'walk'; TR.why = why || 'wander'; }
 function spotNow() { return TR.spot; }
 function pickNext() {
-  if (caveCalling && REACH[12] && TR.spot !== 12 && (window.__seededRand ? window.__seededRand() : Math.random()) < 0.6) { const pa = planTo(12); if (pa && caveOK(plen(pa) / (V_WALK * rate()) * speed)) return 12; } // curious about the echo, if the whole trip fits before the next lamp
+  if (caveCalling && REACH[12] && TR.spot !== 12) { const pa = planTo(12); if (pa) return 12; } // v11: the cave answered, so he goes straight there (budget was checked when the sound was made)
   const cands = SPOT_IDS.filter(id => id !== TR.spot && REACH[id] && !TR.recent.includes(id) && id !== 4); if (!cands.length) return 4;
   const w = cands.map(id => 1); let tot = w.reduce((a, b) => a + b, 0), r = Math.random() * tot; if (window.__seededRand) { r = window.__seededRand() * tot; }
   for (let k = 0; k < cands.length; k++) { r -= w[k]; if (r <= 0) return cands[k]; } return cands[0]; }
@@ -1012,9 +1025,9 @@ function decide() {
 }
 function arrive() {
   const g = TR.goal;
-  if (g === 'caveIn') { TR.mode = 'idle'; TR.dwell = 1e9; fade = { k: 'out', t: 0, then: () => { CAVE.visit(TR.caveKind || 'chime', () => { fade = { k: 'out', t: 0, then: () => { CAVE.leave('visit'); const m = caveAxis(-0.45); place(m[0], m[1]); TR.hd = Math.atan2(caveAxis(1)[0] - m[0], caveAxis(1)[1] - m[1]); TR.leave = []; fade = { k: 'in', t: 0 }; startWalk([caveAxis(0.2), caveAxis(1.0)], 'caveOut', 'cave'); say('旅人從共鳴洞裡走了出來。'); } }; }); fade = { k: 'in', t: 0 }; } }; return; }
+  if (g === 'caveIn') { TR.mode = 'idle'; TR.dwell = 1e9; fade = { k: 'out', t: 0, then: () => { CAVE.visit(TR.caveKind || 'chime', TR.caveShort, () => { fade = { k: 'out', t: 0, then: () => { CAVE.leave('visit'); const m = caveAxis(-0.45); place(m[0], m[1]); TR.hd = Math.atan2(caveAxis(1)[0] - m[0], caveAxis(1)[1] - m[1]); TR.leave = []; fade = { k: 'in', t: 0 }; startWalk([caveAxis(0.2), caveAxis(1.0)], 'caveOut', 'cave'); say('旅人從共鳴洞裡走了出來。'); } }; }); fade = { k: 'in', t: 0 }; } }; return; }
   if (g === 'caveOut') { TR.mode = 'idle'; TR.dwell = 0.6; TR.spot = 12; return; }
-  if (g === 12 && caveCalling && (caveOK() || TR.forceCave)) { TR.forceCave = false; TR.caveKind = caveLure ? caveLure.kind : 'chime'; caveCalling = false; caveLure = null; caveVisits++; TR.spot = 12; TR.leave = []; startWalk([caveAxis(1.0), caveAxis(0.2), caveAxis(-0.45)], 'caveIn', 'cave'); say('旅人走進共鳴洞。'); return; }
+  if (g === 12 && caveCalling) { TR.caveShort = !(caveOK() || TR.forceCave); TR.forceCave = false; TR.caveKind = caveLure ? caveLure.kind : 'chime'; caveCalling = false; caveLure = null; caveVisits++; TR.spot = 12; TR.leave = []; startWalk([caveAxis(1.0), caveAxis(0.2), caveAxis(-0.45)], 'caveIn', 'cave'); say('旅人走進共鳴洞。'); return; }
   if (typeof g === 'string' && g.startsWith('lamp')) { TR.mode = 'light'; TR.t = 0; TR.lampIdx = +g.slice(4); const L = LAMPNODE[TR.lampIdx]; TR.hd = Math.atan2(L.look[0] - TR.x, L.look[1] - TR.z); TR.spot = 0; return; }
   TR.spot = g; const st = STAND[g]; TR.hd = Math.atan2(st.look[0] - TR.x, st.look[1] - TR.z);
   const nv = NAV[g]; TR.leave = nv.leave.map(p => [p[0], p[1]]);
@@ -1059,7 +1072,7 @@ function poseTraveller(dt) {
   const swing = walking ? Math.sin(TR.phase) * 0.55 : 0, bob = walking ? Math.abs(Math.sin(TR.phase)) * 0.035 : 0;
   body.position.y = pose.hip + bob; upper.rotation.x = pose.lean;
   legL.rotation.x = pose.legX + swing; legR.rotation.x = pose.legX - swing;
-  head.rotation.x = pose.headX; head.rotation.y = pose.headY; armL.rotation.x = pose.armL; armL.rotation.z = pose.armLz;
+  head.rotation.x = pose.headX; head.rotation.y = pose.headY + (TR.glance > 0 ? Math.sin(Math.min(1, (1.2 - TR.glance) / 1.2) * Math.PI) * 1.1 : 0); /* v11: glance back at the luggage */ if (TR.glance > 0) TR.glance -= dt; armL.rotation.x = pose.armL; armL.rotation.z = pose.armLz;
   armR.rotation.x = -0.35 + pose.staffX * 0.8; staff.rotation.x = pose.staffX; staff.rotation.z = pose.staffZ; cloak.rotation.z = swing * 0.07;
   book.visible = pose.book > 0.5;
 }
@@ -1200,7 +1213,8 @@ const CAVE = (() => {
     add(sealed, smoothRock(0.9, 0.3, 106), mossM, 0, 5.85, -0.2).scale.set(2.2, 0.35, 0.8); }
 
   /* ---------- the islet, the dais, the lotus pedestal and the sacred rope ---------- */
-  const DAIS = new THREE.Group(); DAIS.position.set(CX, 0, CZ); G.add(DAIS);
+  const DAIS = new THREE.Group(); DAIS.position.set(CX, 0, CZ); G.add(DAIS); let GATE = null, gateT = -1, gateDown = 0;
+  function setGate(k) { gateDown = k; if (!GATE) return; const e = k * k * (3 - 2 * k); GATE.position.y = 1.82 + (0.8 - 1.82) * e; GATE.scale.y = 1 + (0.15 - 1) * e; }
   const stoneA = sm('#8b918a'), stoneB = sm('#7a8079'), stoneMoss = sm('#5c7752');
   { const ig = new THREE.CylinderGeometry(2.85, 3.2, 1.3, 14, 1); { const p = ig.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), a = Math.atan2(z, x); const k = 1 + (fbm(Math.cos(a) * 2 + 5, Math.sin(a) * 2 + 1) - 0.5) * 0.22; p.setX(i, x * k); p.setZ(i, z * k); } ig.computeVertexNormals(); }
     const isl = markFloor(add(DAIS, ig, sm('#55665d'), 0, 0.3 - 0.65, 0)); add(DAIS, new THREE.CylinderGeometry(2.6, 2.6, 0.02, 14), sm('#5f7756'), 0, 0.305, 0, { cast: false });
@@ -1215,8 +1229,10 @@ const CAVE = (() => {
     // sacred rope (注連縄) on three sides, open toward the steps; zigzag paper streamers (紙垂) hang from it
     const ropeM2 = sm('#c9b583'), paperM = new THREE.MeshStandardMaterial({ color: '#f1ede2', roughness: 0.9, side: THREE.DoubleSide, flatShading: true });
     const PA = [0, 90, 180, 270].map(a => [Math.cos(a * deg) * 1.55, Math.sin(a * deg) * 1.55]); PA.forEach(([x, z]) => { cyl(DAIS, 0.05, 0.06, 1.35, 6, postM, x, 0.55 + 0.67, z); add(DAIS, new THREE.SphereGeometry(0.06, 6, 4), postM, x, 1.92, z); });
-    [[0, 3], [3, 2], [2, 1]].forEach(([a, b]) => { const A = new THREE.Vector3(PA[a][0], 1.82, PA[a][1]), Bv = new THREE.Vector3(PA[b][0], 1.82, PA[b][1]); rope(DAIS, A, Bv, 0.28, 0.035, ropeM2);
-      [0.3, 0.5, 0.7].forEach(t => { const p = new THREE.Vector3().lerpVectors(A, Bv, t); p.y -= 0.28 * 4 * t * (1 - t); const sh = new THREE.Group(); sh.position.copy(p); sh.rotation.y = Math.atan2(Bv.x - A.x, Bv.z - A.z) + Math.PI / 2; DAIS.add(sh);
+    // v11: the rope now closes all four sides; the step side (posts 1→0) is a separate gate that slackens and lies down on the stone when the core is drawn
+    GATE = new THREE.Group(); GATE.position.y = 1.82; DAIS.add(GATE);
+    [[0, 3, DAIS, 1.82], [3, 2, DAIS, 1.82], [2, 1, DAIS, 1.82], [1, 0, GATE, 0]].forEach(([a, b, par, yy]) => { const A = new THREE.Vector3(PA[a][0], yy, PA[a][1]), Bv = new THREE.Vector3(PA[b][0], yy, PA[b][1]); rope(par, A, Bv, 0.28, 0.035, ropeM2);
+      [0.3, 0.5, 0.7].forEach(t => { const p = new THREE.Vector3().lerpVectors(A, Bv, t); p.y -= 0.28 * 4 * t * (1 - t); const sh = new THREE.Group(); sh.position.copy(p); sh.rotation.y = Math.atan2(Bv.x - A.x, Bv.z - A.z) + Math.PI / 2; par.add(sh);
         for (let k = 0; k < 4; k++) { const q = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.1), paperM); q.position.set((k % 2 ? 0.04 : -0.04), -0.07 - k * 0.09, 0); sh.add(q); } (window.__shide = window.__shide || []).push(sh); }); });
     // a pair of small stone lanterns on the islet, either side of the approach
     [15, 75].forEach(a => { const x = Math.cos(a * deg) * 2.25, z = Math.sin(a * deg) * 2.25; const lg = new THREE.Group(); lg.position.set(x, 0.3, z); lg.scale.setScalar(0.62); DAIS.add(lg);
@@ -1309,7 +1325,7 @@ const CAVE = (() => {
   /* ---------- sound in the cave ---------- */
   const waves = []; // mirror of the cave's pulses, so motes and leaves can feel the wavefront
   function cavePulse(x, y, z, o) { pulse(x, y, z, Object.assign({ parent: G, cut: WY + 0.005, dust: 0 }, o)); waves.push({ x, y, z, R: o.R, r0: o.r0 || 0.15, dur: o.dur || 1.8, t: -(o.delay || 0), push: o.push === undefined ? 1 : o.push, inward: !!o.inward }); }
-  let humT = 3.0, stoneHere = true, glowBoost = 0, holeFlash = 0;
+  let humT = 3.0, stoneHere = true, coreOwned = false, glowBoost = 0, holeFlash = 0; // coreOwned is permanent: the pedestal stays empty and the gate stays down
   function hum(k = 1) { if (!stoneHere) return; cavePulse(CX, STONE_Y, CZ, { R: 5.2 * k, r0: 0.35, dur: 3.8, amp: 0.48 * k, col: '#bfe0ff', push: 0.8 * k }); ripple(CX, CZ, 0.7 * k); holeFlash = 1; glowBoost = Math.max(glowBoost, 0.6 * k); }
 
   /* ---------- traveller in the cave: follows a route of nodes, then acts ---------- */
@@ -1334,8 +1350,9 @@ const CAVE = (() => {
   let flash = 0, busy = '';
 
   /* ---------- events ---------- */
-  function resetCave() { tl = null; busy = ''; stoneHere = true; VS.visible = true; VS.position.set(CX, STONE_Y, CZ); VS.scale.setScalar(1); VS.rotation.set(0, 0, 0); stoneMat.emissiveIntensity = 0; stoneLight.intensity = 0; stoneHalo.material.opacity = 0;
-    humT = 2.5; route = null; standAt('L0', [NODES.B1[0], NODES.B1[1]]); TR.mode = 'act'; TR.spot = 'cv_look'; TR.t = 0; TR.dwell = 1e9; camTo(HOME, 1.0); subEl.style.opacity = 0; sealed.position.y = 0; say('洞裡很靜。水面像一面鏡子，藏聲石每過一會兒就低低地鳴一聲。'); }
+  function fullReset() { coreOwned = false; resetCave(); }
+  function resetCave() { tl = null; busy = ''; stoneHere = !coreOwned; gateT = -1; setGate(coreOwned ? 1 : 0); VS.visible = stoneHere; VS.position.set(CX, STONE_Y, CZ); VS.scale.setScalar(1); VS.rotation.set(0, 0, 0); stoneMat.emissiveIntensity = 0; stoneLight.intensity = 0; stoneHalo.material.opacity = 0;
+    humT = 2.5; route = null; standAt('L0', [NODES.B1[0], NODES.B1[1]]); TR.mode = 'act'; TR.spot = 'cv_look'; TR.t = 0; TR.dwell = 1e9; camTo(HOME, 1.0); subEl.style.opacity = 0; sealed.position.y = 0; say(coreOwned ? '洞裡很靜。石座空著，注連繩垂在台階上。' : '洞裡很靜。水面像一面鏡子，藏聲石每過一會兒就低低地鳴一聲。'); }
   function evSecond() { // second visit: the first walk into the cave, a voice in the rock: "……柴都濕了。"
     resetCave(); busy = 'second'; standAt('E0', [NODES.E1[0], NODES.E1[1]]); camTo({ x: 6.5, y: 0.8, z: 2.6, vh: 12 }, 3); say('旅人走進共鳴洞。');
     walk(ROUTE_IN, () => { act('cv_look', 2.4); camTo({ x: 0.2, y: 1.2, z: 3.2, vh: 13 }, 0.9); say('旅人在岔口停下，左邊的岩壁裡好像有聲音。');
@@ -1350,15 +1367,18 @@ const CAVE = (() => {
       [2.5, () => shakeGrit(30)], [4.6, () => { toast('<b>信物：銅製風哨</b>　風哨一響，洞裡有一面牆跟著嗡，那後面是空的。'); camTo(HOME, 0.8); busy = ''; }]]); }
   let wallBuzz = 0;
   function evCore() { // the map core: blue light, the stone shrinks into the luggage
-    if (!stoneHere) resetCave(); resetCave(); busy = 'core'; standAt('J', [NODES.B3[0], NODES.B3[1]]); camTo({ x: 0.0, y: 1.0, z: 0.4, vh: 12 }, 1.2); say('旅人走向光柱下的石壇。');
-    walk(ROUTE_STONE, () => { act('cv_stone', 1e9); TR.hd = Math.atan2(CX - TR.x, CZ - TR.z); camTo({ x: CX + 0.35, y: 1.45, z: CZ + 0.35, vh: 7.5 }, 0.9); humT = 99;
+    coreOwned = false; resetCave(); busy = 'core'; standAt('J', [NODES.B3[0], NODES.B3[1]]); camTo({ x: 0.0, y: 1.0, z: 0.4, vh: 12 }, 1.2); act('cv_look', 1e9); TR.hd = Math.atan2(CX - TR.x, CZ - TR.z);
+    // v11: the stone answers first — one hum, then the step-side rope slackens and lies down; only then does he cross
+    timeline([[0.6, () => { hum(1.0); say('藏聲石低低地鳴了一聲，像在回應旅人。'); }], [1.6, () => { gateT = 0; say('台階前的注連繩自己鬆開，垂到了石上。'); }],
+      [3.6, () => { say('旅人走向光柱下的石壇。'); walk(ROUTE_STONE, coreAtDais); }]]); }
+  function coreAtDais() { { act('cv_stone', 1e9); TR.hd = Math.atan2(CX - TR.x, CZ - TR.z); camTo({ x: CX + 0.35, y: 1.45, z: CZ + 0.35, vh: 7.5 }, 0.9); humT = 99;
       timeline([[0.6, () => { hum(1.0); say('藏聲石亮了起來，一聲比一聲急。'); }], [1.5, () => hum(1.1)], [2.2, () => hum(1.25)], [2.7, () => { ascend = 1; }],
         [3.6, () => { cavePulse(CX, STONE_Y + 0.4, CZ, { R: 15, r0: 0.5, dur: 4.4, amp: 1.0, col: '#5fa8ff', push: 2.2 }); cavePulse(CX, STONE_Y + 0.4, CZ, { R: 22, r0: 0.5, dur: 6, amp: 0.4, delay: 0.35, col: '#8cc4ff', push: 0 }); ripple(CX, CZ, 1.6); flash = 1; say('一道藍光從石頭裡湧出來，整座洞都亮了。'); }],
         [5.0, () => { shrinkT = 0; camTo({ x: CX + 0.6, y: 1.4, z: CZ + 0.6, vh: 9 }, 0.8); }],
-        [7.6, () => { stoneHere = false; VS.visible = false; ascend = 0; cavePulse(packPos.x, packPos.y, packPos.z, { R: 1.4, r0: 0.1, dur: 1.4, amp: 0.6, col: '#9fd2ff', push: 0.3 }); say('藏聲石縮成一顆小石子，收進了旅人的行李。'); }],
-        [9.6, () => { toast('<b>地圖核心：藏聲石</b>　會留住聲音的石頭，收進了行李。'); camTo(HOME, 0.7); act('cv_look', 1e9); busy = ''; }]]); }); }
+        [7.6, () => { stoneHere = false; coreOwned = true; VS.visible = false; ascend = 0; cavePulse(packPos.x, packPos.y, packPos.z, { R: 1.4, r0: 0.1, dur: 1.4, amp: 0.6, col: '#9fd2ff', push: 0.3 }); say('藏聲石縮成一顆小石子，收進了旅人的行李。'); }],
+        [9.6, () => { toast('<b>地圖核心：藏聲石</b>　會留住聲音的石頭，收進了行李。'); camTo(HOME, 0.7); act('cv_look', 1e9); busy = ''; }]]); } }
   // 聽回音: the stone keeps the sounds made in the valley and lets them out again. The traveller walks in as far as the fork,
-  // listens to his own sound come back from the stone, and walks out. He never crosses the sacred rope: the stone has not answered him.
+  // listens to his own sound come back from the stone, and walks out. He never crosses the sacred rope: it stays closed until the stone answers him (the core).
   const ECHO = {
     chime: { name: '石磬', line: '藏聲石放出兩個音，正是剛才石磬的那一下。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.2, r0: 0.3, dur: 2.6, amp: 0.55, col: '#ffe4bf', push: 0.8 }); cavePulse(CX, STONE_Y, CZ, { R: 5.2, r0: 0.3, dur: 3.2, amp: 0.4, delay: 1.2, col: '#cfe6ff', push: 0.6 }); } },
     echo: { name: '巨石的回聲', line: '藏聲石把旅人剛才喊的那一聲，慢慢地還了回來。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.0, r0: 0.3, dur: 2.4, amp: 0.5, col: '#ffe4bf', push: 0.7 }); cavePulse(CX, STONE_Y, CZ, { R: 4.4, r0: 0.4, dur: 1.8, amp: 0.4, delay: 1.6, inward: true, col: '#cfe6ff', push: 0 }); } },
@@ -1366,11 +1386,11 @@ const CAVE = (() => {
     wind: { name: '風孔岩的嗚聲', line: '藏聲石裡傳出風穿過孔洞的嗚嗚聲。', play: () => { for (let k = 0; k < 3; k++) cavePulse(CX, STONE_Y, CZ, { R: 3.6 + k * 0.5, r0: 0.4, dur: 2.6, amp: 0.36, delay: k * 0.7, col: '#e2ddd2', push: 0.5 }); } },
     wall: { name: '聲壁', line: '藏聲石悶悶地響了一下，像剛才敲聲壁的那一聲。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.6, r0: 0.5, dur: 2.4, amp: 0.5, col: '#ead9c0', push: 0.8 }); } }
   };
-  function visit(kind, onDone) { // called by the outdoor runtime after the traveller has walked into the cave mouth
+  function visit(kind, short, onDone) { const IN = short ? ['E1', 'L0'] : ['E1', 'L0', 'B1', 'B2', 'J'], OUT = IN.slice().reverse(); // short: budget slipped on the way // called by the outdoor runtime after the traveller has walked into the cave mouth
     enter('visit'); visiting = true; visitDone = onDone; busy = 'visit'; standAt('E1', [NODES.L0[0], NODES.L0[1]]); camTo(HOME, 1.0); Object.assign(camC, HOME); humT = 99;
     const E = ECHO[kind] || ECHO.chime; say('旅人循著回音走進共鳴洞。');
-    walk(['E1', 'L0', 'B1', 'B2', 'J'], () => { act('cv_wall', 1e9); TR.spot = 'cv_listen'; TR.hd = Math.atan2(CX - TR.x, CZ - TR.z); camTo({ x: 0.6, y: 0.6, z: 0.9, vh: 12.5 }, 0.8);
-      timeline([[1.0, () => { E.play(); holeFlash = 1; glowBoost = 0.7; say(E.line); }], [7.0, () => { camTo(HOME, 0.8); humT = 3; walk(['J', 'B2', 'B1', 'L0', 'E1'], () => { const f = visitDone; visitDone = null; busy = ''; if (f) f(); }); }]]); }); }
+    walk(IN, () => { act('cv_wall', 1e9); TR.spot = 'cv_listen'; TR.hd = Math.atan2(CX - TR.x, CZ - TR.z); camTo({ x: 0.6, y: 0.6, z: 0.9, vh: 12.5 }, 0.8);
+      timeline([[1.0, () => { E.play(); holeFlash = 1; glowBoost = 0.7; say(E.line); }], [7.0, () => { camTo(HOME, 0.8); humT = 3; walk(OUT, () => { const f = visitDone; visitDone = null; busy = ''; if (f) f(); }); }]]); }); }
   let ascend = 0, shrinkT = -1; const packPos = new THREE.Vector3(), _sp = new THREE.Vector3();
 
   /* ---------- enter / leave ---------- */
@@ -1398,6 +1418,7 @@ const CAVE = (() => {
     TR.y = TR.cy; poseTraveller(dt);
     // the stone's hum every 8 s
     if (stoneHere && (!busy || busy === 'visit')) { humT -= dt; if (humT <= 0) { humT = 8; hum(1); } }
+    if (gateT >= 0) { gateT += dt; setGate(Math.min(1, gateT / 1.6)); if (gateT >= 1.6) gateT = -1; }
     holeFlash = Math.max(0, holeFlash - dt * 0.7); glowBoost = Math.max(0, glowBoost - dt * 0.35);
     holeBlue.color.setRGB(0.3 + 0.6 * holeFlash + 0.4 * ascend, 0.55 + 0.4 * holeFlash + 0.3 * ascend, 0.95);
     if (stoneHere) { const k = Math.max(glowBoost, ascend); stoneMat.emissiveIntensity = 0.05 + 0.9 * k; stoneLight.intensity = 0.15 + 2.2 * k + 4.0 * ascend; stoneHalo.material.opacity = 0.08 + 0.55 * k; stoneHalo.scale.setScalar(1.6 + 1.8 * k); }
@@ -1466,7 +1487,7 @@ const CAVE = (() => {
     renderer.clippingPlanes = []; renderer.shadowMap.autoUpdate = au; water.visible = true; shafts.forEach(m => m.visible = true); noRefl.forEach(m => m.visible = true); }
   let subVis;
   function state() { return { busy, stoneHere, x: +TR.x.toFixed(2), z: +TR.z.toFixed(2), y: +TR.cy.toFixed(2), mode: TR.mode, spot: TR.spot, cam: { ...camC } }; }
-  return { visit, isVisiting: () => visiting, ECHO, enter, leave, update, renderReflection, evSecond, evCore, evWhistle, reset: resetCave, state, NODES, ROUTES: { ROUTE_IN, ROUTE_STONE, ROUTE_WALL }, floorMeshes, G, hum, camC, camT, setCamNow() { Object.assign(camC, camT); placeCaveCam(); } };
+  return { hasStone: () => stoneHere, visit, isVisiting: () => visiting, ECHO, enter, leave, update, renderReflection, evSecond, evCore, evWhistle, reset: fullReset, state, NODES, ROUTES: { ROUTE_IN, ROUTE_STONE, ROUTE_WALL }, floorMeshes, G, hum, camC, camT, setCamNow() { Object.assign(camC, camT); placeCaveCam(); } };
 })();
 
 /* ---------- HUD ---------- */
@@ -1512,17 +1533,17 @@ document.body.appendChild(hud);
 const $ = (id) => document.getElementById(id), statusEl = $('status');
 const fadeEl = document.createElement('div'); fadeEl.style.cssText = 'position:fixed;inset:0;background:#05080a;opacity:0;pointer-events:none;z-index:5'; document.body.appendChild(fadeEl);
 const fmt = (s) => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
-function startPlay() { playing = true; $('play').textContent = '暫停'; if (!started) { started = true; place(...NAV[startSpot].tgt); TR.hd = 0; TR.mode = 'idle'; TR.dwell = 0.6; say('旅人從瀑布邊的木棧道走上來。'); } }
+function startPlay() { playing = true; $('play').textContent = '暫停'; if (!started) { started = true; rollEchoRun(); place(...NAV[startSpot].tgt); TR.hd = 0; TR.mode = 'idle'; TR.dwell = 0.6; say('旅人從瀑布邊的木棧道走上來。'); } }
 $('play').onclick = () => { if (playing) { playing = false; $('play').textContent = '繼續'; } else startPlay(); };
 $('spd').querySelectorAll('button').forEach(b => b.onclick = () => { speed = +b.dataset.speed; $('spd').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
 $('tmode').querySelectorAll('button').forEach(b => b.onclick = () => { timeMode = b.dataset.time; $('tmode').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
-function resetAll() { sim = 0; TR.lit = 0; TR.done = false; TR.recent = []; TR.leave = []; TR.spot = 0; TR.mode = 'idle'; TR.dwell = 0.4; started = false; playing = false; $('play').textContent = '開始專注'; place(...NAV[startSpot].tgt); say('按下開始，旅人會從瀑布邊的木棧道走上來。'); windSim = 0; wind = 0; bellStrikes = 0; windFirst = true; caveLure = null; caveCalling = false; caveVisits = 0; }
+function resetAll() { sim = 0; TR.lit = 0; TR.done = false; TR.recent = []; TR.leave = []; TR.spot = 0; TR.mode = 'idle'; TR.dwell = 0.4; started = false; playing = false; $('play').textContent = '開始專注'; place(...NAV[startSpot].tgt); say('按下開始，旅人會從瀑布邊的木棧道走上來。'); windSim = 0; wind = 0; bellStrikes = 0; windFirst = true; caveLure = null; caveCalling = false; caveVisits = 0; echoRun = null; packEchoAt = null; packEchoDone = false; }
 $('reset').onclick = resetAll;
 $('skip').onclick = () => { if (!started) startPlay(); sim = PLANNED; TR.lit = 5; TR.done = true; TR.leave = []; const nv = NAV[4]; const st = STAND[4]; place(st.p[0], st.p[1]); TR.hd = Math.atan2(st.look[0] - TR.x, st.look[1] - TR.z); TR.mode = 'rest'; TR.spot = 4; say('五盞燈都亮了。旅人坐在觀景平台，看著雲海，一直到專注結束。'); };
 $('windBtn').onclick = () => { if (!started) startPlay(); startWind(windFirst); };
 $('restBtn').onclick = () => goSpot(4, true);
 $('caveBtn').onclick = () => CAVE.enter();
-$('echoBtn').onclick = () => { if (!started) startPlay(); if (inCave || TR.done || TR.why === 'cave') return; caveLure = { kind: caveLure ? caveLure.kind : 'bell', at: tAcc - 10 }; caveCalling = true; caveVisits = 0; TR.forceCave = true; const pa = planTo(12); if (pa) { TR.leave = []; startWalk(pa, 12, 'goto'); say('（測試）洞口傳出一聲回音，旅人往共鳴洞走去。'); } }; $('cvLeave').onclick = () => CAVE.leave(); $('cvReset').onclick = () => CAVE.reset(); $('cvSecond').onclick = () => CAVE.evSecond(); $('cvCore').onclick = () => CAVE.evCore(); $('cvWhistle').onclick = () => CAVE.evWhistle();
+$('echoBtn').onclick = () => { if (!started) startPlay(); if (inCave || TR.done || TR.why === 'cave') return; if (!CAVE.hasStone()) { say('（測試）藏聲石已在行李裡，洞口不再回話。'); return; } echoRun = true; caveLure = { kind: caveLure ? caveLure.kind : 'bell', at: tAcc - 10 }; caveCalling = true; caveVisits = 0; TR.forceCave = true; const pa = planTo(12); if (pa) { TR.leave = []; startWalk(pa, 12, 'goto'); say('（測試）洞口傳出一聲回音，旅人往共鳴洞走去。'); } }; $('cvLeave').onclick = () => CAVE.leave(); $('cvReset').onclick = () => CAVE.reset(); $('cvSecond').onclick = () => CAVE.evSecond(); $('cvCore').onclick = () => CAVE.evCore(); $('cvWhistle').onclick = () => CAVE.evWhistle();
 $('tmode2').querySelectorAll('button').forEach(b => b.onclick = () => { timeMode = b.dataset.time; lookInit = false; $('tmode').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.time === timeMode)); });
 function goSpot(id, rest) { if (!started) startPlay(); if (TR.mode === 'light' || TR.done) return; const pa = planTo(id); if (!pa) { say('這裡走不過去。'); return; } TR.leave = TR.leave || []; startWalk(pa, id, rest ? 'rest' : 'goto'); if (rest) TR.why = 'wander'; say(`旅人往「${SP[id].name}」走去。`); }
 SPOT_IDS.forEach(id => { const b = document.createElement('button'); b.textContent = id; b.title = SP[id].name; b.onclick = () => goSpot(id); $('spotBtns').appendChild(b); });
@@ -1575,7 +1596,7 @@ window.__quarry = {
       bellTower: { center: P([BELL.P.x, BELL.P.y, BELL.P.z]), stage: { x0: STAGE.x0, x1: STAGE.x1, z0: STAGE.z0, z1: STAGE.z1, y: STAGE.y }, bridgeRim: P([SBa.x, SBa.y, SBa.z]), bridgeStage: P([SBb.x, SBb.y, SBb.z]), standAtLog: P([8.55, 12.62]) },
       caveMouth: { position: P([window.__cave.position.x, window.__cave.position.y, window.__cave.position.z]), rotationY: r3(window.__cave.rotation.y), tunnelDepth: 1.0, axisInside: P(caveAxis(-0.45)), axisOutside: P(caveAxis(1.0)), humSource: P(CAVE_MOUTH) },
       cave: { waterY: 0, stone: { pos: P([-2.5, 1.72, -2.5]), humEverySeconds: 8 }, nodes: Object.fromEntries(Object.entries(C2.NODES).map(([k, v]) => [k, P(v)])), routes: C2.ROUTES, echoVisitRoute: { in: ['E1', 'L0', 'B1', 'B2', 'J'], out: ['J', 'B2', 'B1', 'L0', 'E1'], listenSeconds: 7, faceToward: P([-2.5, -2.5]) }, sealedWallFacing: [0.99, 0.15] },
-      echoVisit: { maxPerExploration: 1, requiresSoundThisExploration: Object.values(SOUND_OF), mouthEchoOnce: true, chooseProbability: 0.6, notBeforeSeconds: 300, notAfterRest: true, visitEffectiveSeconds: VISIT_EFF, lampBufferSeconds: 60, fadeSeconds: 0.7, rule: 'walkToMouthEff + visitEff + lampEtaFromCaveEff + 60 < nextLampDue - now (checked when choosing and again on arrival)' },
+      echoVisit: { maxPerExploration: 1, requiresSoundThisExploration: Object.values(SOUND_OF), mouthEchoOnce: true, explorationProbability: ECHO_RUN_P, decidedAt: 'exploration start (saved)', committedWhen: 'first sound after 300 s that passes the budget; mouth echo 4 s later, then he goes straight in', afterCore: 'no cave echo; once per exploration a small echo from the luggage (visual only)', coreNotAffected: '5% per lamp / 5th-visit pity always takes him in, outside this cap', notBeforeSeconds: 300, notAfterRest: true, visitEffectiveSeconds: VISIT_EFF, lampBufferSeconds: 60, fadeSeconds: 0.7, rule: 'walkToMouthEff + visitEff + lampEtaFromCaveEff + 60 < nextLampDue - now (checked when choosing and again on arrival)' },
       wind: { rollEverySeconds: 240, chance: 0.08, durationSeconds: 60, firstTimeBellStrikes: 13 } }; },
   lure(kind) { caveLure = { kind: kind || 'bell', at: tAcc - 10 }; updateSound.cave = 0; }, caveInfo: () => ({ caveLure, caveCalling, caveVisits, ok: caveOK(), fade: fade && fade.k, inCave, visiting: CAVE.isVisiting() }), goCave() { goSpot(12); },
   cave: { enter: () => CAVE.enter(), leave: () => CAVE.leave(), second: () => CAVE.evSecond(), core: () => CAVE.evCore(), whistle: () => CAVE.evWhistle(), reset: () => CAVE.reset(), state: () => CAVE.state(), hum: () => CAVE.hum(1), camNow: () => CAVE.setCamNow(), run(sec, step) { step = step || 1 / 30; const n = Math.round(sec / step); for (let i = 0; i < n; i++) update(step); }, M: CAVE },
