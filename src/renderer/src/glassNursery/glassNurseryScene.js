@@ -1127,7 +1127,7 @@ function lobbyCam(){if(!lobby||transplant||opts.departure)return;
   const p=view.kind==='look'?NP(view.exit==='exit_corridor'?'D':'X2'):TRV.pos.clone();p.y+=.8;
   if(view.kind==='overview'){camGoal.copy(CI.target);camZoomGoal=1;return;}
   const right=new T.Vector3().setFromMatrixColumn(camera.matrixWorld,0);p.addScaledVector(right,(chrome.right||0)/Math.max(1,canvas.clientWidth)*6);camGoal.copy(p);camZoomGoal=1.6;}
-let compiled=false;void renderer.compileAsync(scene,camera,()=>dead).then(()=>{compiled=true;}).catch(e=>{console.error(e);compiled=true;});
+let compiled=false;void renderer.compileAsync(scene,camera,()=>dead).then(()=>dead?undefined:glass.prepare(()=>dead)).then(()=>{compiled=true;}).catch(e=>{console.error(e);compiled=true;});
 function draw(now=performance.now()){
   if(dead)return;const elapsed=Math.max(0,(now-lastReal)/1000);lastReal=now;if(!compiled)return;
   presentAction(now);lobbyCam();

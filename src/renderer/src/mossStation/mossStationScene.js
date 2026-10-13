@@ -2063,7 +2063,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
   const clock = new T.Clock();
   let raf = 0, disposed = false, lastDrawAt = 0, framesDrawn = 0, lastFrameAt = performance.now();
   let programsReady = !!opts.manualFrames;
-  if (!programsReady) void renderer.compileAsync(scene, camera, () => disposed).then(() => { if (!disposed) programsReady = true; }).catch(error => { console.error('苔痕驛站材質載入失敗', error); programsReady = true; });
+  if (!programsReady) void renderer.compileAsync(scene, camera, () => disposed).then(() => disposed ? undefined : glass.prepare(() => disposed)).then(() => { if (!disposed) programsReady = true; }).catch(error => { console.error('苔痕驛站材質載入失敗', error); programsReady = true; });
   const glassDeep = new T.Color();
   function frame(scheduleNext = true) {
     if (!programsReady) { lastFrameAt = performance.now(); if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }

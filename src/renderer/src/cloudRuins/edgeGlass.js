@@ -179,5 +179,14 @@ export function createEdgeGlass(renderer) {
     [downMat, blurMat, compMat].forEach((m) => m.dispose()); quadGeo.dispose();
   }
 
-  return { setSize, setChrome, setUiFade, jumpPaused, render, dispose, get enabled() { return enabled; }, get chrome() { return chrome; } };
+  async function prepare(cancelled = () => false) {
+    // Prepare the postprocess shaders before the first visible frame.
+    for (const material of [downMat, blurMat, compMat]) {
+      if (cancelled()) return;
+      quad.material = material;
+      await renderer.compileAsync(quadScene, quadCam, cancelled);
+    }
+  }
+
+  return { setSize, setChrome, setUiFade, jumpPaused, render, dispose, prepare, get enabled() { return enabled; }, get chrome() { return chrome; } };
 }

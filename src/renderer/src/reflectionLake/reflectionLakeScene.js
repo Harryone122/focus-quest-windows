@@ -1,6 +1,9 @@
 import * as T from '../cloudRuins/vendor/three.module.js';
 import AREA from '../../../../docs/area03/area-03-reflection-lake.scene.json';
 import { createEdgeGlass } from '../cloudRuins/edgeGlass.js';
+import groundPixels from './groundPixels.base64.txt?raw';
+// Exact fixed shoreline pixels baked from the accepted procedural scene.
+const groundBytes = Uint8Array.from(atob(groundPixels.trim()), c => c.charCodeAt(0));
 
 export function createReflectionLakeScene(host, options) {
 let opts = {...options}; let paused = !!opts.paused, lobby = opts.mode === 'lobby', dead = false; let lake = opts.lake || null; let savedProgress = opts.progressSeconds || 0, lastProgressAt = performance.now(); let S4_HANDLES = {}, holdCam = false;
@@ -256,28 +259,7 @@ function groundH(u, v) { let h = BOTTOM; for (let k = 0; k < FE.length; k++) { c
 const MAPB = { u0: -24, u1: 24, v0: -14, v1: 28, px: 16 };
 const groundTex = (function () {
   const w = (MAPB.u1 - MAPB.u0) * MAPB.px, h = (MAPB.v1 - MAPB.v0) * MAPB.px; const data = new Uint8Array(w * h * 4);
-  const shelfCol = new T.Color(0x86a09c), deepCol = new T.Color(0x35525a), tmp = new T.Color(); const RANGE = 11;
-  for (let j = 0; j < h; j++) {
-    const v = MAPB.v0 + (j + 0.5) / MAPB.px;
-    for (let i = 0; i < w; i++) {
-      const u = MAPB.u0 + (i + 0.5) / MAPB.px;
-      let best = -9, bc = null, dl = 1e9;
-      for (let k = 0; k < FE.length; k++) {
-        const f = FE[k]; const b = f.bb;
-        if (u < b[0] - RANGE || u > b[1] + RANGE || v < b[2] - RANGE || v > b[3] + RANGE) continue;
-        const sd = f.sd(u, v); if (sd < dl) dl = sd;
-        if (sd >= f.edge) continue;
-        const top = typeof f.top === 'function' ? f.top(u, v) : f.top;
-        const hh = sd <= 0 ? top : top + (BOTTOM - top) * sstep(0, f.edge, sd);
-        if (hh > best) { best = hh; bc = f.col; }
-      }
-      const sh = BOTTOM + (DEEP - BOTTOM) * sstep(4, 11, dl); const hgt = Math.max(best, sh);
-      tmp.copy(shelfCol).lerp(deepCol, (sh - BOTTOM) / (DEEP - BOTTOM));
-      if (bc) tmp.lerp(bc, sstep(sh, sh + 0.15, best));
-      const o = (j * w + i) * 4; data[o] = Math.round(tmp.r * 255); data[o + 1] = Math.round(tmp.g * 255); data[o + 2] = Math.round(tmp.b * 255);
-      data[o + 3] = Math.round(Math.max(0, Math.min(1, (hgt - HMIN) / (HMAX - HMIN))) * 255);
-    }
-  }
+  data.set(groundBytes);
   const tex = new T.DataTexture(data, w, h, T.RGBAFormat); tex.minFilter = T.LinearFilter; tex.magFilter = T.LinearFilter; tex.wrapS = tex.wrapT = T.ClampToEdgeWrapping; tex.generateMipmaps = false; tex.needsUpdate = true; return tex;
 })();
 
@@ -1593,7 +1575,10 @@ const staff = new T.Group(); staff.position.set(0.2, 0.25, 0.08); upper.add(staf
 mesh(new T.CylinderGeometry(0.017, 0.02, 1.08, 5), M.tWood, staff, 0, 0.02, 0); mesh(new T.BoxGeometry(0.02, 0.02, 0.14), M.woodDark, staff, 0, 0.55, 0.06);
 const travGlowMat = new T.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 1.2, roughness: 1 }); travGlowMat.userData.glow = true;
 const travLamp = mesh(new T.BoxGeometry(0.075, 0.1, 0.075), travGlowMat, staff, 0, 0.46, 0.13);
-const travLight = new T.PointLight(0xffb05a, 0.8, 3.2, 2); travLight.position.set(0, 0.46, 0.13); staff.add(travLight);
+// Keep the light count stable when the traveller fades away: hiding its parent
+// would otherwise relink every lit material in both the sharp and reflection pass.
+const travLightAnchor = new T.Object3D(); travLightAnchor.position.set(0, 0.46, 0.13); staff.add(travLightAnchor);
+const travLight = new T.PointLight(0xffb05a, 0.8, 3.2, 2); scene.add(travLight);
 const travHalo = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.3, fog: false })); travHalo.scale.set(0.8, 0.8, 1); travHalo.position.set(0, 0.46, 0.13); staff.add(travHalo);
 const book = mesh(new T.BoxGeometry(0.2, 0.025, 0.14), M.paper, upper, 0, 0.1, 0.24); book.rotation.x = -0.4;
 const cup = mesh(new T.CylinderGeometry(0.035, 0.03, 0.05, 8), M.paper, armL, 0, -0.3, 0.02); cup.visible = false;
@@ -2088,6 +2073,8 @@ function update(dt) {
   if (!dragging && !holdCam) { const q = Math.exp(-dt * 2.6); yawOff *= q; pitchOff *= q; }
   bridgeFxUpdate(dt);
   s4Update(dt);
+  travLightAnchor.getWorldPosition(travLight.position);
+  if (!trav.visible) travLight.intensity = 0;
   placeCamera();
 }
 
@@ -3151,7 +3138,17 @@ Object.assign(api, {
 let inspection = false, actionKey = null, departureStarted = false, departureDone = false, departureMs = opts.departureElapsedMs || 0;
 let lastReal = performance.now(), raf = 0, view = {kind:'overview'}, chrome = {cards:[]}, routes = [], items = [], readyFrames = 0;
 let programsReady = !!opts.manualFrames;
-if(!programsReady)void renderer.compileAsync(scene,camera,()=>dead).then(()=>{if(!dead)programsReady=true;}).catch(error=>{console.error('倒影湖畔材質載入失敗',error);programsReady=true;});
+if(!programsReady)void (async()=>{
+  applyAction(performance.now());update(0);
+  renderer.clippingPlanes=[clipPlane];
+  await renderer.compileAsync(scene,reflCam,()=>dead);
+  if(dead)return;
+  renderer.clippingPlanes=[];
+  await renderer.compileAsync(scene,camera,()=>dead);
+  if(dead)return;
+  await glass.prepare(()=>dead);
+  if(!dead)programsReady=true;
+})().catch(error=>{renderer.clippingPlanes=[];console.error('倒影湖畔材質載入失敗',error);programsReady=true;});
 function applyAction(now) {
   const shown=opts.departure&&!departureDone?(opts.departureState||lake):lake;
   if (shown) { TIDE_SEED=shown.seed; Object.assign(marks,shown.worldMarks); trip.steleWiped=shown.steleWiped; }
@@ -3219,7 +3216,7 @@ return {
  setRoutes(value,hover){routes=value;if(hover){const r=routes.find(r=>r.key===hover);if(r?.exit)view={kind:'look',exit:r.exit};}},
  setLobbyView(value){view=value;},setLobbyItems(value){items=value;},playSpecialFind(){},
  enterLobby(nextHost,nextOpts){observer.disconnect();host=nextHost;host.appendChild(canvas);observer.observe(host);opts={...opts,...nextOpts,departure:null};lobby=true;paused=false;actionKey=null;view={kind:'close'};resize();},
- renderNow(){draw();},debugState(){return {...api.state(),traveller:{...api.tr(),stepIndex:Math.floor(TR.phase/Math.PI),air:TR.air},worldMarks:{...marks},action:lake?.action,paused,lobby,departureDone};},
+ renderNow(){draw();},debugState(){return {...api.state(),traveller:{...api.tr(),stepIndex:Math.floor(TR.phase/Math.PI),air:TR.air},worldMarks:{...marks},action:lake?.action,paused,lobby,departureDone,chrome};},
  destroy(){if(dead)return;storyCleanup();S5.vignette.remove();dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();glass.dispose();rt.dispose();mrt.dispose();const resources=new Set();scene.traverse(o=>{if(o.geometry)resources.add(o.geometry);if(o.shadow?.map)resources.add(o.shadow.map);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){resources.add(m);for(const v of Object.values(m)){if(v?.isTexture)resources.add(v);}for(const u of Object.values(m.uniforms||{})){if(u.value?.isTexture)resources.add(u.value);}}});resources.forEach(r=>r.dispose());renderer.dispose();canvas.remove();GOV.c.remove();opts.reportCinematic?.(false);},
  // Isolated QA only: no production control calls these prototype inspection entries.
  qa:api, setInspection(value){inspection=value;}

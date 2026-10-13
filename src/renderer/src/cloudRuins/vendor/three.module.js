@@ -24210,15 +24210,28 @@ function WebGLRenderer( parameters ) {
 		} );
 		currentRenderState.setupLights();
 		const pending = new Set();
-		const diagnostics = _this.debug.checkShaderErrors;
-		_this.debug.checkShaderErrors = false;
-		try {
-			scene.traverse( function ( object ) {
-				if ( ! object.material ) return;
+		// Match clipping in the render pass, including planar reflections.
+		camera.updateMatrixWorld();
+		clipping.init( _this.clippingPlanes, _this.localClippingEnabled, camera );
+		const objects = [];
+		scene.traverse( object => { if ( object.material ) objects.push( object ); } );
+		let sliceStart = performance.now();
+		for ( const object of objects ) {
+			if ( cancelled() ) return;
+			const diagnostics = _this.debug.checkShaderErrors;
+			_this.debug.checkShaderErrors = false;
+			try {
 				const materials = Array.isArray( object.material ) ? object.material : [ object.material ];
-				for ( const material of materials ) pending.add( getProgram( material, scene, object, true ).program );
-			} );
-		} finally { _this.debug.checkShaderErrors = diagnostics; }
+				for ( const material of materials ) {
+					clipping.setState( material, camera, false );
+					pending.add( getProgram( material, scene, object, true ).program );
+				}
+			} finally { _this.debug.checkShaderErrors = diagnostics; }
+			if ( performance.now() - sliceStart > 8 ) {
+				await new Promise( resolve => setTimeout( resolve, 0 ) );
+				sliceStart = performance.now();
+			}
+		}
 		while ( pending.size && ! cancelled() ) {
 			for ( const program of pending ) {
 				if ( ! gl.getProgramParameter( program, parallel.COMPLETION_STATUS_KHR ) ) continue;

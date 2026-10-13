@@ -2633,7 +2633,7 @@ export function createCloudRuinsScene(host, options) {
   let lastDrawAt = 0;
   let lastFrameAt = performance.now();
   let programsReady = !!opts.manualFrames;
-  if (!programsReady) void renderer.compileAsync(scene, camera, () => disposed).then(() => { if (!disposed) programsReady = true; }).catch(error => { console.error('雲上遺庭材質載入失敗', error); programsReady = true; });
+  if (!programsReady) void renderer.compileAsync(scene, camera, () => disposed).then(() => disposed ? undefined : glass.prepare(() => disposed)).then(() => { if (!disposed) programsReady = true; }).catch(error => { console.error('雲上遺庭材質載入失敗', error); programsReady = true; });
   function frame(scheduleNext = true) {
     if (disposed || (opts.departureOnly && departureReported)) return;
     if (!programsReady) { lastFrameAt = performance.now(); if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }

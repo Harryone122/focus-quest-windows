@@ -1,3 +1,4 @@
+import { observeFocusChrome } from './cloudRuins/observeFocusChrome'
 import { useEffect, useRef, useState } from 'react'
 import { createReflectionLakeScene, type LakeSceneHandle } from './reflectionLake/reflectionLakeScene'
 import { createLakeAudio } from './reflectionLake/lakeAudio'
@@ -22,10 +23,9 @@ export function ReflectionLakeFocusScene(p:Props) {
   try {handle=createReflectionLakeScene(host.current,{progressSeconds:p.progressSeconds,targetSeconds:p.targetSeconds,lake:p.lake,departureState:p.departureState,paused:p.paused,departure:p.departure,departureElapsedMs:p.departureElapsedMs,reportReady:()=>live.current.onReady?.(),reportActivity:s=>live.current.onActivityChange?.(s),reportDepartureComplete:()=>live.current.onDepartureComplete?.(),reportCinematic:s=>live.current.onCinematicChange?.(s)})}
   catch(e){console.error('倒影湖畔畫面無法建立',e);setFailed(true);live.current.onReady?.();live.current.onDepartureComplete?.();return}
   scene.current=handle
-  const sync=()=>{const el=host.current;if(!el)return;const root=el.closest('.focus-active')??el.parentElement!,r=el.getBoundingClientRect();const top=root.querySelector('[data-glass="top"]')?.getBoundingClientRect(),bottom=root.querySelector('[data-glass="bottom"]')?.getBoundingClientRect();handle.setChrome({top:top?top.bottom-r.top:0,bottom:bottom?r.bottom-bottom.top:0,cards:[...root.querySelectorAll('[data-glass-card], [data-glass-zone]')].map(e=>{const c=e.getBoundingClientRect();return {x:c.left-r.left,y:c.top-r.top,w:c.width,h:c.height,kind:e.hasAttribute('data-glass-zone')?'zone' as const:'pill' as const}})})}
-  const observer=new ResizeObserver(sync);observer.observe(host.current);sync()
+  const stopChrome = observeFocusChrome(host.current, value => handle.setChrome(value))
   ;(window as any).__lakeScene=handle
-  return()=>{observer.disconnect();scene.current=null;live.current.onCinematicChange?.(false);if(live.current.retainForLobby&&!live.current.departure)leaveSceneForLobby(handle);else handle.destroy()}
+  return()=>{stopChrome();scene.current=null;live.current.onCinematicChange?.(false);if(live.current.retainForLobby&&!live.current.departure)leaveSceneForLobby(handle);else handle.destroy()}
  },[p.sessionId,p.nodeId])
  useEffect(()=>{scene.current?.setProgress(p.progressSeconds)},[p.progressSeconds])
  useEffect(()=>{if(p.lake)scene.current?.setLakeState(p.lake)},[p.lake])
