@@ -4,6 +4,7 @@ import type { AppSnapshot } from '../../shared/types'
 import { CORE_UNDERSTANDING_CLUES } from '../../shared/collectionRoom'
 import prototypeHtml from '../../../docs/prototypes/collection-room.html?raw'
 import threeModuleUrl from './cloudRuins/vendor/three.module.js?url'
+import { IFRAME_FRAME_SOURCE, PACED_IFRAME_FRAME_SOURCE } from './framePacing.js'
 import './collectionRoom.css'
 
 const MAP_INDEX: Record<string, number> = {
@@ -62,6 +63,7 @@ export function roomDocument(html = prototypeHtml, threeUrl = new URL(threeModul
       @media (max-width: 760px) { .top-left,.tbar,.tray { left: 16px; } .tray { max-width: calc(100% - 32px); bottom: 90px; } }
       </style>`)
     .replace('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n<script>', `<script type="module">\nimport * as THREE from ${JSON.stringify(threeUrl)};\nwindow.THREE = THREE;`)
+    .replace(IFRAME_FRAME_SOURCE, PACED_IFRAME_FRAME_SOURCE)
     .replace('function enterBag(placeNew) {', 'function enterBag(placeNew, targetIndex) {')
     .replace("exhibit(3, '留影玻璃'", "exhibit(3, '湖鏡'")
     // The water disc cannot sample its own render target during the reflection pass.

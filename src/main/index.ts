@@ -115,6 +115,18 @@ function createWindows(): void {
       }, qaCaptureDelay)
     }
   })
+  // The renderer lowers its 3D frame rate while the window is unfocused and skips GPU drawing while
+  // it is minimized or hidden in the tray. backgroundThrottling is off (see above), so the renderer
+  // cannot see this through the Page Visibility API. QA runs keep the full frame rate.
+  const fullFrameRate = !app.isPackaged && Object.keys(process.env).some((key) => key.startsWith('FOCUSQUEST_QA') || key === 'FOCUSQUEST_FULL_FRAME_RATE')
+  const sendFrameState = (): void => {
+    if (fullFrameRate || !mainWindow || mainWindow.isDestroyed()) return
+    mainWindow.webContents.send('window:frame-state', { visible: mainWindow.isVisible() && !mainWindow.isMinimized(), focused: mainWindow.isFocused() })
+  }
+  mainWindow.on('show', sendFrameState).on('hide', sendFrameState).on('minimize', sendFrameState)
+    .on('restore', sendFrameState).on('focus', sendFrameState).on('blur', sendFrameState)
+  mainWindow.webContents.on('did-finish-load', sendFrameState)
+
   mainWindow.on('close', (event) => {
     if (!quitting) {
       event.preventDefault()

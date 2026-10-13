@@ -1246,6 +1246,24 @@ export class FocusQuestDatabase {
     }
   }
 
+  /** Small read for the blocked-app check, which runs every 800 ms during Focus; getSnapshot() runs dozens of queries. */
+  getWindowMonitorState(): { activeSession: { id: string; suspendedAt: string | null; taskTitle: string; stepText: string } | null; blockRules: Array<{ processName: string; displayName: string }> } {
+    const row = this.db.prepare(`
+      SELECT sessions.id, sessions.suspended_at, tasks.title AS task_title, steps.text AS step_text
+      FROM sessions
+      JOIN tasks ON tasks.id = sessions.task_id
+      JOIN steps ON steps.id = sessions.step_id
+      WHERE sessions.ended_at IS NULL
+      ORDER BY sessions.started_at DESC LIMIT 1
+    `).get() as Row | undefined
+    if (!row) return { activeSession: null, blockRules: [] }
+    const rules = this.db.prepare('SELECT process_name, display_name FROM block_rules WHERE enabled = 1 ORDER BY display_name').all() as Row[]
+    return {
+      activeSession: { id: String(row.id), suspendedAt: row.suspended_at ? String(row.suspended_at) : null, taskTitle: row.task_title ? String(row.task_title) : '', stepText: row.step_text ? String(row.step_text) : '' },
+      blockRules: rules.map((rule) => ({ processName: String(rule.process_name), displayName: String(rule.display_name) }))
+    }
+  }
+
   getSnapshot(): AppSnapshot {
     const taskList = this.taskList.snapshot()
     const firstDay = new Date()

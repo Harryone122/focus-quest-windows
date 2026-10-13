@@ -1,6 +1,7 @@
 import * as T from '../cloudRuins/vendor/three.module.js';
 import AREA from '../../../../docs/area03/area-03-reflection-lake.scene.json';
 import { createEdgeGlass } from '../cloudRuins/edgeGlass.js';
+import { frameDue, shouldRender } from '../framePacing.js';
 import groundPixels from './groundPixels.base64.txt?raw';
 // Exact fixed shoreline pixels baked from the accepted procedural scene.
 const groundBytes = Uint8Array.from(atob(groundPixels.trim()), c => c.charCodeAt(0));
@@ -3194,14 +3195,14 @@ function draw(now=performance.now()) {
   if(!programsReady){lastReal=now;return;}
   if(dead)return; const realElapsed=Math.max(0,(now-lastReal)/1000), elapsed=Math.min(.05,realElapsed);lastReal=now;
   if(!paused&&!lobby)departureMs+=realElapsed*1000;
-  if(!inspection)applyAction(now);lobbyCamera(elapsed);update(paused?0:elapsed);renderFrame();
+  if(!inspection)applyAction(now);lobbyCamera(elapsed);update(paused?0:elapsed);if(readyFrames<2||shouldRender())renderFrame();
   const anchors={rest:anchor('p_seat'),entry:anchor(AREA.ports.entry),a_arch:anchor('a_arch'),b_far:anchor('b_far')};items.forEach((it,i)=>{const p=anchor('p_seat');anchors['item:'+it.key]={x:p.x+(i-1)*34,y:p.y+70};});opts.reportAnchors?.(anchors);
   if(++readyFrames===2)opts.reportReady?.();
   opts.reportLights?.(lampsDue());opts.reportCinematic?.(!!(rare?.core || STY.active));
   const a=lake?.action,activity=opts.departure&&!departureDone?'旅人沿踏石離開湖畔。':a?.kind==='walk'?'旅人沿著湖畔踏石前行。':a?.kind==='lamp'?'旅人點亮路燈。':a?.kind==='cuff'?'旅人捲起褲管。':STORY[a?.eventId]?.name||EVT[a?.eventId]?.name||REST_LIST.find(r=>r.id===a?.eventId)?.name||'旅人在湖畔等候。';
   if(activity!==reportedActivity){reportedActivity=activity;opts.reportActivity?.(activity);}
 }
-function loop(now){draw(now);if(!dead)raf=requestAnimationFrame(loop);}
+function loop(now){if(frameDue(now,lastReal))draw(now);if(!dead)raf=requestAnimationFrame(loop);}
 const observer=new ResizeObserver(()=>{resize();});observer.observe(host);
 const watchdog=setInterval(()=>{if(!dead&&performance.now()-lastReal>250)draw();},33);
 if(!opts.manualFrames)raf=requestAnimationFrame(loop);else draw();

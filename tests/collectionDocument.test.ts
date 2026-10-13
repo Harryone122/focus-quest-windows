@@ -10,5 +10,6 @@ describe('offline collection document bridge', () => {
     expect(result).not.toContain('https://cdnjs.cloudflare.com')
     expect(result).toContain("type: 'ready'")
     expect(result).toContain('panelPlace, applyExternalState, advance(sec)')
+    expect(result).toContain('parent.__focusQuestFramePace')
   })
 })

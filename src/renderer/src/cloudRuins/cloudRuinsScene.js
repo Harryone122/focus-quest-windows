@@ -10,6 +10,7 @@ import AREA from '../../../../docs/area-01-cloud-ruins.scene.json';
 import { timeOfDayAt } from '../../../shared/timeOfDay';
 import { litLampCount, fitsBeforeLamp } from '../../../shared/lampTiming';
 import { createEdgeGlass } from './edgeGlass.js';
+import { frameDue, shouldRender, onFrameVisible } from '../framePacing.js';
 
 export function createCloudRuinsScene(host, options) {
   const opts = Object.assign({
@@ -2639,9 +2640,10 @@ export function createCloudRuinsScene(host, options) {
     if (!programsReady) { lastFrameAt = performance.now(); if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
     lastFrameAt = performance.now();
     // The lobby can stay open for a long time: while the camera is at rest it draws at ~30 fps.
-    if (LOBBY && !dragging && Math.abs(yawOff) + Math.abs(pitchOff) < 0.002) {
-      const t = performance.now();
-      if (t - lastDrawAt < 30) { if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
+    // Otherwise the shared frame budget applies (~60 fps focused, ~30 fps in the background).
+    {
+      const t = performance.now(), atRest = LOBBY && !dragging && Math.abs(yawOff) + Math.abs(pitchOff) < 0.002;
+      if (atRest ? t - lastDrawAt < 30 : !frameDue(t, lastDrawAt)) { if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
       lastDrawAt = t;
     }
     // Always read the clock so the first frame after a pause does not see the whole pause as dt.
@@ -2656,7 +2658,8 @@ export function createCloudRuinsScene(host, options) {
     // Cross-map playback ends here. Do not compile/draw a new pose in the old world while React swaps it.
     if (opts.departureOnly && TR.dep && TR.dep.done) return;
     if (LOBBY) reportAnchorsIfMoved();
-    if (framesDrawn < 2 || !frozen || performance.now() < redrawUntil) {
+    // Minimized / hidden to tray: keep simulating, skip the GPU draw (the first two frames still compile and report ready).
+    if (framesDrawn < 2 || ((!frozen || performance.now() < redrawUntil) && shouldRender())) {
       glassDeep.copy(cur.fog).lerp(cur.skyTop, 0.35).multiplyScalar(0.2);
       glass.render(scene, camera, dt, glassDeep, [cur.gCap, cur.gCard, cur.gTint], frozen);
       framesDrawn++;
@@ -2666,6 +2669,7 @@ export function createCloudRuinsScene(host, options) {
   }
   const glassDeep = new T.Color();
   raf = requestAnimationFrame(frame);
+  const stopVisibleRedraw = onFrameVisible(() => { lastDrawAt = 0; requestRedraw(400); });
   // Windows can stop RAF completely when minimized even with backgroundThrottling disabled.
   // Keep one timer as a watchdog, not a second animation clock or a catch-up queue. While RAF is
   // active this does nothing; otherwise it executes the same pause-aware frame at roughly 30 fps.
@@ -2783,6 +2787,7 @@ export function createCloudRuinsScene(host, options) {
     destroy() {
       disposed = true;
       clearInterval(backgroundFrameTimer);
+      stopVisibleRedraw();
       cancelAnimationFrame(raf);
       if (resizeObserver) resizeObserver.disconnect();
       scene.traverse((o) => {

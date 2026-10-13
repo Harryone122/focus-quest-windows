@@ -62,6 +62,11 @@ const api: FocusQuestApi = {
     const handler = (_event: Electron.IpcRendererEvent, state: OverlayState): void => callback(state)
     ipcRenderer.on('overlay:state', handler)
     return () => ipcRenderer.removeListener('overlay:state', handler)
+  },
+  onWindowFrameState: (callback) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: { visible: boolean; focused: boolean }): void => callback(state)
+    ipcRenderer.on('window:frame-state', handler)
+    return () => ipcRenderer.removeListener('window:frame-state', handler)
   }
 }
 

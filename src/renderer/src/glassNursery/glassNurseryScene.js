@@ -1,5 +1,6 @@
 import * as T from '../cloudRuins/vendor/three.module.js';
 import { createEdgeGlass } from '../cloudRuins/edgeGlass.js';
+import { frameDue, shouldRender } from '../framePacing.js';
 import { nurseryFog, nurseryStoryKeys } from '../../../shared/area07';
 import { createNurseryAudio } from './nurseryAudio';
 import { crossedNurseryCues, nurseryAudioCues } from './nurseryAudioCues';
@@ -1141,13 +1142,13 @@ function draw(now=performance.now()){
   const dt=paused?0:Math.min(.05,elapsed);time+=dt;tick(dt);
   if(opts.testMode&&testId&&!testFinished){testElapsed+=dt;if(!TRV.path&&!TRV.act&&!SIM.dep&&!SIM.board&&!SIM.seatWait){testFinished=true;}}
   if(!SIM.holdDisc&&CI.disc&&!lobby&&!opts.departure){const seconds=paused?progress:progress+(now-progressAt)/1000;const night=cur.lamps>.85;CI.disc.rotation.y=night?Math.floor(seconds/600)*Math.PI*2:seconds/600*Math.PI*2;}
-  glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);
+  if(ready<2||shouldRender())glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);
   opts.reportCinematic?.(transplant||nursery?.action?.kind==='story');
   const anchors={rest:anchor('H'),entry:anchor('D'),exit_corridor:anchor('D'),exit_cellar:anchor('X2')};items.forEach((item,i)=>{const p=anchors.rest;anchors['item:'+item.key]={x:p.x+i*30,y:p.y+60};});opts.reportAnchors?.(anchors);
   if(++ready===2)opts.reportReady?.();
   if(!opts.testMode&&transplant&&!TRV.act&&!TRV.path){transplant=false;key=null;applyWorld();glass.setUiFade(1);opts.reportCinematic?.(false);opts.reportTransplantComplete?.();globalThis.dispatchEvent(new CustomEvent('focusquest:nursery-transplant-done')); }
 }
-function loop(now){draw(now);if(!dead)raf=requestAnimationFrame(loop);}
+function loop(now){if(frameDue(now,lastReal))draw(now);if(!dead)raf=requestAnimationFrame(loop);}
 const observer=new ResizeObserver(()=>{resize();fgResize();});observer.observe(host);
 const watchdog=setInterval(()=>{if(performance.now()-lastReal>250)draw();},33);
 function transplantChoice(e){if(!lobby||e.detail?.nodeId!==nursery?.nodeId)return;if(e.detail.state)nursery=e.detail.state;clearAction();transplant=true;glass.setUiFade(0);SIM.dep=null;STORY.transplant();opts.reportCinematic?.(true);}
