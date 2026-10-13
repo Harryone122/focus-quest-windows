@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import nurserySilhouette from '../../../../docs/area07/campfire-silhouette-07.html?raw'
 import prototypeHtml from '../../../../docs/prototypes/campfire-start.html?raw'
 import threeModuleUrl from '../cloudRuins/vendor/three.module.js?url'
+import { IFRAME_FRAME_SOURCE, PACED_IFRAME_FRAME_SOURCE } from '../framePacing.js'
 import type { LobbyRouteOption } from './lobbyTypes'
 import { createCampfireSoundscape, type CampfireAudioSettings, type CampfireAudioScene } from './campfireAudio'
 import { CAMPFIRE_DEPARTURE_SECONDS, campfirePoseTimes } from './campfireDeparture'
@@ -46,7 +47,7 @@ function embeddedDocument(): string {
   const dynamic=paced.replace('// mist: a sea below', `const silSources={cloud:DEST.bridge.g.clone(true),moss:DEST.steps.g.clone(true)};
 window.__campfireSetDestinations=(maps)=>{for(const way of ['bridge','steps']){const d=DEST[way].g,id=maps[way];if(d.userData.mapId===id)continue;d.userData.mapId=id;while(d.children.length)d.remove(d.children[0]);if(id==='area-07-glass-nursery'){silGlassNursery(d);d.scale.setScalar(.85);}else{const source=id==='area-01-cloud-ruins'?silSources.cloud:id==='area-02-moss-station'?silSources.moss:null;if(source){const c=source.clone(true);while(c.children.length)d.add(c.children[0]);d.scale.copy(source.scale);}}}};
 // mist: a sea below`)
-  return dynamic.replace(/<link rel="(?:preconnect|stylesheet)"[^>]*>\s*/g, '').replace('</head>', `<style>
+  return dynamic.replace(IFRAME_FRAME_SOURCE, PACED_IFRAME_FRAME_SOURCE).replace(/<link rel="(?:preconnect|stylesheet)"[^>]*>\s*/g, '').replace('</head>', `<style>
     html,body,.app,.stage{width:100%;height:100%;min-height:0!important;overflow:hidden!important}
     .top-left,.routes,.panel,.proto,.veil-msg,.sheet-wrap{visibility:hidden!important;pointer-events:none!important}
     .veil{pointer-events:none!important}

@@ -43,7 +43,7 @@ export class WindowMonitor {
   }
 
   private async check(): Promise<void> {
-    const snapshot = this.database.getSnapshot()
+    const snapshot = this.database.getWindowMonitorState()
     if (!snapshot.activeSession) {
       this.stop()
       return
@@ -55,11 +55,11 @@ export class WindowMonitor {
     try {
       const { activeWindow } = await import('get-windows')
       const active = await activeWindow()
-      const current = this.database.getSnapshot().activeSession
+      const current = this.database.getWindowMonitorState().activeSession
       if (!current || current.id !== snapshot.activeSession.id || current.suspendedAt) return
       const processName = active?.owner?.name?.toLowerCase() ?? ''
       if (!processName || NEVER_BLOCK.has(processName)) return
-      const rule = snapshot.blockRules.find((entry) => entry.enabled && entry.processName.toLowerCase() === processName)
+      const rule = snapshot.blockRules.find((entry) => entry.processName.toLowerCase() === processName)
       if (!rule) {
         this.lastTriggered = ''
         return
@@ -73,8 +73,8 @@ export class WindowMonitor {
         overlay?.webContents.send('overlay:state', {
           processName,
           displayName: rule.displayName,
-          taskTitle: snapshot.activeSession.taskTitle ?? '',
-          stepText: snapshot.activeSession.stepText ?? ''
+          taskTitle: snapshot.activeSession.taskTitle,
+          stepText: snapshot.activeSession.stepText
         })
         overlay?.show()
         overlay?.focus()

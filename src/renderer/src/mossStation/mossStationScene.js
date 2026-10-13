@@ -13,6 +13,7 @@ import AREA from '../../../../docs/area-02-moss-station.scene.json';
 import { timeOfDayAt } from '../../../shared/timeOfDay';
 import { litLampCount } from '../../../shared/lampTiming';
 import { weatherAt } from '../../../shared/weather';
+import { frameDue, shouldRender, onFrameVisible } from '../framePacing.js';
 import { createEdgeGlass } from '../cloudRuins/edgeGlass.js';
 import { dirShot, keyIndex, spring } from '../exploration/storyDirector';
 
@@ -2071,9 +2072,10 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     if (performance.now() - lastFrameAt > 250) DIR.snap = true;
     lastFrameAt = performance.now();
     // The lobby can stay open for a long time: while the camera is at rest it draws at ~30 fps.
-    if (LOBBY && !dragging && Math.abs(yawOff) + Math.abs(pitchOff) < 0.002) {
-      const t = performance.now();
-      if (t - lastDrawAt < 30) { if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
+    // Otherwise the shared frame budget applies (~60 fps focused, ~30 fps in the background).
+    {
+      const t = performance.now(), atRest = LOBBY && !dragging && Math.abs(yawOff) + Math.abs(pitchOff) < 0.002;
+      if (atRest ? t - lastDrawAt < 30 : !frameDue(t, lastDrawAt)) { if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
       lastDrawAt = t;
     }
     const dt = Math.min(clock.getDelta(), 0.05);
@@ -2083,7 +2085,8 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     // Cross-map playback ends here. Do not compile/draw a new pose in the old world while React swaps it.
     if (opts.departureOnly && TR.dep && TR.dep.done) return;
     if (LOBBY) reportAnchorsIfMoved();
-    if (framesDrawn < 2 || !frozen || performance.now() < redrawUntil) {
+    // Minimized / hidden to tray: keep simulating, skip the GPU draw (the first two frames still compile and report ready).
+    if (framesDrawn < 2 || ((!frozen || performance.now() < redrawUntil) && shouldRender())) {
       const lum = (cur.bg.r + cur.bg.g + cur.bg.b) / 3;
       glassDeep.copy(cur.fog).multiplyScalar(0.2);
       glass.render(scene, camera, dt, glassDeep, [0.34 + 0.08 * lum, 0.23 + 0.05 * lum, 0.05 + 0.05 * lum], frozen);
@@ -2094,6 +2097,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
   }
   // manualFrames: headless QA draws only on renderNow(); the app always runs the loop.
   if (!opts.manualFrames) raf = requestAnimationFrame(frame);
+  const stopVisibleRedraw = onFrameVisible(() => { lastDrawAt = 0; requestRedraw(400); });
   // Windows can stop RAF completely when minimized: one timer keeps the same pause-aware frame going (~30 fps).
   const backgroundFrameTimer = opts.manualFrames ? 0 : setInterval(() => { if (!disposed && performance.now() - lastFrameAt >= 30) frame(false); }, 33);
 
@@ -2209,6 +2213,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
       disposed = true;
       document.removeEventListener('visibilitychange', recoverCamera); window.removeEventListener('focus', recoverCamera); cutCover.remove();
       clearInterval(backgroundFrameTimer);
+      stopVisibleRedraw();
       cancelAnimationFrame(raf);
       if (resizeObserver) resizeObserver.disconnect();
       scene.traverse((o) => {

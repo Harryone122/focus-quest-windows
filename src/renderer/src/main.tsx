@@ -6,8 +6,12 @@ import './focusGlass.css'
 import './lobbyGlass.css'
 import './lobby/lobbyA.css'
 import './appShell.css'
+import { setWindowFrameState } from './framePacing.js'
 
 const route = window.location.hash.replace(/^#\/?/, '')
+// Lower the 3D frame rate while the window is unfocused, and skip drawing while it is minimized or in the tray.
+window.focusQuest?.onWindowFrameState?.(setWindowFrameState)
+
 const Component = route === 'blocker' ? BlockerView : route === 'mini' ? MiniTimerView : App
 
 if (import.meta.env.DEV) {

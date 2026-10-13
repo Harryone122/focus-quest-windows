@@ -421,4 +421,6 @@ export interface FocusQuestApi {
   overlayEmergency: (mode: 'ten_minutes' | 'end_session') => Promise<void>
   onSnapshotChanged: (callback: (snapshot: AppSnapshot) => void) => () => void
   onOverlayState: (callback: (state: OverlayState) => void) => () => void
+  /** Main window minimized/hidden/focused; the 3D scenes lower their frame rate from it. */
+  onWindowFrameState?: (callback: (state: { visible: boolean; focused: boolean }) => void) => () => void
 }

@@ -12,9 +12,21 @@ export function createNurseryAudio() {
  let bgm:{source:AudioBufferSourceNode;gain:GainNode;name:string;end:number}|null=null,period:NurseryMusicPeriod='day',wasCore=false,duckTarget=1,musicAllowed=false,started=false
  const musicHistory:Array<{name:string;at:number;duration:number}>=[]
  function stopBgm(fade=0) {if(!bgm)return;const old=bgm;bgm=null;const now=ctx.currentTime;old.gain.gain.cancelScheduledValues(now);old.gain.gain.setValueAtTime(old.gain.gain.value,now);old.gain.gain.linearRampToValueAtTime(0,now+fade);try{old.source.stop(now+fade)}catch{}}
- function startBgm(name:string) {const b=buffers.get(name);if(!b||!musicAllowed||dead)return false;stopBgm();const source=ctx.createBufferSource(),gain=ctx.createGain();source.buffer=b;source.connect(gain);gain.connect(bgmFilter);bgm={source,gain,name,end:ctx.currentTime+b.duration};schedule.last=name;musicHistory.push({name,at:ctx.currentTime,duration:b.duration});if(musicHistory.length>100)musicHistory.shift();source.onended=()=>{if(bgm?.source===source){bgm=null;schedule.ended(ctx.currentTime,period)}source.disconnect();gain.disconnect()};source.start();return true}
+ function startBgm(name:string) {const b=buffers.get(name);if(!b&&musicAllowed&&!dead)void loadBgm(name).then(ok=>{if(ok&&!bgm&&musicAllowed&&!dead&&ctx.state==='running'&&!schedule.core)startBgm(name)});if(!b||!musicAllowed||dead)return false;stopBgm();const source=ctx.createBufferSource(),gain=ctx.createGain();source.buffer=b;source.connect(gain);gain.connect(bgmFilter);bgm={source,gain,name,end:ctx.currentTime+b.duration};schedule.last=name;musicHistory.push({name,at:ctx.currentTime,duration:b.duration});if(musicHistory.length>100)musicHistory.shift();source.onended=()=>{if(bgm?.source===source){bgm=null;schedule.ended(ctx.currentTime,period)}source.disconnect();gain.disconnect()};source.start();return true}
  let dead=false,enabled=false,loaded=0,serial=0,failures:string[]=[], history:Array<{name:string,at:number,duration:number}>=[]
- void Promise.all(Object.entries(urls).map(async([path,url])=>{try {const response=await fetch(url);if(!response.ok)throw Error(String(response.status));const b=await ctx.decodeAudioData(await response.arrayBuffer());if(!dead){buffers.set(path.split('/').at(-1)!.replace('.wav',''),b);loaded++}}catch{failures.push(path)}}))
+ // Background music is decoded only when picked, and only one piece is kept decoded: the four tracks
+ // are ~42 MB of WAV (roughly twice that as decoded float samples) and only one plays at a time.
+ const bgmUrls=new Map(Object.entries(urls).filter(([path])=>/\/bgm_[^/]+\.wav$/.test(path)).map(([path,url])=>[path.split('/').at(-1)!.replace('.wav',''),url]))
+ let bgmLoading:Promise<boolean>|null=null,bgmLoadingName=''
+ function loadBgm(name:string):Promise<boolean> {
+  if(buffers.has(name))return Promise.resolve(true)
+  if(bgmLoading&&bgmLoadingName===name)return bgmLoading
+  const url=bgmUrls.get(name);if(!url)return Promise.resolve(false)
+  bgmLoadingName=name
+  bgmLoading=(async()=>{try {const response=await fetch(url);if(!response.ok)throw Error(String(response.status));const b=await ctx.decodeAudioData(await response.arrayBuffer());if(dead)return false;for(const other of bgmUrls.keys())if(other!==bgm?.name)buffers.delete(other);buffers.set(name,b);return true}catch{failures.push(url);return false}finally{if(bgmLoadingName===name){bgmLoading=null;bgmLoadingName=''}}})()
+  return bgmLoading
+ }
+ void Promise.all(Object.entries(urls).filter(([path])=>!bgmUrls.has(path.split('/').at(-1)!.replace('.wav',''))).map(async([path,url])=>{try {const response=await fetch(url);if(!response.ok)throw Error(String(response.status));const b=await ctx.decodeAudioData(await response.arrayBuffer());if(!dead){buffers.set(path.split('/').at(-1)!.replace('.wav',''),b);loaded++}}catch{failures.push(path)}}))
  function stopShots(){shots.forEach(s=>{try{s.stop()}catch{}});shots.clear()}
  function shot(name:string,duration?:number,isMusic=false,gain=1) {
   if(!enabled||dead||ctx.state!=='running'||shots.size>=3)return
