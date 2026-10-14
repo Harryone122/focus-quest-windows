@@ -941,8 +941,9 @@ function curtain(w, outOff, lat0, alpha, speed, seed, cols = 22, rows = 40) {
   const m = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uSpeed: { value: speed }, uAlpha: { value: alpha }, uSeed: { value: seed }, uTint: { value: new THREE.Color(1, 1, 1) } }, vertexShader: UV_VS, fragmentShader: CURTAIN_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(g, m); mesh.renderOrder = 2; mesh.frustumCulled = false; out.add(mesh); curtains.push(m); return mesh; }
 curtain(3.5, -0.05, 0, 0.75, 0.95, 1.3); curtain(3.0, 0.14, 0.1, 0.95, 1.12, 4.7); curtain(1.7, 0.34, 0.55, 0.7, 1.3, 8.1); curtain(1.1, 0.42, -0.85, 0.6, 1.22, 2.9);
-// Opaque blue water behind the original white sheets hides the cliff through their gaps.
-// Follow the falling water's arc; keep the authored river width unchanged.
+// Opaque backing behind the white sheets so the cliff and riverbed never show through their gaps.
+// Blue only near the lip; as the water falls it aerates into white foam, so the lower fall reads as white spray.
+// Stays opaque all the way down; only its last stretch, already inside the cloud sea, frays out.
 const fallBacking=curtain(3.5,-0.10,0,1,0.95,1.3);
 fallBacking.renderOrder=1;
 fallBacking.material.transparent=false;
@@ -950,9 +951,14 @@ fallBacking.material.depthWrite=true;
 fallBacking.material.fragmentShader=NOISE_GLSL+`
 varying vec2 vUv; uniform float uTime; uniform vec3 uTint;
 void main(){
-  float flow=vn(vec2(vUv.x*10.,vUv.y*18.-uTime*1.8));
+  float x=vUv.x,y=vUv.y,t=uTime;
+  float flow=vn(vec2(x*10.,y*18.-t*1.8));
+  float churn=vn(vec2(x*13.+3.,y*9.-t*2.4))*0.6+vn(vec2(x*29.,y*22.-t*3.3)+7.)*0.4;
   vec3 blue=mix(vec3(0.27,0.46,0.52),vec3(0.42,0.62,0.66),0.3+0.35*flow);
-  gl_FragColor=vec4(blue*uTint,1.);
+  vec3 foam=mix(vec3(0.82,0.88,0.91),vec3(0.97,0.99,1.),smoothstep(0.3,0.75,churn));
+  float aer=smoothstep(0.12,0.42,y+(churn-0.5)*0.12);
+  if(churn<smoothstep(0.84,0.97,y)*1.05)discard;
+  gl_FragColor=vec4(mix(blue,foam,aer)*uTint,1.);
 }`;
 fallBacking.material.needsUpdate=true;
 
@@ -986,6 +992,8 @@ new Spray(120, { g: 4, drag: 0.6, alpha: 0.85, soft: 0.35, spawn: () => { const 
 // the plunge: spray thrown up and out where the water hits the cloud sea
 new Spray(380, { g: 1.0, drag: 0.5, alpha: 0.5, soft: 0.48, order: 5, spawn: () => { const l = R_(-1.8, 1.8), o2 = R_(-0.4, 0.6); return { p: [PLUNGE[0] + ft[0] * l + fo[0] * o2, PLUNGE[1] + R_(-0.3, 0.3), PLUNGE[2] + ft[1] * l + fo[1] * o2], v: [fo[0] * R_(0.3, 1.4) + ft[0] * l * 0.25, R_(1.0, 3.2), fo[1] * R_(0.3, 1.4) + ft[1] * l * 0.25], life: R_(1.8, 3.4), s0: R_(0.25, 0.4), s1: R_(1.1, 2.0) }; } });
 new Spray(140, { g: 6, drag: 0.2, alpha: 0.75, soft: 0.25, order: 5, spawn: () => { const l = R_(-1.6, 1.6); return { p: [PLUNGE[0] + ft[0] * l, PLUNGE[1] + 0.2, PLUNGE[2] + ft[1] * l], v: [fo[0] * R_(0.5, 1.8) + ft[0] * R_(-0.6, 0.6), R_(2.0, 4.2), fo[1] * R_(0.5, 1.8) + ft[1] * R_(-0.6, 0.6)], life: R_(0.7, 1.3), s0: R_(0.06, 0.1) }; } });
+// white spray veil over the lower half of the fall: soft puffs peeling off the face and drifting down/out
+new Spray(260, { g: 0.6, drag: 0.6, alpha: 0.45, soft: 0.48, order: 4, spawn: () => { const p = fallPt(R_(-0.05, 1.05), R_(3.4, 7.2), 3.4, R_(0.1, 0.45), 0.05); return { p, v: [fo[0] * R_(0.2, 0.8), -R_(0.3, 1.2), fo[1] * R_(0.2, 0.8)], life: R_(1.6, 2.8), s0: R_(0.3, 0.5), s1: R_(0.8, 1.5) }; } });
 const LEAF_N = 260, leafGeo = new THREE.BufferGeometry(); leafGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, -0.13, 0.075, 0, 0, 0, 0, 0.13, 0, 0, -0.13, 0, 0, 0.13, -0.075, 0, 0], 3)); leafGeo.computeVertexNormals();
 const leafMesh = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ roughness: 0.9, side: THREE.DoubleSide }), LEAF_N); leafMesh.castShadow = false; out.add(leafMesh);
 const LEAF_COLS = ['#c45a32', '#d7793a', '#e0a446', '#b8462e', '#cf8a3a'].map(c => new THREE.Color(c)); const leaves = [], _lo = new THREE.Object3D();

@@ -234,13 +234,13 @@ TypeScript、試玩與正式來源建置通過；Electron 18 步態及減少動�
 
 ## 2026-10-14 Claude 設計交接：瀑布下段改白色飛沫
 
-- 狀態：可交接（原型已改，正式 App 未改）。下一位：Codex 移植；使用者試玩驗收。
+- 狀態：待使用者驗收。使用者 2026-10-14 明確要求 Claude 直接改正式 App（僅此一項）；原型與 `src/renderer/src/echoQuarry/echoQuarryScene.js` 皆已改。下一位：Codex 在本機跑 Electron QA（`scripts/qa-echo-quarry.cjs`）並依流程打包；使用者試玩。
 - 使用者回饋（附截圖）：瀑布下段的藍色貼圖要拿掉，真實瀑布下方只有白色飛沫；同時要確保河床／崖壁不會露出來。
 - 原因：0.6.36 正式場景加的 `fallBacking`（不透明藍底）整條 9.6 長都是藍色，白色水幕在 y 0.62–0.92 淡出後，下段只剩藍色。
 - 原型修改：`docs/prototypes/echo-valley.html` 補上同樣的 `fallBacking`（`curtain(3.5,-0.10,0,1,0.95,1.3)`、renderOrder 1、不透明、寫深度），但換掉 fragment shader：
   - 藍色只在上方約三分之一（`aer = smoothstep(0.12, 0.42, y + 噪聲)`），往下轉成白色泡沫色（0.82–0.97 白，帶流動噪聲）。
   - 全程保持不透明，所以崖壁與河床不會從水幕縫隙露出；只有最末段（y > 0.84，已在雲海內）才以噪聲 discard 碎開。
   - 新增一組 `Spray(260, …)` 白色飛沫薄紗，從落差 3.4–7.2 的水面剝離往下／往外飄，讓下段讀起來是飛沫而非一片平面。
-- 移植請求（給 Codex）：把 `echoQuarryScene.js` 的 `fallBacking` fragment shader 換成原型版本，並加上那一組下段飛沫 `Spray`（放在 PLUNGE 兩組 Spray 之後）。`qa-echo-quarry.cjs` 的 `opaqueBacking` 仍應成立。請一併看夜晚色調（`uTint`）下白泡沫不過亮。
-- 未執行檢查：依 2026-09-26 決定未開視窗截圖；只做原型腳本語法檢查（`node --check` 通過）。
+- 已移植（Claude）： `echoQuarryScene.js` 的 `fallBacking` fragment shader 換成原型版本，並加上那一組下段飛沫 `Spray`（放在 PLUNGE 兩組 Spray 之後）。`qa-echo-quarry.cjs` 的 `opaqueBacking` 仍應成立。請一併看夜晚色調（`uTint`）下白泡沫不過亮。
+- 已執行：`node --check`（原型與正式場景）、`vitest run` 226/226 通過。未執行：Electron QA、截圖、打包（雲端環境無視窗；依 2026-09-26 決定由 Codex 執行）。
 - 未決：白泡沫起始位置（目前約落差 1/3）若使用者覺得太早／太晚，調 `aer` 的 0.12／0.42 即可。
