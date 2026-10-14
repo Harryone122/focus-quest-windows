@@ -287,6 +287,7 @@ export interface AppSnapshot {
     items: string[]
     whaleSeed: number
     records: string[]
+    knownClues?: string[]
     scheduledEvents: Array<{ at: number; evs: string[]; forced?: boolean }>
     eventHistory: Array<{ id: string; at: number }>
   } | null

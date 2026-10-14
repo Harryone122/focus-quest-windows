@@ -27,6 +27,47 @@ function finish() {
 }
 
 describe('Cloud handoff persistence', () => {
+  it('recovers missing second-visit clues after a ten-second visit is abandoned, including backup restore', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.01)
+    try {
+      let s = db.addListTask({ title: '必要線索補訪' })
+      s = db.startDailyRun(s.taskList.nextTaskId!)
+      let parent: string | null = null, interrupted = false, recovered = false
+      for (let step = 0; step < 40; step++) {
+        const candidates = s.expeditionNodes.filter(n => n.parentNodeId === parent && n.state === 'available')
+        const node = candidates.find(n => n.areaId === FOREST_MAP_ID) ?? candidates[0]
+        expect(node).toBeDefined()
+        s = parent ? db.chooseNextRoute(s.todayRun!.id, parent, node.id) : db.selectExpeditionNode(s.todayRun!.id, node.id)
+        s = db.startListFocus({ minimumMinutes: 5, blockedProcessNames: [], runId: s.todayRun!.id, nodeId: node.id, plannedMinutes: 50 })
+        if (s.cloudStory?.visit === 2 && !interrupted) {
+          advance(10); const id = s.activeSession!.id
+          db.finishListFocus(id, false); s = db.dismissDebrief(id)
+          const alternate = candidates.find(n => n.id !== node.id)!
+          s = db.selectExpeditionNode(s.todayRun!.id, alternate.id)
+          s = db.startListFocus({ minimumMinutes: 5, blockedProcessNames: [], runId: s.todayRun!.id, nodeId: alternate.id, plannedMinutes: 50 })
+          advance(3000); const altId = s.activeSession!.id
+          db.finishListFocus(altId, false); s = db.dismissDebrief(altId)
+          parent = alternate.id; interrupted = true; continue
+        }
+        if (s.cloudStory?.visit === 3) {
+          expect(interrupted).toBe(true)
+          expect(s.cloudStory.scheduledEvents.flatMap(e => e.evs)).toEqual(expect.arrayContaining(['well', 'stele']))
+          db.importBackup(db.exportBackup())
+          expect(db.getSnapshot().cloudStory!.scheduledEvents.some(e => e.evs.includes('well'))).toBe(true)
+          advance(1400); db.processActiveSpecialFinds()
+          s = db.getSnapshot()
+          for (const clue of ['h1a', 'c01_stele_scale']) expect(s.collection.clues.filter(c => c.id === clue)).toHaveLength(1)
+          expect(() => db.recordCloudStoryClue(s.activeSession!.id, 'h1a')).not.toThrow()
+          db.importBackup(db.exportBackup())
+          expect(db.getSnapshot().cloudStory!.scheduledEvents.flatMap(e => e.evs)).not.toContain('well')
+          recovered = true; break
+        }
+        advance(3000); const id = s.activeSession!.id
+        db.finishListFocus(id, false); s = db.dismissDebrief(id); parent = node.id
+      }
+      expect(recovered).toBe(true)
+    } finally { vi.restoreAllMocks() }
+  })
   it('grants the opening clue before the opening plays, and does not replay it on continuation', () => {
     const first = start(), seed = first.cloudStory!.whaleSeed
     advance(9); const review = finish()

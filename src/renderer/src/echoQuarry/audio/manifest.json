@@ -1,0 +1,239 @@
+{
+  "approval": {
+    "date": "2026-10-14",
+    "approved": true,
+    "approvalSource": "User answered the three audition questions: 25%, 1.5倍, 全部可接受，可以接進場景",
+    "musicPercent": 25,
+    "environmentPercent": 35,
+    "windRockRate": 1.5,
+    "murmurGainDb": 9,
+    "murmurApprovalSource": "User listened to murmur-only +6/+9 dB review and chose +9 dB on 2026-10-14",
+    "humDistortionAccepted": true,
+    "swellAndBirdFlushAccepted": true,
+    "scope": "Area 05 audio and BGM; no other map sounds or exploration backend redesign"
+  },
+  "musicBarAnalysis": {
+    "bpmReference": 68,
+    "barSeconds": 3.5294117647058822,
+    "energyPhaseSeconds": 0.01,
+    "candidateStartsBefore147": [
+      0.01,
+      3.5394,
+      7.0688,
+      10.5982,
+      14.1276,
+      17.6571,
+      21.1865,
+      24.7159,
+      28.2453,
+      31.7747,
+      35.3041,
+      38.8335,
+      42.3629,
+      45.8924,
+      49.4218,
+      52.9512,
+      56.4806,
+      60.01,
+      63.5394,
+      67.0688,
+      70.5982,
+      74.1276,
+      77.6571,
+      81.1865,
+      84.7159,
+      88.2453,
+      91.7747,
+      95.3041,
+      98.8335,
+      102.3629,
+      105.8924,
+      109.4218,
+      112.9512,
+      116.4806,
+      120.01,
+      123.5394,
+      127.0688,
+      130.5982,
+      134.1276,
+      137.6571,
+      141.1865,
+      144.7159
+    ],
+    "method": "positive 10ms RMS differences folded over 68 BPM four-beat bars; candidate downbeats"
+  },
+  "files": {
+    "a05_bell_strike.wav": {
+      "sha256": "c4ab7c111aa5dc5deb22dc391a5e18d25874b0a2023ca1c16adcce2ed53653e1",
+      "source": "previews\\area05-audio-qa\\assets\\a05_bell_strike.wav"
+    },
+    "a05_bell_log_pull.wav": {
+      "sha256": "82d119499d2059a16e8247c2774f61de09e811df4aa79fed855f9d4e28667abc",
+      "source": "previews\\area05-audio-qa\\assets\\a05_bell_log_pull.wav"
+    },
+    "a05_wind_bell_gust.wav": {
+      "sha256": "53cd314c9a79926939d9925f02009b968b45708fb75a9eb90d240bfcb17fcfba",
+      "source": "previews\\area05-audio-qa\\assets\\a05_wind_bell_gust.wav"
+    },
+    "a05_boulder_call.wav": {
+      "sha256": "d802f733b5655435ffbb19f877490e396bfc5f2abbecde27d262e4a1df1d302f",
+      "source": "previews\\area05-audio-qa\\assets\\a05_boulder_call.wav"
+    },
+    "a05_wind_rock.wav": {
+      "sha256": "596e50c98f9d749fe4de858bd41eee3aabc712a14115185724b65c7e77241e21",
+      "source": "previews\\area05-audio-qa\\assets\\a05_wind_rock.wav"
+    },
+    "a05_wall_knock.wav": {
+      "sha256": "bb517c03bd87e141c911fadcfa668ec3c9a10db23c70b318bea82cc44ffa2546",
+      "source": "previews\\area05-audio-qa\\assets\\a05_wall_knock.wav"
+    },
+    "a05_mica_peel.wav": {
+      "sha256": "4f9ff42d8a1b66914f0a3a80647987ece817af58f6f92ace51ee27c8c9c92d27",
+      "source": "previews\\area05-audio-qa\\assets\\a05_mica_peel.wav"
+    },
+    "a05_crane.wav": {
+      "sha256": "f6b6d955ce009087c8c2d13f1f2f45bfe8bfdb1f3e95191eb915efe5b01b07df",
+      "source": "previews\\area05-audio-qa\\assets\\a05_crane.wav"
+    },
+    "a05_handcart.wav": {
+      "sha256": "6efb1f7823b16f1ad6ff5a9d67227e3152ebe40254f79a7d85c44ceb24e513a2",
+      "source": "previews\\area05-audio-qa\\assets\\a05_handcart.wav"
+    },
+    "a05_winch.wav": {
+      "sha256": "0a28720ccdea316b870aeee101fa719c697bcf1a8cf62192238f47f11b7283af",
+      "source": "previews\\area05-audio-qa\\assets\\a05_winch.wav"
+    },
+    "a05_leaf_on_water.wav": {
+      "sha256": "85eee110e1c6234de49d23d0eb24ffac62d6d13091f734778868fb9bce7ced59",
+      "source": "previews\\area05-audio-qa\\assets\\a05_leaf_on_water.wav"
+    },
+    "a05_wall_hum.wav": {
+      "sha256": "d2dc42be8aeca889702a122e06cc72075bd2aa08853944557740883e83fcb57a",
+      "source": "previews\\area05-audio-qa\\assets\\a05_wall_hum.wav"
+    },
+    "a05_grit_fall.wav": {
+      "sha256": "d07b8a95a2ff48c370f3004f69ea06c13ba79568ebb7907b7c6037ae6c6da326",
+      "source": "previews\\area05-audio-qa\\assets\\a05_grit_fall.wav"
+    },
+    "a05_gust.wav": {
+      "sha256": "493d4801aae63828d7cbf44f29aecc6dba99c830ed5b876be91b4b69488f83f4",
+      "source": "previews\\area05-audio-qa\\assets\\a05_gust.wav"
+    },
+    "a05_gust_leaves.wav": {
+      "sha256": "5cad0afb1312fba277710ed6e9c29e536c0c3d9e8b4d5ab8b6be24e20b1426a8",
+      "source": "previews\\area05-audio-qa\\assets\\a05_gust_leaves.wav"
+    },
+    "a05_birds_flush.wav": {
+      "sha256": "3877e3a8a0c48332bffb3bac7757e94e8cb52de2824ef8db2f689628cc95ebe4",
+      "source": "previews\\area05-audio-qa\\assets\\a05_birds_flush.wav"
+    },
+    "a05_core_swell.wav": {
+      "sha256": "a666316ad6a662155c154fbd4728a86e6b512e6a1f0d2ced60d1862597b4f26a",
+      "source": "previews\\area05-audio-qa\\assets\\a05_core_swell.wav"
+    },
+    "a05_wind_bell_soft.wav": {
+      "sha256": "6a9c9d294ddc162c6aa35cc2ac72116a9a86713c51b3050db1c0c270b4a35ec1",
+      "source": "previews\\area05-audio-qa\\assets\\a05_wind_bell_soft.wav"
+    },
+    "a05_stone_saw.wav": {
+      "sha256": "cfab78fda4140280193384eeda1ab04164aa1ae05958958dbd3ca32846919e13",
+      "source": "previews\\area05-audio-qa\\assets\\a05_stone_saw.wav"
+    },
+    "a05_water_wheel.wav": {
+      "sha256": "b469977ea3b153ddaf719d56493326166fe633a44d40ba482a43ce5997ec3ff4",
+      "source": "previews\\area05-audio-qa\\assets\\a05_water_wheel.wav"
+    },
+    "a05_ropeway.wav": {
+      "sha256": "0cd4da999b31c9610e927a685f9c2bbeb15879d88d59429e2e6aad4aaa1cf3f7",
+      "source": "previews\\area05-audio-qa\\assets\\a05_ropeway.wav"
+    },
+    "a05_amb_waterfall_far.wav": {
+      "sha256": "308697b324af89df33fc141da16d4a654a4903a2dfe1d7f927b705d8a1a0cede",
+      "source": "previews\\area05-audio-qa\\assets\\a05_amb_waterfall_far.wav"
+    },
+    "a05_amb_leaves.wav": {
+      "sha256": "0f530a3a6ef6a50c5eddc9bb2188beba6d07fd1795120c412ff21601628dbb79",
+      "source": "previews\\area05-audio-qa\\assets\\a05_amb_leaves.wav"
+    },
+    "a05_amb_night_crickets.wav": {
+      "sha256": "9ee8a73f34b6b85e053694fcafeb6ed40c19b6f319c32a90de2b71513514c3a4",
+      "source": "previews\\area05-audio-qa\\assets\\a05_amb_night_crickets.wav"
+    },
+    "a05_cave_room.wav": {
+      "sha256": "44f7eed97ae8f01590467ef965cae3b84de065960d1143f560b98bab628f2a24",
+      "source": "previews\\area05-audio-qa\\assets\\a05_cave_room.wav"
+    },
+    "a05_stone_chime_g6.wav": {
+      "sha256": "dd52d2cc956dc8dacb00ff590f3a6bdf455226cf69cca6e9329884a52bcdaf98",
+      "source": "previews\\area05-audio-qa\\assets\\a05_stone_chime_g6.wav"
+    },
+    "a05_stone_chime_d6.wav": {
+      "sha256": "a19760688013d924221b98fc37ca71df97b6147c76a203a01580e6fcb23215ec",
+      "source": "previews\\area05-audio-qa\\assets\\a05_stone_chime_d6.wav"
+    },
+    "a05_tuning_fork.wav": {
+      "sha256": "c9fbe9559d88e64e17cdefbe04a811d7bd9a39d512a6a267a717ee445a897948",
+      "source": "previews\\area05-audio-qa\\assets\\a05_tuning_fork.wav"
+    },
+    "hum_stone_g2.wav": {
+      "sha256": "77b316f83f33ef66c34d925b9f24685aa8d46f4544e6fae45624fb339ece210b",
+      "source": "previews\\area05-audio-qa\\assets\\hum_stone_g2.wav"
+    },
+    "core_motif_05.wav": {
+      "sha256": "382a7ee6ae65b53ce1b38997485a70e1fefb62363606c8800b4ddfb5b8086ab0",
+      "source": "previews\\area05-audio-qa\\assets\\core_motif_05.wav"
+    },
+    "a05_wall_murmur.wav": {
+      "sha256": "eb109df4d0b5c7611d8d7714f8b056f2d576c8008c9ef7fc1f7880eeb8a50916",
+      "source": "previews\\area05-audio-qa\\murmur-review\\a05_wall_murmur-plus9.wav"
+    },
+    "a05_bgm_day.wav": {
+      "sha256": "01885fcd53e607b9e1c747e871c12b8b5f47cc034650ffa91989c80433bdcd90",
+      "source": "previews\\area05-audio-qa\\assets\\a05_bgm_day.wav"
+    },
+    "bird_0.wav": {
+      "sha256": "19619a788f6690c9c7212a2952054a7bd463c625b2c911cae11226736a30187e",
+      "source": "previews\\area05-audio-qa\\assets\\bird_0.wav"
+    },
+    "bird_1.wav": {
+      "sha256": "758726983e1282766bab7ac88025f6fa3932eeac606be633a3cd83c65766f4df",
+      "source": "previews\\area05-audio-qa\\assets\\bird_1.wav"
+    },
+    "bird_2.wav": {
+      "sha256": "ab96e6111e77912ca742ebac5df921fd7d342260c5c7f18d0ce8ff4829cfe5c8",
+      "source": "previews\\area05-audio-qa\\assets\\bird_2.wav"
+    },
+    "bird_3.wav": {
+      "sha256": "582e37aefab1321199095df66d5a26ec69b55b3cff4ea133d130b5a3487a86ff",
+      "source": "previews\\area05-audio-qa\\assets\\bird_3.wav"
+    },
+    "a05_distant_bell.wav": {
+      "source": "10-25.wav, lead-in removed; env slider gain undone",
+      "sha256": "4e732b4ff9aa460c1d3283e72bb50dadd6bf717d7d6886c941904e5a95c0bb50"
+    },
+    "stone_step_dry_a.wav": {
+      "sha256": "ee42fc7ff9dd2519253e369a777d2efd9f111418c6aebce3690bc42aa54cfc48",
+      "source": "src\\renderer\\src\\glassNursery\\audio\\stone_step_dry_a.wav"
+    },
+    "stone_step_dry_b.wav": {
+      "sha256": "471ab48f02e3b6dbcf2adb332d8d502bbe1dc922010919b6f3750ca1337c3c93",
+      "source": "src\\renderer\\src\\glassNursery\\audio\\stone_step_dry_b.wav"
+    },
+    "stone_step_dry_c.wav": {
+      "sha256": "8dad54cb84a0cdd2c6b24c41f8a1d51ca6cd59d70b976b5be58a0036987bbdcb",
+      "source": "src\\renderer\\src\\glassNursery\\audio\\stone_step_dry_c.wav"
+    },
+    "bridge_plank_step_a.wav": {
+      "sha256": "f75e62160236d486132d504c8e5110e50241724c32f386f7380152db43bf1d0f",
+      "source": "src\\renderer\\src\\lobby\\audio\\actions\\bridge_plank_step_a.wav"
+    },
+    "bridge_plank_step_b.wav": {
+      "sha256": "c9bf50411cd5a65848717e281db940ed17f26d815ebb835c48e96b2a8cc256b8",
+      "source": "src\\renderer\\src\\lobby\\audio\\actions\\bridge_plank_step_b.wav"
+    },
+    "bridge_plank_step_c.wav": {
+      "sha256": "d1e0877904e181ef546e802a38e9defc41d4ea6cffb8b3ed3549790f2e3012de",
+      "source": "src\\renderer\\src\\lobby\\audio\\actions\\bridge_plank_step_c.wav"
+    }
+  }
+}

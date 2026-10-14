@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-14",
+  "version": "0.6.36",
+  "approval": {
+    "date": "2026-10-14",
+    "approved": true,
+    "approvalSource": "User answered the three audition questions: 25%, 1.5倍, 全部可接受，可以接進場景",
+    "musicPercent": 25,
+    "environmentPercent": 35,
+    "windRockRate": 1.5,
+    "murmurGainDb": 9,
+    "murmurApprovalSource": "User listened to murmur-only +6/+9 dB review and chose +9 dB on 2026-10-14",
+    "humDistortionAccepted": true,
+    "swellAndBirdFlushAccepted": true,
+    "scope": "Area 05 audio and BGM; no other map sounds or exploration backend redesign"
+  },
+  "packagingApprovedAfterOtherTasksFinished": true,
+  "sourceCount": 36,
+  "sourceHashesUnchanged": true,
+  "initialWavCount": 68,
+  "initialWavHashesUnchanged": true,
+  "installedAssetCount": 43,
+  "installedHashesVerified": true,
+  "finalTrialMatchesCompletedRenderer": true,
+  "trialSnapshotFiles": 50,
+  "formalBundleFiles": 152,
+  "installedArchiveSha256": "8d5da98e354bab4c2b4f1815c484fc42ac0aeb6b35301a2cffe72d2732c6ed08",
+  "artifacts": [
+    {
+      "path": "release-v0.6.36/Focus Quest Setup 0.6.36.exe",
+      "bytes": 250088577,
+      "sha256": "3b87286427853cc7c12bc61e2a58831b1e9021a01930dcc2850419db6789bb24"
+    },
+    {
+      "path": "release-area05-v0.6.36/Focus Quest Area 05 Trial 0.6.36 Portable.exe",
+      "bytes": 163168538,
+      "sha256": "b6a2bd98dad6c126cd52f1b461cac1b44f326b84916b21c0e1b2f8f85f9760bc"
+    }
+  ],
+  "typecheck": "passed",
+  "testFiles": 40,
+  "testsPassed": 226,
+  "productionBuild": "passed",
+  "runtimeReports": {
+    "trialAudio": {
+      "checks": [
+        "43 installed recordings decode; accepted 25% music, 35% environment, wind-rock rate 1.5",
+        "arrival 20–40s environment-only; real music segment 60–120s at a bar candidate",
+        "pause freezes actual AudioContext, playing segment, positions and focus clock; resume continues",
+        "actual mute control stops old cues/music; restoration schedules silence rather than replay",
+        "fast advance drops historical one-shots and repositions environment without catch-up",
+        "authored core timeline: three hums, swell peak matches blue wave, motif on music slider, >=30s quiet interval, maximum 3 foreground"
+      ],
+      "errors": []
+    },
+    "campfire": {
+      "checks": [
+        "actual approved 8s distant-bell recording starts at the authored 1.35s impact on each side, once per hover; rapid hover silent",
+        "other map silhouettes do not trigger Area 05 recording"
+      ],
+      "errors": []
+    },
+    "sharedHum": {
+      "checks": [
+        "floating-stone landings schedule short slices of the installed G2 recording",
+        "collection exhibit 05 visual hum cycle plays the same installed G2 recording"
+      ],
+      "errors": []
+    }
+  },
+  "saves": {
+    "integrity": "ok",
+    "sessions": 32,
+    "nodes": 42,
+    "tasks": 18,
+    "preserved": true
+  },
+  "scope": "Area05 remains an independent trial; audio hooks in formal campfire/collection are included; no new Area05 exploration backend or reward persistence"
+}

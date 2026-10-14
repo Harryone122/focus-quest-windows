@@ -1,0 +1,975 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- 2026-10-13：加入 03 倒影湖畔的營火遠景剪影（silReflectionLake，網址加 ?sil03 預覽）。 -->
+<!-- 霧岸營火：旅程起點原型（企畫書 §48、docs/CAMPFIRE_START_HANDOFF.md）。Claude 設計原型，2026-09-28 v2。 -->
+<title>霧岸營火</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600&display=swap">
+<style>
+  /* Single committed look: the lobby's glass-over-scene language (lobbyA.css tokens). */
+  :root {
+    color-scheme: dark;
+    --ground: #1c2630;
+    --ink: #f1eee6;
+    --ink-soft: rgba(240, 237, 228, 0.84);
+    --ink-faint: rgba(230, 228, 220, 0.66);
+    --amber: #e0b265;
+    --amber-text: #f0cf8e;
+    --teal-text: #bfe0da;
+    --glass: rgba(20, 27, 33, 0.44);
+    --glass-strong: rgba(20, 27, 33, 0.72);
+    --line: rgba(255, 255, 255, 0.13);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.42), 0 0 14px rgba(0, 0, 0, 0.28);
+    --panel-w: clamp(284px, 30vw, 360px);
+    --sans: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+    --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); overflow: hidden; }
+  .app { position: fixed; inset: 0; }
+  .stage { position: absolute; inset: 0; overflow: hidden;
+    background: linear-gradient(180deg, #8e9ba5 0%, #aab4b8 26%, #cfc9bb 44%, #e3cfae 52%, #d8d6cc 64%, #c9cfcd 100%); }
+  #scene { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #scene.dragging { cursor: grabbing; }
+  .glass { background: var(--glass); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1); text-shadow: var(--shadow); }
+  .label { font-size: 11px; letter-spacing: 0.12em; color: var(--ink-faint); margin: 0; }
+  .warm { color: var(--amber-text); }
+  .soft { margin: 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.6; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible { outline: 2px solid #d9c38f; outline-offset: 3px; }
+
+  /* journey header + collection */
+  .top-left { position: absolute; top: 16px; left: 16px; display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; max-width: calc(100% - var(--panel-w) - 48px); }
+  .journey { padding: 10px 14px; display: grid; gap: 6px; min-width: 180px; }
+  .journey h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 19px; letter-spacing: 0.14em; line-height: 1.25; }
+  .dots { display: flex; align-items: center; gap: 0; }
+  .dots b { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(240, 237, 228, 0.55); box-sizing: border-box; }
+  .dots i { width: 16px; height: 1px; background: rgba(240, 237, 228, 0.28); }
+  .dots small { margin-left: 10px; font-size: 11px; color: var(--ink-faint); letter-spacing: 0.06em; }
+  .pill { padding: 8px 14px; border-radius: 16px; font-size: 12.5px; letter-spacing: 0.08em; }
+  .pill:hover { background: rgba(40, 50, 58, 0.55); }
+
+  /* prototype controls (not part of the game UI) */
+  .proto { position: absolute; top: 16px; right: calc(var(--panel-w) + 32px); display: grid; gap: 6px; justify-items: end; max-width: min(560px, calc(100% - var(--panel-w) - 280px)); }
+  .proto .label { color: var(--teal-text); }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; padding: 5px; border-radius: 16px; }
+  .seg button { border: 1px solid transparent; background: none; border-radius: 12px; padding: 4px 10px; font-size: 12px; color: var(--ink-faint); letter-spacing: 0.04em; }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { border-color: var(--line); background: rgba(255, 255, 255, 0.1); color: var(--ink); }
+  .seg .act { color: var(--teal-text); }
+
+  /* route cards under the close-up */
+  .routes { position: absolute; left: 16px; bottom: 16px; right: calc(var(--panel-w) + 32px); display: grid; gap: 8px; transition: opacity 0.6s ease; }
+  .routes .label span { opacity: 0.8; }
+  .route-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .route { flex: 1 1 220px; max-width: 300px; text-align: left; padding: 11px 14px 12px; display: grid; gap: 4px; border-radius: 16px; transition: border-color 0.3s, background-color 0.3s; }
+  .route:hover, .route:focus-visible { background: rgba(34, 43, 50, 0.56); }
+  .route.is-selected { border-color: rgba(240, 204, 138, 0.7); background: rgba(52, 44, 30, 0.46); }
+  .route-top { display: flex; justify-content: space-between; gap: 8px; }
+  .route strong { font-family: var(--serif); font-weight: 600; font-size: 16px; letter-spacing: 0.12em; }
+  .route .tag { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+  .route .meta { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.04em; }
+
+  /* right glass panel */
+  .panel { position: absolute; top: 16px; right: 16px; bottom: 16px; width: var(--panel-w); border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; transition: opacity 0.6s ease; }
+  .panel-scroll { overflow: auto; padding: 18px 18px 14px; display: grid; gap: 18px; align-content: start; flex: 1; }
+  .next { display: grid; gap: 8px; }
+  .next h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 22px; letter-spacing: 0.12em; text-wrap: balance; }
+  .progress { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-soft); margin: 0; }
+  .lamps { display: inline-flex; gap: 6px; }
+  .lamps i { width: 7px; height: 7px; border-radius: 50%; background: rgba(238, 240, 243, 0.26); }
+  .current { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.04); }
+  .current b { font-weight: 500; font-size: 14px; }
+  .primary { width: 100%; padding: 11px 14px; border-radius: 16px; border: 1px solid rgba(240, 204, 138, 0.7); background: rgba(224, 178, 101, 0.2); color: var(--amber-text); font-size: 15px; font-weight: 500; letter-spacing: 0.16em; }
+  .primary:hover:not(:disabled) { background: rgba(224, 178, 101, 0.3); }
+  .primary:disabled { opacity: 0.45; cursor: default; }
+  .note { font-size: 11px; color: var(--ink-faint); }
+  .list { display: grid; gap: 8px; }
+  .list ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+  .list li { display: flex; gap: 10px; align-items: baseline; padding: 6px 2px; font-size: 13.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+  .list li span:first-child { width: 14px; color: var(--ink-faint); font-size: 11px; text-align: center; flex: none; }
+  .list li.first span:first-child { color: var(--amber-text); }
+  .list li small { margin-left: auto; color: var(--ink-faint); font-size: 11px; flex: none; }
+  .panel-foot { border-top: 1px solid var(--line); padding: 12px 18px 14px; display: grid; gap: 6px; }
+
+  /* pins for things placed in the scene */
+  .pin { position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: none; display: grid; place-items: center; transition: opacity 0.8s ease; }
+  .pin .tip { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); padding: 4px 10px; border-radius: 12px; font-size: 12px; letter-spacing: 0.06em; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+  .pin:hover .tip, .pin:focus-visible .tip { opacity: 1; }
+  .pin::before { content: ""; width: 10px; height: 10px; outline: 2px solid rgba(20, 27, 33, 0.45); border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px 2px rgba(224, 178, 101, 0.55); animation: pulse 2.2s ease-in-out infinite; }
+  .pin.seen::before { animation: none; background: rgba(240, 237, 228, 0.55); box-shadow: none; }
+  @keyframes pulse { 50% { transform: scale(1.5); opacity: 0.7; } }
+
+  /* sheets */
+  .sheet-wrap { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(8, 12, 16, 0.25); }
+  .sheet { width: min(360px, 100%); padding: 18px; display: grid; gap: 12px; background: var(--glass-strong); }
+  .sheet h3 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 18px; letter-spacing: 0.1em; }
+  .sheet .row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  .ghost { padding: 8px 14px; border-radius: 16px; border: 1px solid var(--line); background: none; color: var(--ink-soft); font-size: 13px; }
+  .sheet .primary { width: auto; padding: 8px 18px; font-size: 14px; }
+
+  /* mist veil for arrival / departure */
+  .veil { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 45% 55%, #eef0ee, #e2e6e5 60%, #d9dedd); }
+  .veil-msg { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 14px; padding: 16px; color: #2d3a3a; text-shadow: none; text-align: center; }
+  .veil-msg p { margin: 0; font-size: 14px; letter-spacing: 0.08em; }
+  .veil-msg .ghost { color: #2d3a3a; border-color: rgba(45, 58, 58, 0.3); }
+  .veil-msg[hidden] { display: none; }
+  .ui-fade { opacity: 0; pointer-events: none; }
+
+  @media (max-width: 760px) {
+    body { overflow: auto; }
+    .app { position: static; }
+    .stage { position: relative; height: 62vh; min-height: 380px; }
+    .top-left { max-width: calc(100% - 32px); }
+    .proto { position: static; justify-items: start; max-width: none; padding: 12px 16px 0; }
+    .seg { justify-content: flex-start; }
+    .routes { position: static; padding: 12px 16px 0; }
+    .route { max-width: none; }
+    .panel { position: static; width: auto; margin: 12px 16px 16px; }
+    .journey h1 { font-size: 17px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .pin::before { animation: none; } .panel, .routes, .pin { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="scene" aria-label="霧岸營火：霧海上方的小浮島，旅人坐在營火邊，對面有一個空位；左邊一座吊橋、右邊一串浮石通進霧裡"></canvas>
+    <div class="top-left" id="topLeft">
+      <header class="journey glass">
+        <p class="label" id="journeyLabel">起點 · 新的旅程</p>
+        <h1>霧岸營火</h1>
+        <div class="dots" aria-label="已走完 0 段，共 5 段"><b></b><i></i><b></b><i></i><b></b><i></i><b></b><i></i><b></b><small>第 1 段 / 5 段</small></div>
+      </header>
+      <button type="button" class="pill glass" id="collectionBtn">收藏室</button>
+    </div>
+    <div id="pins"></div>
+    <div class="routes" id="routes">
+      <p class="label">旅程的第一段往哪裡？<span> · 移到卡片上可以看向那條路</span></p>
+      <div class="route-row" id="routeRow"></div>
+    </div>
+    <div class="veil" id="veil"><div class="veil-msg" id="veilMsg" hidden><p id="veilText"></p><button type="button" class="ghost" id="replayBtn">回到營火重看</button></div></div>
+    <div class="sheet-wrap" id="sheetWrap" hidden></div>
+  </div>
+
+  <aside class="panel glass" id="panel" aria-live="polite">
+    <div class="panel-scroll">
+      <section class="next">
+        <p class="label" id="nextLabel">旅程的第一段</p>
+        <h2 id="nextTitle">選一條路</h2>
+        <p class="soft" id="nextSoft">在左邊的兩條路中選一條，選了還可以改。</p>
+        <div class="current"><span class="label">這次要做</span><b>寫完電磁學第三章筆記</b></div>
+        <button type="button" class="primary" id="primaryBtn" disabled>準備出發</button>
+        <small class="note" id="primaryNote">先選一條路</small>
+      </section>
+      <section class="list" aria-label="今天的清單">
+        <p class="label">今天的清單 · 完成 0 / 3 <span class="warm">（範例資料）</span></p>
+        <ol>
+          <li class="first"><span>●</span>寫完電磁學第三章筆記</li>
+          <li><span>·</span>整理實驗數據</li>
+          <li><span>↻</span>伸展十分鐘<small>例行</small></li>
+        </ol>
+      </section>
+    </div>
+    <footer class="panel-foot">
+      <p class="label">行囊 0</p>
+      <p class="soft">走完一張地圖會帶回一件信物</p>
+    </footer>
+  </aside>
+
+  <div class="proto" id="proto">
+    <p class="label">原型控制 · 對面空位的痕跡階段</p>
+    <div class="seg glass" id="stageSeg" role="group" aria-label="痕跡階段"></div>
+    <div class="seg glass" role="group" aria-label="演出">
+      <button type="button" class="act" id="playReturn">播放「回到營火」</button>
+      <button type="button" class="act" id="playDepart">播放「借火出發」</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+'use strict';
+const T = window.THREE;
+if (!T) { document.getElementById('nextSoft').textContent = '3D 函式庫載入失敗，請重新整理頁面。'; return; }
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- small helpers ----------
+let seed = 7;
+const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+const rr = (a, b) => a + (b - a) * rnd();
+const V3 = (x, y, z) => new T.Vector3(x, y, z);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const ease = (x) => { x = clamp(x, 0, 1); return x * x * x * (x * (x * 6 - 15) + 10); };
+const lerp = (a, b, t) => a + (b - a) * t;
+const segDist = (x, z, a, b) => { const dx = b[0] - a[0], dz = b[1] - a[1]; const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz), 0, 1); return Math.hypot(a[0] + dx * t - x, a[1] + dz * t - z); };
+const wind = (t, x, z) => Math.sin(t * 1.3 + x * 0.35 + z * 0.2) * 0.6 + Math.sin(t * 2.7 + x * 0.9) * 0.25 + Math.sin(t * 0.4) * 0.3;
+
+const mat = (c, e) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.95, metalness: 0, flatShading: true }, e || {}));
+const M = {
+  grass: mat(0x6d8158), grassDeep: mat(0x566b48), grassDry: mat(0x8a8a60), moss: mat(0x6f8a4a),
+  soil: mat(0x6b5a47), rock: mat(0x7c7a72), rockDark: mat(0x63625c), stone: mat(0x938f86),
+  bark: mat(0x5c4b3c), barkDark: mat(0x3f342b), wood: mat(0x7d624a), woodPale: mat(0xb89a74), woodDark: mat(0x564436), plank: mat(0x8c6f52),
+  char: mat(0x2b2521, { emissive: 0x5a2410, emissiveIntensity: 0.5 }), ash: mat(0x55504a),
+  rope: mat(0x9b8a6c), leaf: mat(0x5f7a52), leaf2: mat(0x6f8a5c), leafDry: mat(0x8d8a5a),
+  cloak: mat(0x3d4659), cloakOld: mat(0x5d6168), hat: mat(0xb49c70), hatOld: mat(0x9c9486), scarf: mat(0x9b5e4c), scarfOld: mat(0x86705f),
+  skin: mat(0xe0d2c0, { flatShading: false }), eye: mat(0x2a2320), boot: mat(0x3b2f26), pack: mat(0x7b6a52), bedroll: mat(0x6b7d8e),
+  paper: mat(0xece4d2), cover: mat(0x6e4a34), tin: new T.MeshStandardMaterial({ color: 0xa9aaa6, metalness: 0.6, roughness: 0.4 }),
+  blanket: mat(0x8e5f4e), blanketLine: mat(0xd6c7a6), brass: new T.MeshStandardMaterial({ color: 0xb08d57, metalness: 0.55, roughness: 0.42 }),
+  brassOld: new T.MeshStandardMaterial({ color: 0x8a7a5e, metalness: 0.4, roughness: 0.6 }), cloth: mat(0xc9b596), clothRed: mat(0xa2614c),
+  far: mat(0x8a959b), farTree: mat(0x76857c), farRoof: mat(0x5f6b6d)
+};
+const mesh = (geo, m, parent, x, y, z) => { const o = new T.Mesh(geo, m); o.position.set(x || 0, y || 0, z || 0); if (parent) parent.add(o); return o; };
+const shadowy = (o) => { o.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } }); return o; };
+const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new T.CanvasTexture(c); };
+const radial = (stops) => canvasTex(64, 64, (x) => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); stops.forEach(([o, c]) => g.addColorStop(o, c)); x.fillStyle = g; x.fillRect(0, 0, 64, 64); });
+const haloTex = radial([[0, 'rgba(255,224,170,1)'], [0.3, 'rgba(255,180,100,0.4)'], [1, 'rgba(255,150,70,0)']]);
+const mistTex = canvasTex(128, 128, (x) => { const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,0.9)'); g.addColorStop(0.5, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); });
+const dotTex = radial([[0, 'rgba(255,255,255,1)'], [0.4, 'rgba(255,255,255,0.5)'], [1, 'rgba(255,255,255,0)']]);
+const flameTex = canvasTex(64, 128, (x) => { const g = x.createRadialGradient(32, 96, 2, 32, 80, 60); g.addColorStop(0, 'rgba(255,246,214,1)'); g.addColorStop(0.25, 'rgba(255,196,110,0.95)'); g.addColorStop(0.6, 'rgba(236,112,48,0.55)'); g.addColorStop(1, 'rgba(200,70,30,0)'); x.fillStyle = g; x.beginPath(); x.moveTo(32, 2); x.bezierCurveTo(56, 50, 62, 90, 32, 126); x.bezierCurveTo(2, 90, 8, 50, 32, 2); x.fill(); });
+
+// ---------- renderer / scene ----------
+const canvas = document.getElementById('scene');
+const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setClearColor(0x000000, 0);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+const scene = new T.Scene();
+const DIST = 60;
+scene.fog = new T.Fog(0xc3c8c6, DIST - 4, DIST + 34);
+// Authored in camera-aligned local space: +x = screen right, +z = toward the camera. The root turns
+// by 45° so the camera sits at the App's usual azimuth (45°); only the look changes, not the numbers.
+const root = new T.Group(); root.rotation.y = Math.PI / 4; scene.add(root);
+const camera = new T.OrthographicCamera(-10, 10, 6, -6, 1, 400);
+
+// pre-dawn light: cool sky, a low warm sun behind the islet, and the campfire as the main key
+const hemi = new T.HemisphereLight(0xa9b7c3, 0x3d4438, 0.62); scene.add(hemi);
+const sun = new T.DirectionalLight(0xffd8b4, 0.42);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 80 });
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.03;
+scene.add(sun); scene.add(sun.target);
+const rim = new T.DirectionalLight(0x9fb3cc, 0.18); scene.add(rim);
+const toWorld = (v) => v.clone().applyAxisAngle(V3(0, 1, 0), Math.PI / 4);
+sun.position.copy(toWorld(V3(9, 7, -14))); sun.target.position.set(0, 0, 0);
+rim.position.copy(toWorld(V3(-8, 6, 10)));
+
+// ---------- the islet ----------
+const E1 = [-3.0, -4.75], E2 = [3.1, -4.9];         // where the bridge / stepping stones leave the rim
+const FIRE = [0, 0];
+const SEAT_T = [-0.62, -1.78], SEAT_E = [1.3, 1.36]; // traveller's log, the empty seat opposite
+const rimR = (a) => 6.1 * (1 + 0.09 * Math.sin(3 * a + 1.1) + 0.05 * Math.sin(7 * a + 2.3) + 0.03 * Math.sin(12 * a)) * (1 + 0.08 * Math.cos(2 * a));
+const topH = (x, z) => {
+  const r = Math.hypot(x, z) / rimR(Math.atan2(z, x));
+  let h = 0.07 * Math.sin(x * 1.3 + z * 0.7) * Math.cos(z * 1.1 - x * 0.4) + 0.05 * Math.sin(x * 2.9 - z * 2.1);
+  h += 0.55 * Math.exp(-((x + 4.3) ** 2 + (z + 2.5) ** 2) / 3.0);
+  h -= 0.18 * sstep(0.82, 1, r);
+  h *= 1 - 0.9 * Math.exp(-(x * x + z * z) / 2.2); // level ground around the fire
+  return h;
+};
+const worn = (x, z) => Math.min(segDist(x, z, FIRE, E1), segDist(x, z, FIRE, E2), segDist(x, z, SEAT_T, [-1.9, -1.4]), Math.hypot(x, z) - 1.0);
+{
+  const RINGS = 12, SEGS = 64; const pts = [];
+  for (let k = 0; k <= RINGS; k++) { const row = []; for (let s = 0; s < SEGS; s++) { const a = s / SEGS * Math.PI * 2; const f = k / RINGS; const R = rimR(a) * f; const j = k > 0 && k < RINGS ? 0.12 : 0; const x = Math.cos(a) * R + rr(-j, j), z = Math.sin(a) * R + rr(-j, j); row.push([x, topH(x, z), z]); } pts.push(row); }
+  // skirt: soil band, then stratified rock narrowing to a point
+  const levels = [[-0.38, 1.0], [-1.25, 0.88], [-2.3, 0.7], [-3.4, 0.48], [-4.4, 0.26], [-5.2, 0.1]];
+  const skirt = [pts[RINGS]];
+  levels.forEach(([y, s]) => { skirt.push(pts[RINGS].map(([x, , z]) => { const q = s * rr(0.9, 1.06); return [x * q, y + rr(-0.15, 0.15), z * q]; })); });
+  const pos = [], col = []; const c = new T.Color();
+  const tri = (a, b, d, color) => { pos.push(...a, ...b, ...d); for (let i = 0; i < 3; i++) col.push(color.r, color.g, color.b); };
+  const G1 = new T.Color(0x6d8158), G2 = new T.Color(0x5b7049), G3 = new T.Color(0x7e8a5e), DIRT = new T.Color(0x7a6a55), ASH = new T.Color(0x5e5750);
+  const topColor = (x, z) => { const w = worn(x, z); const n = Math.sin(x * 3.1 + z * 1.7) * 0.5 + Math.sin(x * 7.3 - z * 5.1) * 0.5; c.copy(n > 0.35 ? G3 : n < -0.3 ? G2 : G1); if (w < 0.55) c.lerp(DIRT, 1 - sstep(0.15, 0.55, w)); if (Math.hypot(x, z) < 0.9) c.lerp(ASH, 0.6); return c; };
+  for (let k = 0; k < RINGS; k++) for (let s = 0; s < SEGS; s++) {
+    const a = pts[k][s], b = pts[k][(s + 1) % SEGS], d = pts[k + 1][s], e = pts[k + 1][(s + 1) % SEGS];
+    if (k === 0) { tri([0, topH(0, 0), 0], e, d, topColor((d[0] + e[0]) / 3, (d[2] + e[2]) / 3)); continue; }
+    tri(a, e, d, topColor((a[0] + e[0] + d[0]) / 3, (a[2] + e[2] + d[2]) / 3));
+    tri(a, b, e, topColor((a[0] + b[0] + e[0]) / 3, (a[2] + b[2] + e[2]) / 3));
+  }
+  const ROCKS = [0x6b5a47, 0x7c7a72, 0x6a6962, 0x827f75, 0x6a6962, 0x5f5e58];
+  for (let L = 0; L < skirt.length - 1; L++) for (let s = 0; s < SEGS; s++) {
+    const a = skirt[L][s], b = skirt[L][(s + 1) % SEGS], d = skirt[L + 1][s], e = skirt[L + 1][(s + 1) % SEGS];
+    c.setHex(ROCKS[L]); if (rnd() < 0.18 && L > 0) c.lerp(new T.Color(0x6f8a4a), 0.45); c.multiplyScalar(rr(0.93, 1.05));
+    tri(a, e, d, c); tri(a, b, e, c);
+  }
+  const tip = [0, -6.3, 0]; const last = skirt[skirt.length - 1];
+  for (let s = 0; s < SEGS; s++) { c.setHex(0x5a5953); tri(last[s], last[(s + 1) % SEGS], tip, c); }
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new T.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
+  const isl = new T.Mesh(g, new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.96, flatShading: true })); isl.receiveShadow = true; isl.castShadow = true; root.add(isl);
+  // dangling roots under the rim
+  for (let i = 0; i < 16; i++) { const a = rr(0, Math.PI * 2); const R = rimR(a) * 0.93; const len = rr(0.6, 1.8); const r0 = mesh(new T.CylinderGeometry(0.02, 0.012, len, 4), M.barkDark, root, Math.cos(a) * R, -0.3 - len / 2, Math.sin(a) * R); r0.rotation.z = rr(-0.2, 0.2); }
+}
+const at = (x, z, dy) => V3(x, topH(x, z) + (dy || 0), z);
+
+// grass tufts (sway with the wind)
+const TUFTS = [];
+{ const bladeGeo = new T.ConeGeometry(0.035, 0.34, 3); bladeGeo.translate(0, 0.17, 0);
+  let n = 0; while (n < 190) { const a = rr(0, Math.PI * 2), f = Math.sqrt(rnd()) * 0.95; const x = Math.cos(a) * rimR(a) * f, z = Math.sin(a) * rimR(a) * f;
+    if (worn(x, z) < 0.6 || Math.hypot(x - SEAT_E[0], z - SEAT_E[1]) < 0.8 || Math.hypot(x - SEAT_T[0], z - SEAT_T[1]) < 0.9) continue;
+    const g = new T.Group(); g.position.copy(at(x, z)); root.add(g); const s = rr(0.7, 1.35);
+    for (let b = 0; b < 4; b++) { const m = mesh(bladeGeo, rnd() < 0.3 ? M.grassDry : rnd() < 0.5 ? M.grass : M.grassDeep, g, rr(-0.06, 0.06), 0, rr(-0.06, 0.06)); m.scale.set(1, s * rr(0.7, 1.2), 1); m.rotation.set(rr(-0.3, 0.3), rr(0, 3), rr(-0.3, 0.3)); }
+    TUFTS.push({ g, x, z, k: rr(0.08, 0.16) }); n++; } }
+
+// rocks, ferns, a bush on the rim
+const rock = (x, z, s, m) => { const o = mesh(new T.DodecahedronGeometry(s, 0), m || M.rock, root, x, topH(x, z) + s * 0.2, z); o.scale.y = 0.6; o.rotation.set(rr(0, 3), rr(0, 3), 0); o.castShadow = true; o.receiveShadow = true; return o; };
+[[-4.2, 1.9, 0.42], [3.6, 2.9, 0.34], [-2.6, 3.9, 0.3], [4.6, -0.6, 0.5], [-1.4, -4.2, 0.3], [4.4, -3.2, 0.4], [-0.9, 4.6, 0.26]].forEach(([x, z, s]) => rock(x, z, s, rnd() < 0.5 ? M.rock : M.rockDark));
+const FERNS = [];
+const fern = (x, z, s) => { const g = new T.Group(); g.position.copy(at(x, z)); g.scale.setScalar(s); root.add(g); for (let i = 0; i < 6; i++) { const f = mesh(new T.ConeGeometry(0.07, 0.62, 3), rnd() < 0.5 ? M.leaf : M.leaf2, g, 0, 0, 0); f.geometry.translate(0, 0.31, 0); f.rotation.set(0.95, i / 6 * Math.PI * 2, 0, 'YXZ'); f.scale.z = 0.25; } FERNS.push({ g, ph: rr(0, 6) }); shadowy(g); };
+[[-3.4, 1.2, 1], [3.9, 1.5, 0.9], [-1.6, 3.6, 0.8], [1.3, -4.3, 0.8], [-4.9, -0.9, 0.8], [4.6, -1.8, 0.9]].forEach(([x, z, s]) => fern(x, z, s));
+
+// the wind-bent tree on the knoll (behind-left)
+const TREE = {};
+{ const bx = -4.35, bz = -2.45; const g = new T.Group(); g.position.copy(at(bx, bz)); root.add(g);
+  const trunk = mesh(new T.CylinderGeometry(0.14, 0.24, 2.3, 7), M.bark, g, 0, 1.1, 0); trunk.rotation.z = -0.16;
+  const branch = mesh(new T.CylinderGeometry(0.06, 0.1, 1.1, 5), M.bark, g, 0.45, 2.0, 0.1); branch.rotation.z = -0.9;
+  const crown = new T.Group(); crown.position.set(0.35, 2.45, 0); g.add(crown);
+  [[0, 0, 0, 1.05], [0.9, -0.15, 0.2, 0.8], [-0.6, 0.1, -0.2, 0.75], [0.3, 0.45, -0.3, 0.7], [0.5, 0.1, 0.6, 0.6]].forEach(([x, y, z, r]) => { const b = mesh(new T.IcosahedronGeometry(r, 1), rnd() < 0.5 ? M.leaf : M.leaf2, crown, x, y, z); b.scale.set(1.15, 0.6, 1.05); });
+  shadowy(g); TREE.crown = crown; }
+
+// ---------- campfire ----------
+const FIREFX = {};
+{ const g = new T.Group(); g.position.copy(at(0, 0)); root.add(g); FIREFX.g = g;
+  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; const s = mesh(new T.DodecahedronGeometry(rr(0.13, 0.18), 0), rnd() < 0.5 ? M.stone : M.rock, g, Math.cos(a) * 0.62, 0.06, Math.sin(a) * 0.62); s.scale.y = 0.7; s.rotation.set(rr(0, 3), rr(0, 3), 0); s.castShadow = true; }
+  mesh(new T.CylinderGeometry(0.5, 0.55, 0.03, 12), M.ash, g, 0, 0.015, 0);
+  for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2 + 0.3; const l = mesh(new T.CylinderGeometry(0.055, 0.07, 0.72, 6), i % 2 ? M.char : M.barkDark, g, Math.cos(a) * 0.17, 0.2, Math.sin(a) * 0.17); l.rotation.set(0, -a, 0, 'YXZ'); l.rotateZ(0.95); l.castShadow = true; }
+  FIREFX.flames = [];
+  const fm = (op) => new T.SpriteMaterial({ map: flameTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: op, fog: false });
+  [[0, 0, 0.62, 0.9], [0.12, 0.05, 0.44, 0.75], [-0.12, -0.04, 0.48, 0.75], [0.03, 0.1, 0.34, 0.9]].forEach(([x, z, h, o], i) => { const sp = new T.Sprite(fm(o)); sp.center.set(0.5, 0.02); sp.position.set(x, 0.12, z); sp.scale.set(h * 0.55, h, 1); g.add(sp); FIREFX.flames.push({ sp, h, ph: i * 1.7, o }); });
+  const halo = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.55, fog: false })); halo.position.set(0, 0.45, 0); halo.scale.set(2.6, 2.6, 1); g.add(halo); FIREFX.halo = halo;
+  const glow = mesh(new T.PlaneGeometry(4.2, 4.2), new T.MeshBasicMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.35 }), g, 0, 0.04, 0); glow.rotation.x = -Math.PI / 2; FIREFX.glow = glow;
+  const light = new T.PointLight(0xffa451, 1.6, 7.5, 1.6); light.position.set(0, 0.6, 0); g.add(light); FIREFX.light = light;
+  // embers
+  const n = 46, pos = new Float32Array(n * 3); const base = [];
+  for (let i = 0; i < n; i++) base.push({ t: rnd(), x: rr(-0.2, 0.2), z: rr(-0.2, 0.2), sp: rr(0.35, 0.7), dr: rr(-0.3, 0.3) });
+  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3));
+  const pts = new T.Points(geo, new T.PointsMaterial({ color: 0xffc27a, size: 3, map: dotTex, transparent: true, opacity: 0.9, depthWrite: false, blending: T.AdditiveBlending, sizeAttenuation: false, fog: false }));
+  pts.frustumCulled = false; g.add(pts); FIREFX.embers = { pos, base, geo };
+  // smoke
+  FIREFX.smoke = [];
+  for (let i = 0; i < 9; i++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0x9a9a98, transparent: true, opacity: 0, depthWrite: false })); g.add(sp); FIREFX.smoke.push({ sp, t: i / 9 }); }
+}
+
+// ---------- seats, woodpile, pack ----------
+const faceTo = (from, to) => Math.atan2(to[0] - from[0], to[1] - from[1]);
+let travellerLog;
+{ // traveller's log
+  const log = mesh(new T.CylinderGeometry(0.2, 0.22, 1.7, 8), M.bark, root, SEAT_T[0] - 0.12, topH(SEAT_T[0], SEAT_T[1]) + 0.2, SEAT_T[1] - 0.14);
+  travellerLog = log;
+  log.rotation.set(0, faceTo(SEAT_T, FIRE), Math.PI / 2, 'YXZ'); log.castShadow = true; log.receiveShadow = true;
+  [[-0.85], [0.85]].forEach(([k]) => { const e = mesh(new T.CircleGeometry(0.2, 8), M.woodPale, log, 0, k + (k > 0 ? 0.001 : -0.001), 0); e.rotation.x = k > 0 ? -Math.PI / 2 : Math.PI / 2; });
+  const moss = mesh(new T.IcosahedronGeometry(0.16, 0), M.moss, log, 0.12, 0.5, 0.1); moss.scale.set(1, 0.5, 1.4);
+  // pack and bedroll beside the log
+  const p = at(-1.95, -1.25); const pack = new T.Group(); pack.position.copy(p); pack.rotation.y = 0.6; root.add(pack);
+  mesh(new T.BoxGeometry(0.42, 0.5, 0.28), M.pack, pack, 0, 0.25, 0); mesh(new T.CylinderGeometry(0.11, 0.11, 0.5, 8), M.bedroll, pack, 0, 0.56, 0).rotation.z = Math.PI / 2; mesh(new T.BoxGeometry(0.44, 0.08, 0.3), M.woodDark, pack, 0, 0.42, 0.01); shadowy(pack);
+}
+const SEAT = {};
+{ // the empty seat: a flat stone opposite, back to the camera
+  const s = mesh(new T.DodecahedronGeometry(0.4, 0), M.stone, root, SEAT_E[0], topH(SEAT_E[0], SEAT_E[1]) + 0.12, SEAT_E[1]); s.scale.set(1.05, 0.55, 0.95); s.rotation.y = 0.4; s.castShadow = true; s.receiveShadow = true;
+  SEAT.top = topH(SEAT_E[0], SEAT_E[1]) + 0.33;
+  const side = mesh(new T.DodecahedronGeometry(0.2, 0), M.rock, root, SEAT_E[0] + 0.55, topH(SEAT_E[0] + 0.55, SEAT_E[1] - 0.45) + 0.07, SEAT_E[1] - 0.45); side.scale.y = 0.55; side.castShadow = true;
+  SEAT.sideTop = side.position.y + 0.1; SEAT.side = side.position.clone();
+}
+{ // woodpile: split and stacked neatly before anyone arrived
+  const g = new T.Group(); g.position.copy(at(2.25, 0.2)); g.rotation.y = 0.9; root.add(g);
+  for (let row = 0; row < 3; row++) for (let i = 0; i < 4 - row; i++) { const l = mesh(new T.CylinderGeometry(0.075, 0.08, 0.7, 6), rnd() < 0.5 ? M.wood : M.plank, g, (i - (3 - row) / 2) * 0.16, 0.08 + row * 0.14, 0); l.rotation.x = Math.PI / 2; }
+  shadowy(g);
+}
+
+// ---------- signpost with a cloth strip ----------
+const SIGN = {};
+{ const g = new T.Group(); g.position.copy(at(0.35, -3.05)); root.add(g);
+  mesh(new T.CylinderGeometry(0.06, 0.075, 1.9, 6), M.woodDark, g, 0, 0.95, 0);
+  const arm = (dir, y) => { const a = new T.Group(); a.position.y = y; a.rotation.y = Math.atan2(dir[0], dir[1]) - Math.PI / 2; g.add(a); const b = mesh(new T.BoxGeometry(0.78, 0.15, 0.04), M.plank, a, 0.39, 0, 0); mesh(new T.ConeGeometry(0.08, 0.14, 3), M.plank, a, 0.83, 0, 0).rotation.z = -Math.PI / 2; return b; };
+  arm([E1[0] - 0.35, E1[1] + 3.05], 1.55); arm([E2[0] - 0.35, E2[1] + 3.05], 1.3);
+  const clothGeo = new T.PlaneGeometry(0.1, 0.62, 1, 8); clothGeo.translate(0, -0.31, 0);
+  const cloth = mesh(clothGeo, new T.MeshStandardMaterial({ color: 0xa2614c, roughness: 1, side: T.DoubleSide }), g, 0.07, 1.82, 0); SIGN.cloth = cloth; SIGN.base = clothGeo.attributes.position.array.slice();
+  shadowy(g); }
+
+// ---------- the two ways: a rope bridge (left) and floating stepping stones (right) ----------
+const norm2 = (x, z) => { const l = Math.hypot(x, z); return [x / l, z / l]; };
+const DIR1 = norm2(-0.62, -1), DIR2 = norm2(0.66, -1);
+const WAYS = {};
+{ // bridge
+  const g = new T.Group(); root.add(g); const y0 = topH(E1[0], E1[1]) + 0.02; const L = 11, n = 30; const right = [DIR1[1], -DIR1[0]];
+  const pt = (t, off, dy) => { const s = t * L; return V3(E1[0] + DIR1[0] * s + right[0] * off, y0 - 0.55 * Math.sin(Math.PI * t) + (dy || 0) - t * 0.4, E1[1] + DIR1[1] * s + right[1] * off); };
+  for (let i = 0; i < n; i++) { const t = (i + 0.5) / n; const p = pt(t, 0, -0.02); const b = mesh(new T.BoxGeometry(0.9, 0.05, 0.26), rnd() < 0.2 ? M.woodDark : M.plank, g, p.x, p.y, p.z); b.rotation.y = Math.atan2(DIR1[0], DIR1[1]); b.rotation.z = rr(-0.05, 0.05); }
+  [-1, 1].forEach((side) => { const post = pt(0, side * 0.52, 0); mesh(new T.CylinderGeometry(0.06, 0.07, 1.1, 6), M.woodDark, g, post.x, post.y + 0.45, post.z);
+    const ropePts = []; for (let i = 0; i <= 24; i++) { const t = i / 24; ropePts.push(pt(t, side * 0.5, 0.72 - 0.1 * Math.sin(Math.PI * t))); }
+    const tube = new T.TubeGeometry(new T.CatmullRomCurve3(ropePts), 60, 0.018, 4, false); mesh(tube, M.rope, g);
+    for (let i = 1; i < 24; i += 2) { const t = i / 24; const a = pt(t, side * 0.5, 0.72 - 0.1 * Math.sin(Math.PI * t)), b = pt(t, side * 0.46, 0); const h = a.y - b.y; const v = mesh(new T.CylinderGeometry(0.008, 0.008, h, 3), M.rope, g, a.x, (a.y + b.y) / 2, a.z); } });
+  shadowy(g); WAYS.bridge = { dir: DIR1, from: E1, pt: (t) => pt(t, 0, 0.03), len: L };
+}
+const STONES = [];
+{ // stepping stones that float, bobbing
+  const y0 = topH(E2[0], E2[1]); const L = 11;
+  for (let i = 0; i < 11; i++) { const s = (i + 0.7) * 1.0; const wob = Math.sin(i * 1.7) * 0.35; const x = E2[0] + DIR2[0] * s + DIR2[1] * wob, z = E2[1] + DIR2[1] * s - DIR2[0] * wob; const y = y0 - 0.12 - i * 0.05;
+    const g = new T.Group(); g.position.set(x, y, z); root.add(g); const r = rr(0.36, 0.46);
+    const top = mesh(new T.CylinderGeometry(r, r * 0.9, 0.14, 7), M.stone, g, 0, 0, 0); top.rotation.y = rr(0, 3);
+    const under = mesh(new T.ConeGeometry(r * 0.85, rr(0.5, 0.9), 6), M.rockDark, g, 0, -0.4, 0); under.rotation.x = Math.PI;
+    if (rnd() < 0.5) { const m = mesh(new T.IcosahedronGeometry(r * 0.4, 0), M.moss, g, rr(-0.1, 0.1), 0.07, rr(-0.1, 0.1)); m.scale.y = 0.35; }
+    shadowy(g); STONES.push({ g, y, ph: i * 0.8, x, z }); }
+  WAYS.steps = { dir: DIR2, from: E2, pt: (t) => { const f = t * (STONES.length - 1); const i = Math.floor(clamp(f, 0, STONES.length - 1.001)); const a = STONES[i].g.position, b = STONES[i + 1].g.position; return a.clone().lerp(b, f - i).add(V3(0, 0.08, 0)); }, len: L };
+}
+
+
+// 07 玻璃苗圃 (destination silhouette): a domed glasshouse on its plateau, a big tree breaking out through the dome,
+// a glass corridor to one side and the boiler-house chimney. Same flat far-materials as the other silhouettes.
+function silGlassNursery(d) {
+  mesh(new T.CylinderGeometry(3.5, 3.8, 0.55, 9), M.far, d, 0, 0, 0); const c = mesh(new T.ConeGeometry(3.7, 3.3, 9), M.far, d, 0, -1.9, 0); c.rotation.x = Math.PI;
+  const glassFar = mat(0xa9b6b8); glassFar.transparent = true; glassFar.opacity = 0.55;
+  mesh(new T.CylinderGeometry(1.9, 1.9, 1.3, 16, 1, true), glassFar, d, 0, 0.9, 0);                              // drum
+  const dome = new T.Mesh(new T.SphereGeometry(1.9, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), glassFar); dome.position.y = 1.55; d.add(dome);
+  for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; const pts = []; for (let q = 0; q <= 8; q++) { const t = q / 8 * Math.PI / 2; pts.push(V3(Math.cos(a) * 1.9 * Math.cos(t), 1.55 + 1.9 * Math.sin(t), Math.sin(a) * 1.9 * Math.cos(t))); } d.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts), 12, 0.05, 4), M.farRoof)); mesh(new T.BoxGeometry(0.08, 1.3, 0.08), M.farRoof, d, Math.cos(a) * 1.9, 0.9, Math.sin(a) * 1.9); }
+  mesh(new T.CylinderGeometry(0.3, 0.3, 0.4, 8), M.farRoof, d, 0, 3.6, 0); mesh(new T.ConeGeometry(0.4, 0.5, 8), M.farRoof, d, 0, 4.0, 0);  // cupola
+  // the big tree: trunk inside, crown bursting out of the dome's broken shoulder
+  mesh(new T.CylinderGeometry(0.2, 0.32, 3.4, 6), M.farRoof, d, -0.7, 2.1, -0.4);
+  [[-1.1, 3.9, -0.5, 1.15], [-0.1, 3.7, -0.9, 0.85], [-1.8, 3.3, 0.1, 0.8]].forEach(([x, y, z, r]) => { const b = mesh(new T.IcosahedronGeometry(r, 1), M.farTree, d, x, y, z); b.scale.y = 0.65; });
+  // glass corridor running out to the left, and the boiler house with its chimney on the right
+  const corr = new T.Mesh(new T.CylinderGeometry(0.42, 0.42, 1.9, 10, 1, true, 0, Math.PI), glassFar); corr.rotation.z = Math.PI / 2; corr.position.set(-2.6, 0.5, 0.6); d.add(corr);
+  mesh(new T.BoxGeometry(0.8, 0.7, 0.7), M.far, d, 2.3, 0.6, -0.5); mesh(new T.CylinderGeometry(0.12, 0.15, 1.9, 6), M.farRoof, d, 2.5, 1.5, -0.7);
+}
+
+// 03 倒影湖畔 (destination silhouette, 2026-10-13): no plateau, no cone. A thin sheet of mirror water lying in the
+// mist with no visible edge, carrying three things that read from far away: the 疊月橋 arch at high tide (arch +
+// reflection = one full circle, the night window inside it — the focal point), the tilted 半沉亭, and the old pine on
+// its rock. Everything upright has a real mirrored reflection. Easter egg: when the veil thins, the reflection shows
+// up ~0.4 s before the thing itself (倒影似乎比本人多知道一點). Fixed at high tide (no tide clock at the campfire).
+// ---- 03 倒影湖畔 silhouette begin ----
+// Same interface as 05: d.userData.sil = { alive(), update(dt, mt, hoverT, thinning) }. 03 ignores hoverT and uses
+// `thinning` (= veilTarget(way) < 0.5), so it also shows during the departure while that way's veil is thin.
+function silReflectionLake(d) {
+  const v = new T.Group(); d.add(v);                                             // root is already turned to the camera: local x = screen right, +z = toward camera
+  const up = new T.Group(); v.add(up);
+  const U = { stone: mat(0x97a1a5), roof: mat(0x66727a), tree: mat(0x6a7a72), win: new T.MeshBasicMaterial({ color: 0x4d5c6e }), moon: new T.MeshBasicMaterial({ color: 0xe6e4d8 }) };
+  // 疊月橋: humped granite bridge, semicircular arch springing exactly at the water line
+  { const s = new T.Shape(); s.moveTo(-2.7, 0); s.lineTo(-1.1, 0); s.absarc(0, 0, 1.1, Math.PI, 0, true); s.lineTo(2.7, 0); s.lineTo(0.38, 1.62); s.lineTo(-0.38, 1.62); s.lineTo(-2.7, 0);
+    const g = new T.ExtrudeGeometry(s, { depth: 0.9, bevelEnabled: false, curveSegments: 20 }); g.translate(0, 0, -0.45);
+    const b = mesh(g, U.stone, up, 0.15, 0, 1.0); b.scale.setScalar(0.78);
+    // low stone parapets following the hump
+    { const pr = new T.Shape(); pr.moveTo(-2.55, 0.1); pr.lineTo(-0.38, 1.62); pr.lineTo(0.38, 1.62); pr.lineTo(2.55, 0.1); pr.lineTo(2.55, 0.32); pr.lineTo(0.38, 1.86); pr.lineTo(-0.38, 1.86); pr.lineTo(-2.55, 0.32); pr.lineTo(-2.55, 0.1);
+      [0.38, -0.45].forEach((z) => mesh(new T.ExtrudeGeometry(pr, { depth: 0.07, bevelEnabled: false }), U.stone, b, 0, 0, z)); }
+    // the night window inside the arch (upper half; its reflection completes the circle) and a small full moon
+    mesh(new T.CircleGeometry(1.08, 32, 0, Math.PI), U.win, b, 0, 0.001, 0.3);
+    mesh(new T.CircleGeometry(0.17, 16, 0, Math.PI), U.moon, b, 0, 0.001, 0.31); }
+  // 半沉亭: hexagonal pavilion leaning toward the south-east (exaggerated from 4° to 7° so it reads at this distance)
+  { const p = new T.Group(); p.position.set(-2.75, 0, -0.9); p.rotation.set(0.05, 0.3, -0.11); up.add(p);
+    mesh(new T.CylinderGeometry(1.3, 1.35, 0.14, 6), U.stone, p, 0, 0.05, 0);
+    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; mesh(new T.BoxGeometry(0.1, 1.55, 0.1), U.roof, p, Math.cos(a) * 1.05, 0.85, Math.sin(a) * 1.05); }
+    mesh(new T.CylinderGeometry(1.45, 1.45, 0.08, 6), U.roof, p, 0, 1.64, 0);
+    mesh(new T.ConeGeometry(1.55, 0.95, 6), U.roof, p, 0, 2.13, 0); mesh(new T.ConeGeometry(0.08, 0.3, 6), U.roof, p, 0, 2.72, 0); }
+  // 松岩: a low rock with the old pine leaning toward the bridge, its lowest tier reaching toward the water
+  { const r = mesh(new T.DodecahedronGeometry(1.0, 0), U.stone, up, 3.05, 0.2, -0.6); r.scale.set(1.15, 0.58, 0.9);
+    const pine = new T.Group(); pine.position.set(3.3, 0.66, -0.7); pine.rotation.z = 0.3; up.add(pine);
+    mesh(new T.CylinderGeometry(0.1, 0.17, 2.2, 6), U.roof, pine, 0, 1.1, 0);
+    [[0, 2.25, 1.0], [-0.35, 1.75, 1.15], [0.3, 1.3, 0.85]].forEach(([x, y, w]) => { const c = mesh(new T.ConeGeometry(w, 0.42, 7), U.tree, pine, x, y, 0); c.scale.z = 0.7; });
+    const low = mesh(new T.ConeGeometry(0.62, 0.3, 7), U.tree, pine, -0.62, 0.95, 0); low.scale.z = 0.7; low.rotation.z = 0.25; }   // the long low branch reaching toward the water
+  // a few stepping stones running off to the right (toward exit B), awash at high tide
+  [[3.3, 1.2], [3.95, 1.75], [4.5, 2.35]].forEach(([x, z], i) => mesh(new T.CylinderGeometry(0.22 - i * 0.03, 0.24 - i * 0.03, 0.08, 7), U.stone, up, x, 0.02, z));
+  // reflection: the same objects mirrored under the water line, washed toward the water colour
+  const R = {}; Object.keys(U).forEach((k) => { R[k] = U[k].clone(); R[k].side = T.DoubleSide; });
+  up.traverse((o) => { if (o.isMesh) o.renderOrder = 4; });
+  const refl = up.clone(true); refl.scale.y = -1; v.add(refl); refl.traverse((o) => { if (o.isMesh) o.renderOrder = 1; });
+  refl.traverse((o) => { if (o.isMesh) o.material = R[Object.keys(U).find((k) => U[k] === o.material)]; });
+  // the water sheet: soft radial alpha so it has no edge, plus a few low mist banks over the rim
+  const alpha = canvasTex(128, 128, (x) => { const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,0.92)'); g.addColorStop(0.6, 'rgba(255,255,255,0.8)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); });
+  const waterM = new T.MeshBasicMaterial({ color: 0xa7b6bd, map: alpha, transparent: true, depthWrite: false });
+  const water = mesh(new T.CircleGeometry(5.6, 48), waterM, v, 0.2, 0.004, -0.1); water.rotation.x = -Math.PI / 2; water.renderOrder = 2;
+  const glintM = new T.MeshBasicMaterial({ color: 0xffffff, map: alpha, transparent: true, opacity: 0, depthWrite: false });
+  const glint = mesh(new T.PlaneGeometry(2.6, 0.35), glintM, v, 0, 0.006, 0.9); glint.rotation.x = -Math.PI / 2; glint.renderOrder = 3;
+  const rim = []; [[-4.6, 0.6], [4.8, -0.8], [0.6, -4.0], [-1.6, 3.6], [3.6, 3.0]].forEach(([x, z]) => { const sp = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xeef0ee, transparent: true, opacity: 0.55, depthWrite: false })); sp.position.set(x, 0.3, z); sp.scale.set(5.5, 2.3, 1); v.add(sp); rim.push(sp); });
+  // fade state: reflections lead, uprights follow ~0.4 s later
+  const BLUE = new T.Color(0x86a0b0), tmp = new T.Color(); let t = 0, mt = 0;
+  const setA = (m, a) => { const tr = a < 0.995; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } m.opacity = a; m.visible = a > 0.005; };
+  const apply = (sky) => {
+    const kr = sstep(0.3, 1.0, t), ku = sstep(0.7, 1.45, t);   // the veil and camera need ~1 s; reflection leads by ~0.4 s
+    if (sky) { tmp.copy(sky.fog).lerp(BLUE, 0.55); waterM.color.copy(tmp); }
+    Object.keys(U).forEach((k) => { setA(U[k], ku); const m = R[k]; m.color.copy(U[k].color).lerp(waterM.color, k === 'win' || k === 'moon' ? 0.2 : 0.45); setA(m, kr * 0.75); });
+    waterM.opacity = 0.35 + 0.65 * kr; glintM.opacity = 0.18 * kr * (0.6 + 0.4 * Math.sin(mt * 0.7)); glint.position.x = 0.2 + Math.sin(mt * 0.23) * 1.4;
+  };
+  const api = {
+    alive: () => v.parent === d,
+    // skyCur is only read here, from the frame loop, after the scene's sky state exists
+    update(dt, _mt, _hoverT, thinning) { mt += dt; t = thinning ? Math.min(t + dt, 2) : Math.max(t - dt * 1.4, 0); apply(skyCur); }
+  };
+  apply(null);
+  d.userData.sil = api;
+  return api;
+}
+// ---- 03 倒影湖畔 silhouette end ----
+
+// destinations waiting in the mist: 雲上遺庭 beyond the bridge, 苔痕驛站 beyond the stones
+const DEST = {};
+{ const far = (x, z, y) => { const g = new T.Group(); g.position.set(x, y, z); root.add(g); return g; };
+  // 雲上遺庭: a floating island with the big tree and a broken arch
+  const d1p = [E1[0] + DIR1[0] * 17, E1[1] + DIR1[1] * 17]; const d1 = far(d1p[0], d1p[1], -0.6);
+  mesh(new T.CylinderGeometry(3.2, 3.4, 0.5, 9), M.far, d1, 0, 0, 0); const c1 = mesh(new T.ConeGeometry(3.3, 3.2, 9), M.far, d1, 0, -1.85, 0); c1.rotation.x = Math.PI;
+  mesh(new T.CylinderGeometry(0.28, 0.42, 3.2, 6), M.farRoof, d1, -0.4, 1.8, 0); [[0, 3.8, 0, 1.9], [1.2, 3.4, 0.3, 1.2], [-1.3, 3.5, -0.2, 1.3]].forEach(([x, y, z, r]) => { const b = mesh(new T.IcosahedronGeometry(r, 1), M.farTree, d1, x - 0.4, y, z); b.scale.y = 0.62; });
+  mesh(new T.BoxGeometry(0.3, 1.4, 0.3), M.far, d1, 1.9, 0.9, 0.8); mesh(new T.BoxGeometry(0.3, 1.1, 0.3), M.far, d1, 2.9, 0.8, 0.3); mesh(new T.BoxGeometry(1.4, 0.26, 0.32), M.far, d1, 2.4, 1.6, 0.55).rotation.z = 0.2;
+  d1.scale.setScalar(0.8); DEST.bridge = { g: d1, p: d1p };
+  if (/sil07/.test(location.search)) { d1.clear(); silGlassNursery(d1); d1.scale.setScalar(0.85); }
+  // 苔痕驛站: a plateau with the small station, cedars and a platform lamp
+  const d2p = [E2[0] + DIR2[0] * 16.5, E2[1] + DIR2[1] * 16.5]; const d2 = far(d2p[0], d2p[1], -0.9);
+  mesh(new T.CylinderGeometry(3.6, 3.9, 0.6, 9), M.far, d2, 0, 0, 0); const c2 = mesh(new T.ConeGeometry(3.8, 3.4, 9), M.far, d2, 0, -2.0, 0); c2.rotation.x = Math.PI;
+  mesh(new T.BoxGeometry(2.0, 1.0, 1.2), M.far, d2, -0.4, 0.8, 0); const roof = mesh(new T.ConeGeometry(1.6, 0.8, 4), M.farRoof, d2, -0.4, 1.7, 0); roof.rotation.y = Math.PI / 4; roof.scale.z = 0.8;
+  [[1.8, -0.8], [2.4, 0.6], [-2.4, -0.6], [1.2, 1.4]].forEach(([x, z]) => mesh(new T.ConeGeometry(0.5, 2.4, 6), M.farTree, d2, x, 1.5, z));
+  mesh(new T.BoxGeometry(3.2, 0.12, 0.5), M.farRoof, d2, 0, 0.35, 1.6);
+  d2.scale.setScalar(0.75); d2.position.y = -1.4; DEST.steps = { g: d2, p: d2p };
+  // ?sil03 (both ways), ?sil03=bridge or ?sil03=steps: preview 倒影湖畔 in place of the authored silhouettes
+  { const q = new URLSearchParams(location.search).get('sil03'); if (q !== null) { (q === 'steps' ? [d2] : q === 'bridge' ? [d1] : [d1, d2]).forEach((g) => { g.clear(); silReflectionLake(g); g.scale.setScalar(0.85); }); } }
+}
+
+// mist: a sea below, drifting banks around the rim, and a veil over each way that thins on hover
+const MISTS = [];
+const mistSprite = (x, y, z, s, o, parent) => { const sp = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xeef0ee, transparent: true, opacity: o, depthWrite: false })); sp.position.set(x, y, z); sp.scale.set(s, s * 0.42, 1); (parent || root).add(sp); const m = { sp, base: o, p0: sp.position.clone(), ph: rr(0, 6), dr: rr(0.15, 0.4) }; MISTS.push(m); return m; };
+{
+  for (let i = 0; i < 44; i++) { const a = rr(0, Math.PI * 2), d = rr(6.5, 15); mistSprite(Math.cos(a) * d, rr(-6.5, -3.0), Math.sin(a) * d * (Math.sin(a) < 0 ? 0.65 : 1.2), rr(8, 14), rr(0.35, 0.65)); }
+  for (let i = 0; i < 14; i++) mistSprite(rr(-30, 30), rr(-12, -9), rr(-24, -12), rr(16, 26), rr(0.4, 0.7));
+  // faint ridges far behind, half drowned in the mist
+  const ridge = (z, x0, col, hmax) => { const pts = []; for (let i = 0; i <= 16; i++) pts.push(new T.Vector2(x0 + i * 4.2, rr(0.2, 1) * hmax * Math.sin(i / 16 * Math.PI) + rr(0, 1.5))); const shape = new T.Shape(); shape.moveTo(x0, -8); pts.forEach((p) => shape.lineTo(p.x, p.y)); shape.lineTo(x0 + 16 * 4.2, -8); const m = mesh(new T.ShapeGeometry(shape), new T.MeshBasicMaterial({ color: col }), root, 0, -4.5, z); return m; };
+  ridge(-38, -34, 0x9aa6ad, 6); ridge(-30, -20, 0xa9b3b7, 4.5);
+}
+const VEILS = { bridge: [], steps: [] };
+['bridge', 'steps'].forEach((k) => { const W = WAYS[k]; for (let i = 0; i < 7; i++) { const s = 5 + i * 1.9; const x = W.from[0] + W.dir[0] * s + rr(-1, 1), z = W.from[1] + W.dir[1] * s + rr(-1, 1); VEILS[k].push(mistSprite(x, rr(-0.6, 1.4), z, rr(7, 11), 0.92)); } });
+VEILS.bridge.concat(VEILS.steps).forEach((m) => { m.veil = true; });
+
+// lamp traces along each way (light up on hover, like the lobby's 燈痕)
+const TRACES = { bridge: [], steps: [] };
+['bridge', 'steps'].forEach((k) => { for (let i = 0; i < 5; i++) { const p = WAYS[k].pt(0.05 + i * 0.1); const sp = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0, fog: false })); sp.position.copy(p).add(V3(0, 0.12, 0)); sp.scale.set(0.9, 0.9, 1); root.add(sp); TRACES[k].push({ sp, v: 0 }); } });
+
+// ---------- lanterns & travellers ----------
+function makeLantern(old) {
+  const g = new T.Group(); const brass = old ? M.brassOld : M.brass;
+  mesh(new T.ConeGeometry(0.075, 0.06, 4), brass, g, 0, -0.03, 0).rotation.y = Math.PI / 4;
+  const glassMat = new T.MeshStandardMaterial({ color: 0x3a3228, emissive: 0xffb45e, emissiveIntensity: 0, roughness: 0.6, transparent: true, opacity: 0.85 });
+  mesh(new T.BoxGeometry(0.09, 0.11, 0.09), glassMat, g, 0, -0.12, 0);
+  [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) => mesh(new T.BoxGeometry(0.012, 0.13, 0.012), brass, g, a * 0.048, -0.12, b * 0.048));
+  mesh(new T.BoxGeometry(0.11, 0.015, 0.11), brass, g, 0, -0.185, 0);
+  const light = new T.PointLight(0xffb05a, 0, 3.4, 2); light.position.y = -0.12; g.add(light);
+  const halo = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0, fog: false })); halo.position.y = -0.12; halo.scale.set(0.75, 0.75, 1); g.add(halo);
+  if (old) { const patch = mesh(new T.BoxGeometry(0.03, 0.05, 0.005), M.paper, g, 0.02, -0.12, 0.047); patch.rotation.z = 0.3; }
+  shadowy(g);
+  return { g, set(v) { glassMat.emissiveIntensity = 1.3 * v; light.intensity = 0.9 * v; halo.material.opacity = 0.45 * v; } };
+}
+function makeStaff(old) {
+  const g = new T.Group();
+  if (!old) {
+    // Lake staff and lantern silhouette, expressed from the bottom of the staff.
+    mesh(new T.CylinderGeometry(0.017, 0.02, 1.08, 5), M.wood, g, 0, 0.54, 0);
+    mesh(new T.BoxGeometry(0.02, 0.02, 0.14), M.woodDark, g, 0, 1.07, 0.06);
+    const glassMat = mat(0x2c2620, { emissive: 0xffb45e, emissiveIntensity: 0 });
+    const lamp = mesh(new T.BoxGeometry(0.075, 0.1, 0.075), glassMat, g, 0, 0.98, 0.13);
+    const light = new T.PointLight(0xffb05a, 0, 3.2, 2); light.position.set(0, 0.98, 0.13); g.add(light);
+    const halo = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0, fog: false })); halo.position.copy(light.position); halo.scale.set(0.8, 0.8, 1); g.add(halo);
+    const anchor = new T.Group(); anchor.position.copy(light.position); g.add(anchor);
+    shadowy(g); lamp.castShadow = false;
+    return { g, lantern: { g: anchor, set(v) { glassMat.emissiveIntensity = 1.2 * v; light.intensity = 0.8 * v; halo.material.opacity = 0.3 * v; } } };
+  }
+  mesh(new T.CylinderGeometry(0.018, 0.022, 1.15, 5), old ? M.barkDark : M.wood, g, 0, 0.575, 0);
+  mesh(new T.BoxGeometry(0.02, 0.02, 0.16), M.woodDark, g, 0, 1.12, 0.07);
+  const lantern = makeLantern(old); lantern.g.position.set(0, 1.1, 0.15); g.add(lantern.g);
+  shadowy(g); return { g, lantern };
+}
+function makeTraveller(old) {
+  // Match Reflection Lake's model, including its single short leg and upper-body anchors.
+  const g = new T.Group(); g.scale.setScalar(1.15); root.add(g);
+  const hip = new T.Group(); hip.position.y = 0.3; g.add(hip);
+  const legs = [-1, 1].map((side) => { const thigh = new T.Group(); thigh.position.x = side * 0.07; hip.add(thigh); const tg = new T.CylinderGeometry(0.045, 0.04, 0.3, 5); tg.translate(0, -0.15, 0); mesh(tg, M.woodDark, thigh); return { thigh }; });
+  const torso = new T.Group(); hip.add(torso);
+  const cloak = mesh(new T.ConeGeometry(0.23, 0.6, 8), old ? M.cloakOld : M.cloak, torso, 0, 0.25, 0);
+  mesh(new T.CylinderGeometry(0.07, 0.07, 0.34, 7), old ? M.hatOld : mat(0x8a6f55), torso, 0, 0.36, -0.15).rotation.z = Math.PI / 2;
+  const head = new T.Group(); head.position.y = 0.6; torso.add(head);
+  mesh(new T.SphereGeometry(0.105, 12, 9), M.skin, head);
+  mesh(new T.ConeGeometry(0.3, 0.13, 12), old ? M.hatOld : M.hat, head, 0, 0.1, 0); // same wide pointed hat and faceless head as the map travellers
+  const arms = [-1, 1].map((side) => { const sh = new T.Group(); sh.position.set(side * 0.13, 0.44, 0.02); torso.add(sh); const ag = new T.CylinderGeometry(0.034, 0.03, 0.3, 5); ag.translate(0, -0.15, 0); mesh(ag, old ? M.cloakOld : M.cloak, sh); const hand = new T.Group(); hand.position.y = -0.3; sh.add(hand); return { sh, hand }; });
+  const book = new T.Group(); book.position.set(0, 0.24, 0.27); book.rotation.x = -0.9; torso.add(book);
+  if (!old) { mesh(new T.BoxGeometry(0.24, 0.012, 0.17), M.cover, book, 0, -0.008, 0); const pl = mesh(new T.BoxGeometry(0.11, 0.01, 0.16), M.paper, book, -0.058, 0.004, 0); pl.rotation.z = 0.08; const pr = mesh(new T.BoxGeometry(0.11, 0.01, 0.16), M.paper, book, 0.058, 0.004, 0); pr.rotation.z = -0.08; }
+  shadowy(g);
+  return { g, hip, legs, torso, head, arms, cloak, book, pose: {} };
+}
+// pose channels (radians / metres). armR is the character's right (−x when facing +z).
+const P_KEYS = ['hipY', 'thigh', 'knee', 'lean', 'headX', 'headY', 'armL', 'armR', 'armLz', 'armRz', 'book'];
+const POSES = {
+  read:  { hipY: 0.45, thigh: -1.5, knee: 1.5, lean: 0.22, headX: 0.5, headY: 0, armL: -0.95, armR: -0.95, armLz: -0.15, armRz: 0.15, book: 1 },
+  fire:  { hipY: 0.45, thigh: -1.5, knee: 1.5, lean: 0.14, headX: 0.12, headY: 0, armL: -0.95, armR: -0.95, armLz: -0.15, armRz: 0.15, book: 1 },
+  doze:  { hipY: 0.45, thigh: -1.5, knee: 1.5, lean: 0.34, headX: 0.72, headY: 0, armL: -0.6, armR: -0.6, armLz: -0.05, armRz: 0.05, book: 1 },
+  look:  { hipY: 0.45, thigh: -1.5, knee: 1.5, lean: 0.06, headX: -0.05, headY: 0, armL: -0.95, armR: -0.95, armLz: -0.15, armRz: 0.15, book: 1 },
+  stand: { hipY: 0.3, thigh: 0, knee: 0, lean: 0, headX: 0, headY: 0, armL: 0, armR: -0.35, armLz: 0, armRz: 0, book: 0 },
+  crouch:{ hipY: 0.1, thigh: -0.9, knee: 0, lean: 0.45, headX: 0.35, headY: 0, armL: -0.8, armR: -1.25, armLz: 0, armRz: 0, book: 0 },
+  sitOld:{ hipY: 0.36, thigh: -1.5, knee: 1.5, lean: 0.26, headX: 0.25, headY: 0, armL: -0.8, armR: -1.1, armLz: -0.1, armRz: 0.1, book: 0 }
+};
+function applyPose(tr, p, walkPh) {
+  tr.hip.position.y = p.hipY + (walkPh != null ? Math.abs(Math.sin(walkPh)) * 0.035 : 0);
+  const sw = walkPh != null ? Math.sin(walkPh) * 0.55 : 0;
+  tr.legs[0].thigh.rotation.x = p.thigh + sw; tr.legs[1].thigh.rotation.x = p.thigh - sw;
+  tr.torso.rotation.x = p.lean; tr.head.rotation.set(p.headX, p.headY, 0, 'YXZ');
+  tr.arms[0].sh.rotation.set(p.armL, 0, p.armLz); tr.arms[1].sh.rotation.set(p.armR, 0, p.armRz);
+  tr.cloak.rotation.z = sw * 0.07;
+  tr.book.visible = p.book > 0.5; tr.book.scale.setScalar(Math.max(0.001, p.book));
+}
+const mixPose = (a, b, t) => { const o = {}; P_KEYS.forEach((k) => { o[k] = lerp(a[k], b[k], t); }); return o; };
+
+const hero = makeTraveller(false);
+const heroStaff = makeStaff(false); root.add(heroStaff.g);
+const HERO_SEAT = V3(SEAT_T[0] + 0.1, topH(SEAT_T[0], SEAT_T[1]) - 0.02, SEAT_T[1] + 0.1);
+const HERO_YAW = faceTo([HERO_SEAT.x, HERO_SEAT.z], FIRE);
+// Step clear of the log while standing up; the seated pose itself belongs above the log.
+const seatToFire = V3(FIRE[0] - HERO_SEAT.x, 0, FIRE[1] - HERO_SEAT.z).normalize();
+const HERO_STAND = at(HERO_SEAT.x + seatToFire.x * 0.38, HERO_SEAT.z + seatToFire.z * 0.38);
+// staff leaning against the log on the traveller's right, lantern unlit
+const leanStaff = (() => { const o = new T.Object3D(); const side = [Math.cos(HERO_YAW) * -1, Math.sin(HERO_YAW) * 1]; o.position.set(HERO_SEAT.x - Math.cos(HERO_YAW) * 0.55 - Math.sin(HERO_YAW) * 0.18, HERO_SEAT.y, HERO_SEAT.z + Math.sin(HERO_YAW) * 0.55 - Math.cos(HERO_YAW) * 0.18); o.rotation.set(0, HERO_YAW, 0, 'YXZ'); o.rotateX(-0.3); o.rotateZ(0.12); o.updateMatrix(); return { p: o.position.clone(), q: o.quaternion.clone() }; })();
+
+// traces opposite (cumulative) and the older traveller
+const TRACE_OBJ = {};
+const steamSprites = (parent, list, x, y, z, n, size) => { for (let i = 0; i < n; i++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false })); parent.add(sp); list.push({ sp, t: i / n, x, y, z, size }); } };
+const STEAM = [];
+{ // stage 1 (met, 0 cores): a chopping stump with the axe left in it, fresh split wood around
+  const g = new T.Group(); g.position.copy(at(2.05, 1.95)); g.rotation.y = -0.5; root.add(g);
+  mesh(new T.CylinderGeometry(0.27, 0.31, 0.34, 9), M.bark, g, 0, 0.17, 0); const top = mesh(new T.CylinderGeometry(0.27, 0.27, 0.012, 9), M.woodPale, g, 0, 0.345, 0);
+  const axe = new T.Group(); axe.position.set(0.04, 0.35, 0); axe.rotation.set(0, 0.4, -0.55); g.add(axe);
+  mesh(new T.CylinderGeometry(0.018, 0.022, 0.62, 5), M.wood, axe, 0, 0.26, 0); mesh(new T.BoxGeometry(0.2, 0.11, 0.03), M.stone, axe, -0.06, -0.02, 0);
+  [[0.45, 0.12, 0.2], [0.38, -0.3, 1.2], [-0.4, 0.28, 2.1], [0.2, 0.42, 0.7], [-0.25, -0.38, 2.8]].forEach(([x, z, r]) => { const w = mesh(new T.BoxGeometry(0.1, 0.07, 0.34), M.woodPale, g, x, 0.04, z); w.rotation.y = r; });
+  shadowy(g); TRACE_OBJ[1] = g; }
+{ // stage 2 (1–3 cores): a pot crane over the fire with a kettle, and a warm tin cup on the side stone
+  const g = new T.Group(); root.add(g);
+  const P0 = at(0.98, 0.72); mesh(new T.CylinderGeometry(0.035, 0.045, 1.35, 5), M.woodDark, g, P0.x, P0.y + 0.67, P0.z);
+  const tip = V3(0.3, P0.y + 1.28, 0.2); const arm = new T.Mesh(new T.CylinderGeometry(0.025, 0.03, 1, 5), M.woodDark); const a0 = V3(P0.x, P0.y + 1.3, P0.z); arm.position.copy(a0).lerp(tip, 0.5); arm.scale.y = a0.distanceTo(tip); arm.quaternion.setFromUnitVectors(V3(0, 1, 0), tip.clone().sub(a0).normalize()); g.add(arm);
+  mesh(new T.CylinderGeometry(0.006, 0.006, 0.42, 3), M.char, g, tip.x, tip.y - 0.21, tip.z);
+  const k = new T.Group(); k.position.set(tip.x, tip.y - 0.55, tip.z); g.add(k);
+  const body = mesh(new T.SphereGeometry(0.15, 10, 7), M.barkDark, k, 0, 0, 0); body.scale.y = 0.78; mesh(new T.CylinderGeometry(0.06, 0.08, 0.05, 8), M.barkDark, k, 0, 0.12, 0);
+  const spout = mesh(new T.CylinderGeometry(0.018, 0.03, 0.16, 5), M.barkDark, k, 0.15, 0.03, 0); spout.rotation.z = -1.0;
+  const bail = mesh(new T.TorusGeometry(0.13, 0.008, 4, 10, Math.PI), M.char, k, 0, 0.08, 0);
+  steamSprites(g, STEAM, tip.x + 0.24, tip.y - 0.46, tip.z, 5, 0.3);
+  const c = new T.Group(); c.position.set(SEAT.side.x, SEAT.sideTop, SEAT.side.z); g.add(c);
+  mesh(new T.CylinderGeometry(0.05, 0.043, 0.09, 10), M.tin, c, 0, 0.045, 0); const hdl = mesh(new T.TorusGeometry(0.028, 0.008, 4, 8, Math.PI), M.tin, c, 0.055, 0.05, 0); hdl.rotation.z = -Math.PI / 2;
+  steamSprites(g, STEAM, SEAT.side.x, SEAT.sideTop + 0.1, SEAT.side.z, 3, 0.18);
+  shadowy(g); g.userData.kettle = k; TRACE_OBJ[2] = g; }
+const TARP = {};
+{ // stage 3 (4–6 cores): a tarp lean-to strung beside the woodpile, and a mended blanket folded on the seat
+  const g = new T.Group(); root.add(g);
+  const zA = -1.05, zB = 0.85, xr = 2.75, xl = 3.85, h = 1.38;
+  [zA, zB].forEach((z) => { const b = at(xr, z); mesh(new T.CylinderGeometry(0.035, 0.045, h + 0.08, 5), M.woodDark, g, b.x, b.y + h / 2, b.z); const pg = at(xl + 0.35, z); mesh(new T.CylinderGeometry(0.02, 0.012, 0.18, 4), M.woodDark, g, pg.x, pg.y + 0.06, pg.z); });
+  const ridgeY = (z) => topH(xr, z) + h, footY = (z) => topH(xl, z) + 0.08;
+  const geo = new T.PlaneGeometry(1, 1, 6, 5); const pos = geo.attributes.position; const base = [];
+  for (let i = 0; i < pos.count; i++) { const u = pos.getX(i) + 0.5, v = pos.getY(i) + 0.5; const z = zA + (zB - zA) * v; const x = xr + (xl - xr) * u; const y = lerp(ridgeY(z), footY(z), u) - 0.1 * Math.sin(Math.PI * u) * Math.sin(Math.PI * v); pos.setXYZ(i, x, y, z); base.push([x, y, z, u, v]); }
+  geo.computeVertexNormals(); const tarp = new T.Mesh(geo, new T.MeshStandardMaterial({ color: 0xb4a585, roughness: 1, side: T.DoubleSide, flatShading: true })); g.add(tarp);
+  TARP.mesh = tarp; TARP.base = base;
+  const rope = new T.Mesh(new T.CylinderGeometry(0.008, 0.008, zB - zA + 0.3, 3), M.rope); rope.rotation.x = Math.PI / 2; rope.position.set(xr, ridgeY(0) + 0.02, (zA + zB) / 2); g.add(rope);
+  const bl = new T.Group(); bl.position.set(SEAT_E[0] + 0.05, SEAT.top, SEAT_E[1] + 0.05); bl.rotation.y = 0.35; g.add(bl);
+  for (let i = 0; i < 3; i++) mesh(new T.BoxGeometry(0.52 - i * 0.01, 0.045, 0.38), i === 1 ? M.blanketLine : M.blanket, bl, 0, 0.022 + i * 0.045, 0);
+  mesh(new T.BoxGeometry(0.1, 0.012, 0.1), M.cloth, bl, 0.2, 0.14, 0.13); mesh(new T.BoxGeometry(0.08, 0.012, 0.09), M.clothRed, bl, -0.21, 0.14, -0.12);
+  shadowy(g); tarp.castShadow = true; TRACE_OBJ[3] = g; }
+const oldStaff = makeStaff(true); root.add(oldStaff.g);
+{ // stage 4 (7–9 cores): a bedroll laid out under the tarp, a worn pack, and his staff with the same lantern, much older
+  const g = new T.Group(); root.add(g);
+  const b = at(3.25, -0.1); const roll = new T.Group(); roll.position.copy(b); roll.rotation.y = 0.05; g.add(roll);
+  mesh(new T.BoxGeometry(0.62, 0.05, 1.35), M.bedroll, roll, 0, 0.03, 0); mesh(new T.BoxGeometry(0.64, 0.02, 0.5), M.blanket, roll, 0, 0.065, 0.3);
+  mesh(new T.CylinderGeometry(0.1, 0.1, 0.62, 8), M.bedroll, roll, 0, 0.1, -0.62).rotation.z = Math.PI / 2;
+  const pk = new T.Group(); pk.position.copy(at(2.95, 0.72)); pk.rotation.y = -0.3; g.add(pk);
+  mesh(new T.BoxGeometry(0.4, 0.46, 0.26), M.cloakOld, pk, 0, 0.23, 0); mesh(new T.BoxGeometry(0.42, 0.08, 0.28), M.woodDark, pk, 0, 0.38, 0.01);
+  shadowy(g); TRACE_OBJ[4] = g; }
+const elder = makeTraveller(true);
+elder.g.position.set(SEAT_E[0] + 0.02, SEAT.top - 0.44, SEAT_E[1] + 0.02); elder.g.rotation.y = faceTo(SEAT_E, FIRE);
+applyPose(elder, POSES.sitOld);
+TRACE_OBJ[5] = elder.g;
+
+// ---------- state ----------
+const STAGES = [
+  { key: 'first', name: '第一次', label: '起點 · 新的旅程', next: '旅程的第一段', soft: '火是生好的。旁邊放著一本寫到一半的筆記。', visits: [0, 0], cores: [false, false] },
+  { key: 'met0', name: '相遇後 · 0 核心', label: '起點 · 第 2 趟旅程', next: '回到起點', soft: '上一趟的收藏與故事紀錄都在收藏室。', visits: [1, 1], cores: [false, false] },
+  { key: 'met1', name: '1–3 核心', label: '起點 · 第 4 趟旅程', next: '回到起點', soft: '上一趟的收藏與故事紀錄都在收藏室。', visits: [3, 2], cores: [true, false] },
+  { key: 'met2', name: '4–6 核心', label: '起點 · 第 7 趟旅程', next: '回到起點', soft: '上一趟的收藏與故事紀錄都在收藏室。', visits: [5, 4], cores: [true, true] },
+  { key: 'met3', name: '7–9 核心', label: '起點 · 第 10 趟旅程', next: '回到起點', soft: '上一趟的收藏與故事紀錄都在收藏室。', visits: [6, 6], cores: [true, true] },
+  { key: 'true', name: '10 核心 · 真結局後', label: '起點', next: '回到起點', soft: '對面有人坐著。天快亮了。', visits: [7, 7], cores: [true, true] }
+];
+// the newest trace of each stage, as a clickable find (one concrete observation each)
+const FINDS = [
+  { stage: 1, title: '木樁與斧頭', text: '對面多了一個劈柴的木樁，斧頭還插在上面。', anchor: () => at(2.05, 1.95, 0.72) },
+  { stage: 2, title: '吊壺', text: '火上掛著一只吊壺，水快開了。石頭上的錫杯還是溫的。', anchor: () => { const v = TRACE_OBJ[2].userData.kettle.getWorldPosition(V3()); return root.worldToLocal(v).add(V3(0, 0.34, 0)); } },
+  { stage: 3, title: '遮雨布', text: '有人在柴堆旁拉了一片遮雨布，繩結打得很仔細。', anchor: () => at(3.3, -0.1, 1.25) },
+  { stage: 4, title: '攤開的鋪蓋', text: '遮雨布下攤著一副鋪蓋。靠在石頭邊的提燈，和你的一模一樣，只是舊得多。', anchor: () => at(3.25, 0.2, 0.35) }
+];
+const ROUTES = [
+  { way: 'bridge', where: '左 · 吊橋', title: '雲上遺庭', tag: '有人比你更早在這裡休息' },
+  { way: 'steps', where: '右 · 浮石', title: '苔痕驛站', tag: '總有人替下一位旅人留好東西' }
+];
+const S = { stage: 0, hover: null, selected: null, mode: 'idle', t: 0, seenFind: {}, idleT: 0 };
+
+// ---------- camera ----------
+const CLOSE = { tx: 0.1, ty: 0.6, tz: -0.7, w: 8.4 };
+const lookView = (way) => { const W = WAYS[way]; return { tx: W.from[0] + W.dir[0] * 10, ty: 0.2, tz: W.from[1] + W.dir[1] * 10, w: 19 }; };
+const cam = { cur: Object.assign({}, CLOSE), from: Object.assign({}, CLOSE), to: CLOSE, t: 1, dur: 1.2 };
+function camTo(v, dur) { cam.from = Object.assign({}, cam.cur); cam.to = v; cam.t = 0; cam.dur = dur || 1.2; }
+const EL = 0.54 - 0.2, AZ = Math.PI / 4; // App: 31° elevation; the lobby close-up drops it ~0.2 rad
+let yawOff = 0, pitchOff = 0, dragging = false, lastX = 0, lastY = 0;
+let clear = { fx: 0.5, fy: 0.5, cw: 1 };
+function measure() {
+  const r = canvas.getBoundingClientRect(); const panel = document.getElementById('panel').getBoundingClientRect(); const routes = document.getElementById('routes').getBoundingClientRect();
+  const wide = window.innerWidth > 760;
+  const right = wide ? panel.left - r.left - 16 : r.width;
+  const bottom = wide ? routes.top - r.top - 8 : r.height;
+  const top = wide ? 96 : 84;
+  const left = window.__campfireEmbedded ? 140 : 0;
+  clear = { fx: ((left + right) / 2) / r.width, fy: ((top + bottom) / 2) / r.height, cw: Math.max(200, right - left), W: r.width, H: r.height };
+}
+function placeCamera() {
+  const v = cam.cur; const WW = v.w * clear.W / clear.cw; const HH = WW * clear.H / clear.W;
+  Object.assign(camera, { left: -WW * clear.fx, right: WW * (1 - clear.fx), top: HH * clear.fy, bottom: -HH * (1 - clear.fy) }); camera.updateProjectionMatrix();
+  const tgt = toWorld(V3(v.tx, v.ty, v.tz)); const el = EL + pitchOff, az = AZ + yawOff;
+  camera.position.set(tgt.x + DIST * Math.cos(el) * Math.sin(az), tgt.y + DIST * Math.sin(el), tgt.z + DIST * Math.cos(el) * Math.cos(az)); camera.lookAt(tgt);
+}
+function resize() { const w = canvas.clientWidth, h = canvas.clientHeight; renderer.setSize(w, h, false); measure(); placeCamera(); }
+window.addEventListener('resize', resize);
+canvas.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.classList.add('dragging'); canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', (e) => { if (!dragging) return; yawOff = clamp(yawOff - (e.clientX - lastX) * 0.004, -0.5, 0.5); pitchOff = clamp(pitchOff + (e.clientY - lastY) * 0.003, -0.15, 0.25); lastX = e.clientX; lastY = e.clientY; });
+const endDrag = () => { dragging = false; canvas.classList.remove('dragging'); };
+canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+
+// ---------- UI ----------
+const $ = (id) => document.getElementById(id);
+const routeRow = $('routeRow'), pinsEl = $('pins'), sheetWrap = $('sheetWrap');
+function renderRoutes() {
+  routeRow.textContent = '';
+  const st = STAGES[S.stage];
+  ROUTES.forEach((r, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'route glass' + (S.selected === r.way ? ' is-selected' : ''); b.setAttribute('aria-pressed', S.selected === r.way ? 'true' : 'false');
+    const visits = st.visits[i];
+    b.innerHTML = '<span class="route-top"><span class="label">' + r.where + '</span>' + (S.selected === r.way ? '<span class="label warm">已選</span>' : '') + '</span><strong>' + r.title + '</strong><span class="tag">' + r.tag + '</span><span class="meta">' + (st.cores[i] ? '核心已取得' : '核心未取得') + ' · ' + (visits ? '來過 ' + visits + ' 次' : '初次造訪') + '</span>';
+    b.addEventListener('click', () => { S.selected = r.way; renderRoutes(); renderPanel(); });
+    b.addEventListener('pointerenter', () => setHover(r.way)); b.addEventListener('pointerleave', () => setHover(null));
+    b.addEventListener('focus', () => setHover(r.way)); b.addEventListener('blur', () => setHover(null));
+    routeRow.appendChild(b);
+  });
+}
+function setHover(way) { if (S.mode !== 'idle' && S.mode !== 'return') return; S.hover = way; camTo(way ? lookView(way) : CLOSE, 1.2); }
+function renderPanel() {
+  const st = STAGES[S.stage]; const r = ROUTES.find((x) => x.way === S.selected);
+  $('journeyLabel').textContent = st.label; $('nextLabel').textContent = st.next;
+  $('nextTitle').textContent = r ? r.title : '選一條路';
+  const soft = $('nextSoft');
+  if (r) { soft.innerHTML = ''; soft.className = 'progress'; soft.innerHTML = '<span>50 分鐘 · 每 10 分鐘點亮一盞燈</span><span class="lamps"><i></i><i></i><i></i><i></i><i></i></span>'; }
+  else { soft.className = 'soft'; soft.textContent = st.soft; }
+  $('primaryBtn').disabled = !r; $('primaryNote').textContent = r ? '出發前會先借火點亮提燈' : '先選一條路';
+  document.querySelectorAll('#stageSeg button').forEach((b, i) => b.setAttribute('aria-pressed', i === S.stage ? 'true' : 'false'));
+}
+function renderStageSeg() { const seg = $('stageSeg'); STAGES.forEach((st, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = st.name; b.addEventListener('click', () => setStage(i, false)); seg.appendChild(b); }); }
+function setStage(i, animate) {
+  S.stage = i; for (let k = 1; k <= 5; k++) TRACE_OBJ[k].visible = k <= i; oldStaff.g.visible = i >= 4; skyTo(i, animate);
+  oldStaff.lantern.set(i >= 5 ? 0.7 : 0);
+  if (i >= 5) { const hand = elder.arms[0].hand; oldStaff.g.position.set(SEAT_E[0] - 0.3, topH(SEAT_E[0] - 0.3, SEAT_E[1] + 0.1), SEAT_E[1] + 0.1); oldStaff.g.rotation.set(0.25, faceTo(SEAT_E, FIRE), -0.35, 'YXZ'); }
+  else { const o = new T.Object3D(); o.position.set(SEAT_E[0] + 0.52, topH(SEAT_E[0] + 0.5, SEAT_E[1] + 0.2), SEAT_E[1] + 0.2); o.rotation.set(0, faceTo(SEAT_E, FIRE) + 0.3, 0, 'YXZ'); o.rotateX(0.28); o.rotateZ(-0.22); oldStaff.g.position.copy(o.position); oldStaff.g.quaternion.copy(o.quaternion); }
+  if (!animate) S.seenFind = {};
+  closeSheet(); renderPanel(); renderRoutes(); renderPins();
+}
+function renderPins() {
+  pinsEl.textContent = '';
+  const f = FINDS.find((x) => x.stage === S.stage);
+  if (!f) return;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'pin' + (S.seenFind[f.stage] ? ' seen' : ''); b.setAttribute('aria-label', f.title); b.innerHTML = '<span class="tip glass">' + f.title + '</span>'; b.dataset.stage = f.stage;
+  b.addEventListener('click', () => { if (window.__campfireOnFind) { window.__campfireOnFind(f.stage, f.title, f.text); return; } S.seenFind[f.stage] = true; b.classList.add('seen'); openSheet('<p class="label warm">對面的位置</p><h3>' + f.title + '</h3><p class="soft">' + f.text + '</p><div class="row"><button type="button" class="ghost" data-close>收好</button></div>'); });
+  pinsEl.appendChild(b); S.pin = { el: b, f };
+}
+function openSheet(html) { sheetWrap.innerHTML = '<div class="sheet glass" role="dialog">' + html + '</div>'; sheetWrap.hidden = false; const c = sheetWrap.querySelector('[data-close]'); if (c) c.focus(); }
+function closeSheet() { sheetWrap.hidden = true; sheetWrap.textContent = ''; }
+sheetWrap.addEventListener('click', (e) => { if (e.target === sheetWrap || e.target.hasAttribute('data-close')) closeSheet(); if (e.target.hasAttribute('data-go')) { closeSheet(); depart(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheetWrap.hidden) closeSheet(); });
+$('primaryBtn').addEventListener('click', () => { const r = ROUTES.find((x) => x.way === S.selected); if (!r) return; openSheet('<p class="label">出發前確認</p><h3>往' + r.title + '</h3><p class="soft">這次要做：寫完電磁學第三章筆記<br>50 分鐘，每 10 分鐘點亮一盞燈。</p><div class="row"><button type="button" class="ghost" data-close>返回</button><button type="button" class="primary" data-go>開始專注</button></div>'); });
+$('collectionBtn').addEventListener('click', () => openSheet('<p class="label">原型</p><h3>收藏室</h3><p class="soft">這個原型只做起點營火；收藏室沿用大廳的入口。</p><div class="row"><button type="button" class="ghost" data-close>關閉</button></div>'));
+$('playReturn').addEventListener('click', () => playReturn());
+$('playDepart').addEventListener('click', () => { if (!S.selected) { S.selected = 'bridge'; renderRoutes(); renderPanel(); } depart(); });
+$('replayBtn').addEventListener('click', () => resetHero(true));
+
+// ---------- sky: each stage is a little closer to sunrise; the true ending is the sunrise ----------
+const SKY = [ // mistK: how thick the mist around the islet is (it thins as the meetings add up)
+  { g: ['#5f6c79', '#86929b', '#b3afa6', '#c0c0b8', '#b9c0c1'], fog: 0xb4bcbe, hemi: 0.5, sun: 0xffcfa8, sunI: 0.28, glow: 0, mist: 0xdde2e5, mistK: 1 },
+  { g: ['#6d7b87', '#95a0a7', '#c4b8a4', '#ccc7b9', '#c0c6c5'], fog: 0xbcc2c2, hemi: 0.55, sun: 0xffcfa2, sunI: 0.36, glow: 0.08, mist: 0xe5e7e6, mistK: 0.9 },
+  { g: ['#7c8a95', '#a3acb0', '#d3bf9e', '#d7cdb9', '#c6cbc9'], fog: 0xc3c6c2, hemi: 0.6, sun: 0xffca94, sunI: 0.46, glow: 0.2, mist: 0xece9e2, mistK: 0.8 },
+  { g: ['#8d99a1', '#b2b7b5', '#e0c196', '#ddd0b8', '#cbcfcc'], fog: 0xc9c9c2, hemi: 0.65, sun: 0xffc486, sunI: 0.6, glow: 0.36, mist: 0xf1e9dc, mistK: 0.7 },
+  { g: ['#9ea9ae', '#c1c2ba', '#ebc08a', '#e2d2b4', '#d1d2cb'], fog: 0xcfcbc0, hemi: 0.7, sun: 0xffbd78, sunI: 0.76, glow: 0.55, mist: 0xf5e6d2, mistK: 0.6 },
+  { g: ['#abb7b9', '#d0cbbd', '#f4bd76', '#ead4b0', '#d8d6cc'], fog: 0xd6cdbc, hemi: 0.76, sun: 0xffb064, sunI: 1.0, glow: 0.95, mist: 0xf8e4c8, mistK: 0.48 }
+];
+const SUNGLOW = new T.Sprite(new T.SpriteMaterial({ map: haloTex, color: 0xffd7a0, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0, fog: false }));
+SUNGLOW.position.set(3.5, -9.6, -42); SUNGLOW.scale.set(26, 26, 1); root.add(SUNGLOW);
+const skyCur = { g: SKY[0].g.map((c) => new T.Color(c)), fog: new T.Color(SKY[0].fog), sun: new T.Color(SKY[0].sun), mist: new T.Color(SKY[0].mist), hemi: SKY[0].hemi, sunI: SKY[0].sunI, glow: 0, mistK: 1 };
+let skyT = SKY[0], skySnap = true;
+function skyTo(i, animate) { skyT = SKY[i]; if (!animate) skySnap = true; }
+const stageEl = document.getElementById('stage');
+function updateSky(dt) {
+  const k = skySnap ? 1 : 1 - Math.pow(0.25, dt); skySnap = false;
+  skyCur.g.forEach((c, i) => c.lerp(new T.Color(skyT.g[i]), k)); skyCur.fog.lerp(new T.Color(skyT.fog), k); skyCur.sun.lerp(new T.Color(skyT.sun), k); skyCur.mist.lerp(new T.Color(skyT.mist), k);
+  skyCur.hemi = lerp(skyCur.hemi, skyT.hemi, k); skyCur.sunI = lerp(skyCur.sunI, skyT.sunI, k); skyCur.glow = lerp(skyCur.glow, skyT.glow, k); skyCur.mistK = lerp(skyCur.mistK, skyT.mistK, k);
+  const g = skyCur.g.map((c) => '#' + c.getHexString());
+  stageEl.style.background = 'linear-gradient(180deg, ' + g[0] + ' 0%, ' + g[1] + ' 28%, ' + g[2] + ' 50%, ' + g[3] + ' 64%, ' + g[4] + ' 100%)';
+  scene.fog.color.copy(skyCur.fog); hemi.intensity = skyCur.hemi; sun.color.copy(skyCur.sun); sun.intensity = skyCur.sunI; SUNGLOW.material.opacity = skyCur.glow;
+  MISTS.forEach((m) => { if (m.veil) return; m.sp.material.color.copy(skyCur.mist); m.sp.material.opacity = m.base * skyCur.mistK; });
+}
+
+// ---------- sequences ----------
+// 借火出發: stand (0–0.8) → step to the fire (0.8–1.3) → kneel and hold the lantern over the flames (1.3–2.45;
+// the spark jumps 1.75–2.05, the lantern catches 2.05–2.4) → rise (–2.75) → walk onto the chosen way (2.75–5.0)
+// while the mist closes. 5 s total, the App's exit cap.
+const DEPART = 5.0;
+// crouch weight: kneel in 1.3–1.6 s, hold the lantern over the fire until 2.45 s, rise by 2.75 s
+const crouchW = (t) => ease((t - 1.3) / 0.3) * (1 - ease((t - 2.45) / 0.3));
+let crouchSpot = null, walkPath = null;
+function depart() {
+  if (S.mode === 'depart') return; closeSheet();
+  S.mode = 'depart'; S.t = 0; S.hover = null;
+  ['panel', 'routes', 'topLeft', 'proto', 'pins'].forEach((id) => $(id).classList.add('ui-fade'));
+  const dir = [FIRE[0] - HERO_SEAT.x, FIRE[1] - HERO_SEAT.z]; const l = Math.hypot(dir[0], dir[1]);
+  crouchSpot = V3(FIRE[0] - dir[0] / l * 0.95, 0, FIRE[1] - dir[1] / l * 0.95); crouchSpot.y = topH(crouchSpot.x, crouchSpot.z);
+  const W = WAYS[S.selected];
+  // Keep the full body/hat outside the seated log, pack and signpost, rather than
+  // cutting diagonally through the seat on the way to the left bridge.
+  const approach = S.selected === 'bridge'
+    ? [at(0.75, -1.3), at(0.85, -2.8), at(-0.5, -3.8), at(-2.1, -4.0)]
+    : [at(W.from[0] * 0.55, W.from[1] * 0.55)];
+  const pts = [crouchSpot.clone(), ...approach, at(W.from[0], W.from[1])]; for (let i = 1; i <= 3; i++) pts.push(W.pt(i * 0.05));
+  walkPath = new T.CatmullRomCurve3(pts, false, 'centripetal');
+  camTo({ tx: -0.25, ty: 0.55, tz: -0.9, w: 6.2 }, 1.6); S.panned = false;
+}
+const departPan = () => { const L = lookView(S.selected); camTo({ w: 16, ty: 0.2, tx: lerp(CLOSE.tx, L.tx, 0.45), tz: lerp(CLOSE.tz, L.tz, 0.45) }, 2.6); };
+function playReturn() {
+  resetHero(false); S.mode = 'return'; S.t = 0; const seen = Object.assign({}, S.seenFind); delete seen[Math.min(S.stage, 4)]; S.seenFind = seen; renderPins();
+}
+function resetHero(fromVeil) {
+  S.mode = 'idle'; S.t = 0; hero.g.position.copy(HERO_SEAT); hero.g.rotation.y = HERO_YAW; heroStaff.lantern.set(0); fireBoost = 0;
+  ['panel', 'routes', 'topLeft', 'proto', 'pins'].forEach((id) => $(id).classList.remove('ui-fade'));
+  $('veilMsg').hidden = true; $('veil').style.opacity = 0; camTo(CLOSE, fromVeil ? 0.01 : 1.2); if (fromVeil) { cam.cur = Object.assign({}, CLOSE); cam.t = 1; }
+}
+
+// spark from fire to lantern
+const SPARK = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0, fog: false })); SPARK.scale.set(0.35, 0.35, 1); root.add(SPARK);
+let fireBoost = 0;
+
+// ---------- update ----------
+const clock = new T.Clock(); let time = 0;
+const tmpQ = new T.Quaternion(), tmpV = new T.Vector3();
+function staffInHand(tilt) {
+  // staff held in the right hand; tilt 0 = upright walking stick, 1 = reaching over the fire
+  hero.g.updateMatrixWorld(true); const hand = hero.arms[1].hand.getWorldPosition(V3());
+  const handLocal = root.worldToLocal(hand.clone());
+  const q = new T.Quaternion().setFromEuler(new T.Euler(0.15 + tilt * 0.95, hero.g.rotation.y, 0, 'YXZ'));
+  const up = V3(0, 1, 0).applyQuaternion(q); const base = handLocal.clone().sub(up.clone().multiplyScalar(0.38 + tilt * 0.05));
+  return { p: base, q };
+}
+function update(dt) {
+  time += dt; const mt = reduceMotion ? time * 0.3 : time; updateSky(dt);
+  // camera
+  if (cam.t < 1) { cam.t = Math.min(1, cam.t + dt / cam.dur); const e = ease(cam.t); ['tx', 'ty', 'tz', 'w'].forEach((k) => { cam.cur[k] = lerp(cam.from[k], cam.to[k], e); }); }
+  if (!dragging) { yawOff *= Math.pow(0.02, dt); pitchOff *= Math.pow(0.02, dt); }
+  placeCamera();
+
+  // fire
+  const fl = 0.85 + 0.1 * Math.sin(mt * 9.1) + 0.06 * Math.sin(mt * 23.7) + 0.05 * Math.sin(mt * 4.3) + fireBoost * 0.35;
+  FIREFX.light.intensity = 1.5 * fl; FIREFX.halo.material.opacity = 0.42 + 0.12 * fl; FIREFX.glow.material.opacity = 0.28 + 0.1 * fl;
+  FIREFX.flames.forEach((f, i) => { const k = 0.85 + 0.2 * Math.sin(mt * (7 + i * 1.3) + f.ph) + 0.08 * Math.sin(mt * 17 + i) + fireBoost * 0.3; f.sp.scale.set(f.h * 0.55 * (0.9 + 0.1 * Math.sin(mt * 5 + i)), f.h * k, 1); f.sp.material.rotation = 0.08 * Math.sin(mt * 3 + i) + 0.05 * wind(mt, 0, 0); });
+  { const E = FIREFX.embers; E.base.forEach((b, i) => { b.t += dt * b.sp * 0.5 * (reduceMotion ? 0.3 : 1); if (b.t > 1) { b.t -= 1; b.x = rr(-0.2, 0.2); b.z = rr(-0.2, 0.2); } const y = 0.2 + b.t * 1.9; E.pos[i * 3] = b.x + Math.sin(mt * 2 + i) * 0.08 * b.t + b.t * 0.35 * (0.5 + 0.5 * wind(mt, 0, 0)); E.pos[i * 3 + 1] = y; E.pos[i * 3 + 2] = b.z + b.dr * b.t * 0.4; }); E.geo.attributes.position.needsUpdate = true; }
+  FIREFX.smoke.forEach((s) => { s.t += dt * 0.09 * (reduceMotion ? 0.4 : 1); if (s.t > 1) s.t -= 1; const t = s.t; s.sp.position.set(t * t * 1.6 + 0.2 * Math.sin(mt * 0.7 + t * 4), 0.7 + t * 2.8, -t * 0.6); const sc = 0.4 + t * 1.8; s.sp.scale.set(sc, sc, 1); s.sp.material.opacity = 0.22 * Math.sin(Math.PI * t) * (1 - t * 0.4); });
+  fireBoost = Math.max(0, fireBoost - dt * 0.4);
+
+  // wind: grass, ferns, tree, cloth, stones bob, mist drift
+  TUFTS.forEach((t) => { const w = wind(mt, t.x, t.z); t.g.rotation.z = w * t.k; t.g.rotation.x = w * t.k * 0.4; });
+  FERNS.forEach((f) => { f.g.rotation.z = 0.05 * Math.sin(mt * 1.4 + f.ph); });
+  TREE.crown.rotation.z = 0.025 * wind(mt, -3, -3); TREE.crown.rotation.x = 0.015 * Math.sin(mt * 0.9);
+  { const a = SIGN.cloth.geometry.attributes.position; const b = SIGN.base; for (let i = 0; i < a.count; i++) { const y = b[i * 3 + 1]; const d = -y / 0.62; a.array[i * 3 + 2] = b[i * 3 + 2] + d * d * (0.22 + 0.08 * Math.sin(mt * 6 - y * 12)) ; a.array[i * 3] = b[i * 3] + d * 0.05 * Math.sin(mt * 5 - y * 9); } a.needsUpdate = true; SIGN.cloth.rotation.y = 0.8 + 0.3 * wind(mt, 0, -3); }
+  STONES.forEach((s) => { s.g.position.y = s.y + 0.06 * Math.sin(mt * 0.9 + s.ph); s.g.rotation.z = 0.03 * Math.sin(mt * 0.7 + s.ph); });
+  const veilTarget = (way) => (S.hover === way || (S.mode === 'depart' && S.selected === way && S.t < 2.6)) ? 0.3 : 0.92;
+  MISTS.forEach((m) => { m.sp.position.x = m.p0.x + Math.sin(mt * 0.05 * m.dr + m.ph) * 1.4; m.sp.position.y = m.p0.y + Math.sin(mt * 0.13 + m.ph) * 0.15; });
+  ['bridge', 'steps'].forEach((k) => { const tgt = veilTarget(k); VEILS[k].forEach((m) => { m.base = lerp(m.base, tgt, 1 - Math.pow(0.15, dt)); m.sp.material.opacity = m.base; });
+    const on = S.hover === k ? 1 : S.selected === k ? 0.4 : 0; TRACES[k].forEach((tr, i) => { const want = on * sstep(0, 0.35, (S.hover === k ? S.hoverT || 0 : 1) - i * 0.12); tr.v = lerp(tr.v, want || (S.selected === k ? 0.4 : 0), 1 - Math.pow(0.05, dt)); tr.sp.material.opacity = tr.v * (0.75 + 0.1 * Math.sin(mt * 3 + i)); }); });
+  S.hoverT = S.hover ? (S.hoverT || 0) + dt : 0;
+  ['bridge', 'steps'].forEach((k) => { const s = DEST[k].g.userData.sil; if (s && s.alive()) s.update(dt, mt, S.hover === k ? S.hoverT : 0, veilTarget(k) < 0.5); });
+
+  // stage traces
+  if (TRACE_OBJ[2].visible) { STEAM.forEach((s) => { s.t += dt * 0.25; if (s.t > 1) s.t -= 1; s.sp.position.set(s.x + s.t * 0.25 + 0.03 * Math.sin(mt + s.t * 6), s.y + s.t * 0.7, s.z - s.t * 0.1); const sc = s.size * (0.4 + s.t * 1.4); s.sp.scale.set(sc, sc, 1); s.sp.material.opacity = 0.4 * Math.sin(Math.PI * s.t); }); TRACE_OBJ[2].userData.kettle.rotation.z = 0.03 * Math.sin(mt * 0.8); }
+  if (TRACE_OBJ[3].visible) { const a = TARP.mesh.geometry.attributes.position; TARP.base.forEach(([x, y, z, u, v], i) => { const f = u * u * (0.05 + 0.025 * wind(mt, x, z)); a.setXYZ(i, x + f * 0.3, y + f * Math.sin(mt * 3 + v * 5), z); }); a.needsUpdate = true; }
+  if (S.stage >= 5) { const p = mixPose(POSES.sitOld, Object.assign({}, POSES.sitOld, { headX: 0.05, headY: -0.25 }), 0.5 + 0.5 * Math.sin(mt * 0.2)); applyPose(elder, p); elder.torso.scale.y = 1 + 0.012 * Math.sin(mt * 1.6); }
+
+  // traveller
+  let pose, walkPh = null;
+  if (S.mode === 'depart') {
+    S.t += dt; const t = S.t; if (t > 2.55 && !S.panned) { S.panned = true; departPan(); }
+    const cw = crouchW(t);
+    if (t < 0.8) {
+      const step = ease((t - 0.2) / 0.6);
+      hero.g.position.lerpVectors(HERO_SEAT, HERO_STAND, step);
+      pose = mixPose(POSES.read, POSES.stand, ease(t / 0.8));
+      if (step > 0 && step < 1) walkPh = Math.PI * step;
+    }
+    else if (t < 2.75) {
+      const k = ease((t - 0.8) / 0.5); hero.g.position.lerpVectors(HERO_STAND, crouchSpot, k); hero.g.position.y = lerp(HERO_STAND.y, crouchSpot.y, k);
+      pose = mixPose(POSES.stand, POSES.crouch, cw); if (t < 1.3) walkPh = t * 9;
+      // the spark jumps from the flames to the lantern, which catches
+      const sp = clamp((t - 1.75) / 0.3, 0, 1); const lanternL = root.worldToLocal(heroStaff.lantern.g.getWorldPosition(V3()));
+      SPARK.position.lerpVectors(V3(0, 0.55, 0), lanternL, ease(sp)); SPARK.material.opacity = sp > 0 && sp < 1 ? 0.9 : 0;
+      if (t > 2.05) { heroStaff.lantern.set(clamp((t - 2.05) / 0.35, 0, 1)); if (!S.lit) { S.lit = true; fireBoost = 1; } }
+    } else {
+      const k = clamp((t - 2.75) / 2.25, 0, 1); const u = k * k * (3 - 2 * k) * 0.94 + 0.02; const p = walkPath.getPointAt(Math.min(u, 1)); const p2 = walkPath.getPointAt(Math.min(1, u + 0.02));
+      hero.g.position.copy(p); const yaw = Math.atan2(p2.x - p.x, p2.z - p.z); hero.g.rotation.y = lerpAngle(hero.g.rotation.y, yaw, 1 - Math.pow(0.001, dt));
+      pose = POSES.stand; walkPh = (t - 2.75) * 8.55;
+      $('veil').style.opacity = String(sstep(3.7, 5.0, t));
+    }
+    if (t >= DEPART && $('veilMsg').hidden) { const r = ROUTES.find((x) => x.way === S.selected); $('veilText').textContent = '（接到' + r.title + '的入口，開始這一段的專注）'; $('veilMsg').hidden = false; S.mode = 'gone'; }
+  } else if (S.mode === 'gone') { pose = POSES.stand; }
+  else {
+    // seated: reading, glancing at the fire, turning toward a hovered way; on return, waking up
+    S.lit = false;
+    hero.g.position.copy(HERO_SEAT); hero.g.rotation.y = HERO_YAW; S.idleT += dt;
+    const cycle = S.idleT % 13; const glance = sstep(8, 8.8, cycle) * (1 - sstep(11.8, 12.6, cycle));
+    pose = mixPose(POSES.read, POSES.fire, glance);
+    if (S.mode === 'return') {
+      S.t += dt; const t = S.t; $('veil').style.opacity = String(1 - sstep(0.2, 2.4, t));
+      const wake = sstep(2.0, 2.8, t); pose = mixPose(POSES.doze, POSES.look, wake);
+      const turn = sstep(2.9, 3.6, t); const yawSeat = clamp(wrap(faceTo([HERO_SEAT.x, HERO_SEAT.z], SEAT_E) - HERO_YAW), -1.1, 1.1); pose.headY = yawSeat * turn; pose.headX = lerp(pose.headX, 0.18, turn);
+      if (t > 3.2 && pinsEl.firstChild) pinsEl.firstChild.style.opacity = String(sstep(3.2, 4.0, t));
+      if (t < 3.2 && pinsEl.firstChild) pinsEl.firstChild.style.opacity = '0';
+      if (t > 6.5) { S.mode = 'idle'; S.idleT = 0; }
+      if (t < 0.05) fireBoost = S.stage >= 1 ? 0.8 : 0;
+    }
+    if (S.hover) { const e = WAYS[S.hover].from; const yaw = clamp(wrap(faceTo([HERO_SEAT.x, HERO_SEAT.z], e) - HERO_YAW), -1.25, 1.25); pose = mixPose(pose, Object.assign({}, POSES.look, { headY: yaw }), sstep(0, 0.6, S.hoverT)); }
+    else if (S.selected && S.mode === 'idle') { const e = WAYS[S.selected].from; const yaw = clamp(wrap(faceTo([HERO_SEAT.x, HERO_SEAT.z], e) - HERO_YAW), -1.25, 1.25); pose = Object.assign({}, pose, { headY: pose.headY + yaw * 0.25 * glance }); }
+  }
+  applyPose(hero, pose, walkPh); hero.torso.scale.y = 1 + 0.01 * Math.sin(mt * 1.8);
+
+  // hero staff: leaning on the log while seated, in the hand once standing
+  if (S.mode === 'depart' || S.mode === 'gone') {
+    const t = S.t; const tilt = S.mode === 'depart' ? crouchW(t) : 0;
+    const h = staffInHand(tilt); const k = S.mode === 'gone' ? 1 : ease((t - 0.35) / 0.45);
+    heroStaff.g.position.lerpVectors(leanStaff.p, h.p, k); tmpQ.copy(leanStaff.q).slerp(h.q, k); heroStaff.g.quaternion.copy(tmpQ);
+  } else { heroStaff.g.position.copy(leanStaff.p); heroStaff.g.quaternion.copy(leanStaff.q); }
+  // lanterns hang upright and swing a little
+  [heroStaff, oldStaff].forEach((s, i) => { s.g.updateMatrixWorld(true); const wq = s.g.getWorldQuaternion(new T.Quaternion()); const inv = wq.invert(); s.lantern.g.quaternion.copy(inv).multiply(new T.Quaternion().setFromEuler(new T.Euler(0.06 * Math.sin(mt * 1.7 + i), 0, 0.06 * Math.cos(mt * 1.3 + i)))); });
+
+  // pins follow their anchors
+  if (S.pin && S.pin.el.isConnected) { const w = root.localToWorld(S.pin.f.anchor()); const p = w.project(camera); const r = canvas.getBoundingClientRect(); S.pin.el.style.left = ((p.x + 1) / 2 * r.width) + 'px'; S.pin.el.style.top = ((1 - p.y) / 2 * r.height) + 'px'; }
+}
+const wrap = (a) => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
+const lerpAngle = (a, b, t) => a + wrap(b - a) * t;
+
+function frame() { const dt = Math.min(clock.getDelta(), 0.05); if (!window.__hold) { update(dt); renderer.render(scene, camera); } requestAnimationFrame(frame); }
+renderStageSeg(); resize(); setStage(0, false); resetHero(true);
+// #met0 … #true deep-link to a stage (bare anchors only)
+const h = location.hash.replace('#', ''); const si = STAGES.findIndex((s) => s.key === h); if (si >= 0) setStage(si, false);
+requestAnimationFrame(frame);
+window.__campfire = { setStage, depart, playReturn, S, setHover,
+  debugState() {
+    root.updateMatrixWorld(true);
+    const a = root.worldToLocal(travellerLog.localToWorld(V3(0, -0.85, 0))), b = root.worldToLocal(travellerLog.localToWorld(V3(0, 0.85, 0)));
+    return { position: hero.g.position.toArray(), legs: hero.legs.map(l => l.thigh.rotation.x), arms: hero.arms.map(a => a.sh.rotation.x), hipY: hero.hip.position.y,
+      scale: hero.g.scale.x, log: { a: [a.x, a.z], b: [b.x, b.z], radius: 0.22 },
+      path: walkPath ? Array.from({length:401}, (_, i) => walkPath.getPointAt(i / 400).toArray()) : [],
+      model: { leg: hero.legs[0].thigh.children[0].geometry.parameters, cloak: hero.cloak.geometry.parameters, headY: hero.head.position.y, arms: hero.arms.map(a => a.sh.position.toArray()) } };
+  },
+  setSelected(way) { S.selected = way; renderRoutes(); renderPanel(); },
+  setSeen(stage, seen) { S.seenFind[stage] = seen; renderPins(); },
+  advance(sec) { for (let i = 0; i < Math.round(sec * 30); i++) update(1 / 30); renderer.render(scene, camera); } };
+})();
+</script>
+</body>
+</html>

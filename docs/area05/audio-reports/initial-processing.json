@@ -1,0 +1,3064 @@
+{
+  "status": "audition-awaiting-user-approval",
+  "productionConnected": false,
+  "environmentSliderPercent": 35,
+  "musicSliderPercents": [
+    12,
+    25
+  ],
+  "volumeExponent": 1.4,
+  "sources": {
+    "a05_bell_strike": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_bell_strike.wav",
+      "sha256": "7a4c1c51c7cb5ae09846b561f2bb8288190f2dcd03c71d01167901be976d6590",
+      "integratedLufs": -24.6,
+      "maxMomentaryLufs": -13.7,
+      "truePeakDbtp": -5.4,
+      "peakDbfs": -5.412080518545638,
+      "seconds": 22.0,
+      "clippedSamples": 0
+    },
+    "a05_bell_log_pull": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_bell_log_pull.wav",
+      "sha256": "2ea65f60a505b0cf4cd58b4a4ea7717a67789089f8198aeed96ccc63759efb2c",
+      "integratedLufs": -15.8,
+      "maxMomentaryLufs": -12.3,
+      "truePeakDbtp": 0.7,
+      "peakDbfs": 0.0,
+      "seconds": 3.0,
+      "clippedSamples": 30
+    },
+    "a05_wind_bell_gust": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wind_bell_gust.wav",
+      "sha256": "22b28e9fe24a5dc179bd3a2e91474f30ef6520401f4b670f3738b159740cb5b2",
+      "integratedLufs": -13.5,
+      "maxMomentaryLufs": -10.3,
+      "truePeakDbtp": -1.9,
+      "peakDbfs": -1.8900905807549133,
+      "seconds": 10.0,
+      "clippedSamples": 0
+    },
+    "a05_boulder_call": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_boulder_call.wav",
+      "sha256": "6f352666938f3f92fd37374bb1a2841fd51ad7a4692c07f8429cfef5f5f0bed2",
+      "integratedLufs": -19.8,
+      "maxMomentaryLufs": -17.3,
+      "truePeakDbtp": -0.7,
+      "peakDbfs": -0.7235404636572201,
+      "seconds": 2.0,
+      "clippedSamples": 0
+    },
+    "a05_wind_rock": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wind_rock.wav",
+      "sha256": "588eac42279b5bb94b69c2c93f1166c3dd78b944c2e82e210f0a8c8c0f73766a",
+      "integratedLufs": -12.5,
+      "maxMomentaryLufs": -7.4,
+      "truePeakDbtp": -3.2,
+      "peakDbfs": -3.2068676401045284,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_wall_knock": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wall_knock.wav",
+      "sha256": "df2346f799ce02d0e4fdbb1164df1af033266a965a3e4573219fbc23dc8fd123",
+      "integratedLufs": -27.9,
+      "maxMomentaryLufs": -22.0,
+      "truePeakDbtp": -5.0,
+      "peakDbfs": -5.019253583580583,
+      "seconds": 2.0,
+      "clippedSamples": 0
+    },
+    "a05_mica_peel": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_mica_peel.wav",
+      "sha256": "7265559a9c85db7802f9fe3b9ed24059c135515363b1592691cf612879c4487f",
+      "integratedLufs": -22.2,
+      "maxMomentaryLufs": -18.9,
+      "truePeakDbtp": 0.9,
+      "peakDbfs": 0.0,
+      "seconds": 2.0,
+      "clippedSamples": 6
+    },
+    "a05_crane": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_crane.wav",
+      "sha256": "8d32c7805d50837d672bbaafa19420b5bdef0498768adcaae943c41c8fb02387",
+      "integratedLufs": -24.4,
+      "maxMomentaryLufs": -20.9,
+      "truePeakDbtp": -6.0,
+      "peakDbfs": -6.168705525536354,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_handcart": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_handcart.wav",
+      "sha256": "48e96e304e8cc5d554e40c1cde30c0203e5eee90db5eb3134a69698189f0ef3d",
+      "integratedLufs": -23.3,
+      "maxMomentaryLufs": -19.9,
+      "truePeakDbtp": -2.6,
+      "peakDbfs": -2.5961583686097067,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_winch": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_winch.wav",
+      "sha256": "c075b26c0807bab8954bc35be697659705f19d896c701585ffcc46e69d2e9f24",
+      "integratedLufs": -14.5,
+      "maxMomentaryLufs": -11.5,
+      "truePeakDbtp": 0.8,
+      "peakDbfs": 0.0,
+      "seconds": 5.0,
+      "clippedSamples": 117
+    },
+    "a05_leaf_on_water": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_leaf_on_water.wav",
+      "sha256": "9a4514c7b9c2b100d9b42a84771a3a505715677c399965caf9422b53e1aabeeb",
+      "integratedLufs": -36.4,
+      "maxMomentaryLufs": -32.9,
+      "truePeakDbtp": -12.6,
+      "peakDbfs": -12.799670381866648,
+      "seconds": 1.0,
+      "clippedSamples": 0
+    },
+    "a05_wall_hum": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wall_hum.wav",
+      "sha256": "1d80728a03251aefe17cf41ba056664191f96b717928ad936e64f3511571b03f",
+      "integratedLufs": -19.7,
+      "maxMomentaryLufs": -14.0,
+      "truePeakDbtp": -3.7,
+      "peakDbfs": -3.713314717909725,
+      "seconds": 3.0,
+      "clippedSamples": 0
+    },
+    "a05_grit_fall": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_grit_fall.wav",
+      "sha256": "2cb6138ac3dbc4399963cbacbc17d5c20a13531033c540a818d9ab5a637a4500",
+      "integratedLufs": -30.1,
+      "maxMomentaryLufs": -27.2,
+      "truePeakDbtp": -17.3,
+      "peakDbfs": -17.35156339306971,
+      "seconds": 2.0,
+      "clippedSamples": 0
+    },
+    "a05_gust": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_gust.wav",
+      "sha256": "6b646cbe67fb7df97861c805ebe9f85adb68a19be67500a4e56b5501df8be579",
+      "integratedLufs": -12.6,
+      "maxMomentaryLufs": -8.1,
+      "truePeakDbtp": -0.1,
+      "peakDbfs": -0.23400193128814223,
+      "seconds": 20.0,
+      "clippedSamples": 0
+    },
+    "a05_gust_leaves": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_gust_leaves.wav",
+      "sha256": "dd65e281a11d4bb800aa0a1d31c0fcbba254ff2a8e61954994ae5ef400af80d4",
+      "integratedLufs": -13.5,
+      "maxMomentaryLufs": -8.7,
+      "truePeakDbtp": -0.1,
+      "peakDbfs": -0.050776942245969944,
+      "seconds": 15.0,
+      "clippedSamples": 0
+    },
+    "a05_birds_flush": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_birds_flush.wav",
+      "sha256": "1f90f792d85a708cc382e1ad01ff98a2b07a6fc73352b6be68421d310e790174",
+      "integratedLufs": -10.1,
+      "maxMomentaryLufs": -7.9,
+      "truePeakDbtp": 0.2,
+      "peakDbfs": 0.0,
+      "seconds": 3.0,
+      "clippedSamples": 711
+    },
+    "a05_core_swell": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_core_swell.wav",
+      "sha256": "6588f95113ebf75b2d6f9b23ce9a7ff0cdd55e0c2a0c09d9c30d41327cb08a56",
+      "integratedLufs": -11.3,
+      "maxMomentaryLufs": -5.2,
+      "truePeakDbtp": 0.1,
+      "peakDbfs": 0.0,
+      "seconds": 7.0,
+      "clippedSamples": 1484
+    },
+    "a05_wind_bell_soft": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wind_bell_soft.wav",
+      "sha256": "0aa1acc83292c1b00d08e1853f9ae0e6fa39147c6752d714d4cd5a2930332270",
+      "integratedLufs": -19.3,
+      "maxMomentaryLufs": -16.5,
+      "truePeakDbtp": -8.3,
+      "peakDbfs": -8.279556359189602,
+      "seconds": 8.0,
+      "clippedSamples": 0
+    },
+    "a05_stone_saw": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_stone_saw.wav",
+      "sha256": "9d2f68c65d056a759728b656ca65660437a4c1aa1466a0764c2346b63d076fd6",
+      "integratedLufs": -10.6,
+      "maxMomentaryLufs": -6.4,
+      "truePeakDbtp": 0.5,
+      "peakDbfs": 0.0,
+      "seconds": 15.0,
+      "clippedSamples": 12
+    },
+    "a05_water_wheel": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_water_wheel.wav",
+      "sha256": "28be9daa33a712883a703869828b1c26dbc65d04fdda681bd3d5e5e9dafa9772",
+      "integratedLufs": -32.6,
+      "maxMomentaryLufs": -25.5,
+      "truePeakDbtp": -10.9,
+      "peakDbfs": -10.926274027260108,
+      "seconds": 15.0,
+      "clippedSamples": 0
+    },
+    "a05_ropeway": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_ropeway.wav",
+      "sha256": "3385c089ec3e3d2c2f44148dd97ab08733ad0b04a1e74ef0732eff0e20d4baeb",
+      "integratedLufs": -26.7,
+      "maxMomentaryLufs": -21.4,
+      "truePeakDbtp": -7.8,
+      "peakDbfs": -7.849616811319419,
+      "seconds": 10.0,
+      "clippedSamples": 0
+    },
+    "a05_amb_waterfall_far": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_amb_waterfall_far.wav",
+      "sha256": "da3e8be0b2269222e8b4018b610c918f86bac68d1c7063a5e4858047868eb8c8",
+      "integratedLufs": -12.3,
+      "maxMomentaryLufs": -12.1,
+      "truePeakDbtp": -2.7,
+      "peakDbfs": -2.776729682038476,
+      "seconds": 20.0,
+      "clippedSamples": 0
+    },
+    "a05_amb_leaves": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_amb_leaves.wav",
+      "sha256": "d113e841bfa965f62c73b734f7b2b433bef0f834cb93b84b5494a487a81cec4f",
+      "integratedLufs": -32.0,
+      "maxMomentaryLufs": -25.6,
+      "truePeakDbtp": -14.0,
+      "peakDbfs": -14.050731566337246,
+      "seconds": 20.0,
+      "clippedSamples": 0
+    },
+    "a05_amb_night_crickets": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_amb_night_crickets.wav",
+      "sha256": "bdc40c8b0b89b67b2a80f6fc83db9625824449fd224d157f3d132c17cf1a4006",
+      "integratedLufs": -18.3,
+      "maxMomentaryLufs": -14.3,
+      "truePeakDbtp": -4.5,
+      "peakDbfs": -4.4953985908371,
+      "seconds": 20.0,
+      "clippedSamples": 0
+    },
+    "a05_cave_room": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_cave_room.wav",
+      "sha256": "2b8e89397ebacde0d3a94561a263cca1b267e0e5722a745ebd10d2cfc91d57d4",
+      "integratedLufs": -36.1,
+      "maxMomentaryLufs": -22.8,
+      "truePeakDbtp": -5.4,
+      "peakDbfs": -6.133724045961625,
+      "seconds": 20.0,
+      "clippedSamples": 0
+    },
+    "a05_stone_chime_high": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_stone_chime_high.wav",
+      "sha256": "7caf92ba69014d76bc084de661e0c338838c128a13abe0bda3a7716fc3664fe4",
+      "integratedLufs": -24.9,
+      "maxMomentaryLufs": -19.4,
+      "truePeakDbtp": -12.5,
+      "peakDbfs": -12.516242691061004,
+      "seconds": 3.0,
+      "clippedSamples": 0
+    },
+    "a05_tuning_fork": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_tuning_fork.wav",
+      "sha256": "30d8d53ec90a738d7a23f51731b65aaefc2c1471112a58fa75681ffb5976e6cc",
+      "integratedLufs": -15.0,
+      "maxMomentaryLufs": -8.8,
+      "truePeakDbtp": -0.7,
+      "peakDbfs": -0.8816973908339781,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_core_stone_hum": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_core_stone_hum.wav",
+      "sha256": "3ce1c330f8a7166e66cfdef67a1e4232f4b39a8c80e29a4bc58c4a277e6721e2",
+      "integratedLufs": -4.6,
+      "maxMomentaryLufs": -3.0,
+      "truePeakDbtp": 0.0,
+      "peakDbfs": 0.0,
+      "seconds": 3.0,
+      "clippedSamples": 7021
+    },
+    "a05_core_melody": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_core_melody.wav",
+      "sha256": "ac6439cdd0a7ef8445c29e22c847dabaab9d82490302aaf4673f6461ee000f64",
+      "integratedLufs": -16.2,
+      "maxMomentaryLufs": -11.2,
+      "truePeakDbtp": -2.3,
+      "peakDbfs": -2.3359653347762617,
+      "seconds": 6.0,
+      "clippedSamples": 0
+    },
+    "[whispers] ...Ove talu... [exhales] mernai..mp3": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\[whispers] ...Ove talu... [exhales] mernai..mp3",
+      "sha256": "b3b0dcd52dc5a4311be13bb0c943002a88210df3c4425b7c853cf4250d12a08a",
+      "integratedLufs": -26.2,
+      "maxMomentaryLufs": -20.2,
+      "truePeakDbtp": -9.1,
+      "peakDbfs": -9.142426246593466,
+      "seconds": 3.5526666666666666,
+      "clippedSamples": 0
+    },
+    "a05_bgm_day": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_bgm_day.wav",
+      "sha256": "4829e2b2f1af468e3676f54c79a3e48359c8275cd314e4a51b378bf6e879d243",
+      "integratedLufs": -16.4,
+      "maxMomentaryLufs": -11.5,
+      "truePeakDbtp": -0.3,
+      "peakDbfs": -0.3072894744412538,
+      "seconds": 150.0,
+      "clippedSamples": 0
+    },
+    "lake_birds_day": {
+      "path": "C:\\Users\\User\\Documents\\game project\\audio-incoming\\lake_birds_day.wav",
+      "sha256": "20d2e675c1a0c4ef3d103357883aa09baf666059856a62fbe65da8b11e967a14",
+      "integratedLufs": -41.2,
+      "maxMomentaryLufs": -32.9,
+      "truePeakDbtp": -24.0,
+      "peakDbfs": -24.006392355522323,
+      "seconds": 30.0,
+      "clippedSamples": 0
+    }
+  },
+  "assets": {
+    "a05_bell_strike": {
+      "source": "a05_bell_strike",
+      "targetLufs": -13,
+      "metric": "maxMomentaryLufs",
+      "gainDb": 0.8000000000000007,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_bell_strike.wav",
+      "integratedLufs": -23.8,
+      "maxMomentaryLufs": -13.0,
+      "truePeakDbtp": -4.6,
+      "peakDbfs": -4.6122659463464295,
+      "seconds": 22.0,
+      "clippedSamples": 0
+    },
+    "a05_bell_log_pull": {
+      "source": "a05_bell_log_pull",
+      "targetLufs": -26,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -13.6,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "isolatedClippedSamplesInterpolated": 30
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_bell_log_pull.wav",
+      "integratedLufs": -29.5,
+      "maxMomentaryLufs": -26.0,
+      "truePeakDbtp": -13.1,
+      "peakDbfs": -13.607876664792034,
+      "seconds": 3.0,
+      "clippedSamples": 0
+    },
+    "a05_wind_bell_gust": {
+      "source": "a05_wind_bell_gust",
+      "targetLufs": -22,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -10.1,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "lowpassHz": 8000
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_wind_bell_gust.wav",
+      "integratedLufs": -25.2,
+      "maxMomentaryLufs": -22.0,
+      "truePeakDbtp": -13.3,
+      "peakDbfs": -13.834298931219735,
+      "seconds": 10.0,
+      "clippedSamples": 0
+    },
+    "a05_boulder_call": {
+      "source": "a05_boulder_call",
+      "targetLufs": -20,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -2.3999999999999986,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_boulder_call.wav",
+      "integratedLufs": -22.5,
+      "maxMomentaryLufs": -20.0,
+      "truePeakDbtp": -5.3,
+      "peakDbfs": -5.287433409514323,
+      "seconds": 2.0,
+      "clippedSamples": 0
+    },
+    "a05_wind_rock": {
+      "source": "a05_wind_rock",
+      "targetLufs": -20,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -12.6,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_wind_rock.wav",
+      "integratedLufs": -25.1,
+      "maxMomentaryLufs": -20.0,
+      "truePeakDbtp": -15.8,
+      "peakDbfs": -15.807108277564977,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_wall_knock": {
+      "source": "a05_wall_knock",
+      "targetLufs": -21,
+      "metric": "maxMomentaryLufs",
+      "gainDb": 1.0,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_wall_knock.wav",
+      "integratedLufs": -26.9,
+      "maxMomentaryLufs": -21.0,
+      "truePeakDbtp": -4.0,
+      "peakDbfs": -4.019435181910719,
+      "seconds": 2.0,
+      "clippedSamples": 0
+    },
+    "a05_mica_peel": {
+      "source": "a05_mica_peel",
+      "targetLufs": -24,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -4.899999999999999,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "isolatedClippedSamplesInterpolated": 6
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_mica_peel.wav",
+      "integratedLufs": -27.2,
+      "maxMomentaryLufs": -24.0,
+      "truePeakDbtp": -4.9,
+      "peakDbfs": -4.908938697093169,
+      "seconds": 2.0,
+      "clippedSamples": 0
+    },
+    "a05_crane": {
+      "source": "a05_crane",
+      "targetLufs": -25,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -4.100000000000001,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_crane.wav",
+      "integratedLufs": -28.5,
+      "maxMomentaryLufs": -25.0,
+      "truePeakDbtp": -10.1,
+      "peakDbfs": -10.26913522272375,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_handcart": {
+      "source": "a05_handcart",
+      "targetLufs": -25,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -5.100000000000001,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_handcart.wav",
+      "integratedLufs": -28.4,
+      "maxMomentaryLufs": -25.0,
+      "truePeakDbtp": -7.7,
+      "peakDbfs": -7.696534665542454,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_winch": {
+      "source": "a05_winch",
+      "targetLufs": -25,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -13.5,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "isolatedClippedSamplesInterpolated": 117
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_winch.wav",
+      "integratedLufs": -28.1,
+      "maxMomentaryLufs": -25.0,
+      "truePeakDbtp": -12.9,
+      "peakDbfs": -13.500603144464636,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_leaf_on_water": {
+      "source": "a05_leaf_on_water",
+      "targetLufs": -32,
+      "metric": "maxMomentaryLufs",
+      "gainDb": 0.8999999999999986,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_leaf_on_water.wav",
+      "integratedLufs": -35.5,
+      "maxMomentaryLufs": -32.0,
+      "truePeakDbtp": -11.7,
+      "peakDbfs": -11.900270568179188,
+      "seconds": 1.0,
+      "clippedSamples": 0
+    },
+    "a05_wall_hum": {
+      "source": "a05_wall_hum",
+      "targetLufs": -30,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -16.0,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_wall_hum.wav",
+      "integratedLufs": -35.7,
+      "maxMomentaryLufs": -30.0,
+      "truePeakDbtp": -19.7,
+      "peakDbfs": -19.71269476630175,
+      "seconds": 3.0,
+      "clippedSamples": 0
+    },
+    "a05_grit_fall": {
+      "source": "a05_grit_fall",
+      "targetLufs": -30,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -2.8000000000000007,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_grit_fall.wav",
+      "integratedLufs": -32.9,
+      "maxMomentaryLufs": -30.0,
+      "truePeakDbtp": -20.1,
+      "peakDbfs": -20.151881265277744,
+      "seconds": 2.0,
+      "clippedSamples": 0
+    },
+    "a05_gust": {
+      "source": "a05_gust",
+      "targetLufs": -22,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -13.9,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_gust.wav",
+      "integratedLufs": -26.5,
+      "maxMomentaryLufs": -22.0,
+      "truePeakDbtp": -14.0,
+      "peakDbfs": -14.133979252202465,
+      "seconds": 20.0,
+      "clippedSamples": 0
+    },
+    "a05_gust_leaves": {
+      "source": "a05_gust_leaves",
+      "targetLufs": -27,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -18.3,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\a05_gust_leaves.wav",
+      "integratedLufs": -31.8,
+      "maxMomentaryLufs": -27.0,
+      "truePeakDbtp": -18.4,
+      "peakDbfs": -18.350709275143792,
+      "seconds": 15.0,
+      "clippedSamples": 0
+    },
+    "a05_birds_flush": {
+      "source": "a05_birds_flush",
+      "targetLufs": -24,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -16.1,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "unrecoveredClippedSamples": 711,
+          "requiresUserListening": true
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_birds_flush.wav",
+      "integratedLufs": -26.2,
+      "maxMomentaryLufs": -24.0,
+      "truePeakDbtp": -15.9,
+      "peakDbfs": -16.099881412485868,
+      "seconds": 3.0,
+      "clippedSamples": 0
+    },
+    "a05_core_swell": {
+      "source": "a05_core_swell",
+      "targetLufs": -14,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -8.8,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "unrecoveredClippedSamples": 1484,
+          "requiresUserListening": true
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_core_swell.wav",
+      "integratedLufs": -19.9,
+      "maxMomentaryLufs": -14.0,
+      "truePeakDbtp": -8.7,
+      "peakDbfs": -8.8002494674821,
+      "seconds": 7.0,
+      "clippedSamples": 0
+    },
+    "a05_wind_bell_soft": {
+      "source": "a05_wind_bell_soft",
+      "targetLufs": -28,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -11.5,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "trimEndSeconds": 5
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_wind_bell_soft.wav",
+      "integratedLufs": -30.5,
+      "maxMomentaryLufs": -28.0,
+      "truePeakDbtp": -19.8,
+      "peakDbfs": -19.894089268804713,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "a05_stone_saw": {
+      "source": "a05_stone_saw",
+      "targetLufs": -30,
+      "metric": "integratedLufs",
+      "gainDb": -19.3,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "isolatedClippedSamplesInterpolated": 12
+        },
+        {
+          "loopCrossfadeSeconds": 2
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_stone_saw.wav",
+      "integratedLufs": -30.0,
+      "maxMomentaryLufs": -25.7,
+      "truePeakDbtp": -19.0,
+      "peakDbfs": -19.343667795779453,
+      "seconds": 13.0,
+      "clippedSamples": 0
+    },
+    "a05_water_wheel": {
+      "source": "a05_water_wheel",
+      "targetLufs": -40,
+      "metric": "integratedLufs",
+      "gainDb": -7.100000000000001,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "loopCrossfadeSeconds": 2
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_water_wheel.wav",
+      "integratedLufs": -40.0,
+      "maxMomentaryLufs": -32.6,
+      "truePeakDbtp": -18.0,
+      "peakDbfs": -18.025824509010857,
+      "seconds": 13.0,
+      "clippedSamples": 0
+    },
+    "a05_ropeway": {
+      "source": "a05_ropeway",
+      "targetLufs": -27,
+      "metric": "integratedLufs",
+      "gainDb": 0.6000000000000014,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "loopCrossfadeSeconds": 2
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_ropeway.wav",
+      "integratedLufs": -27.0,
+      "maxMomentaryLufs": -20.8,
+      "truePeakDbtp": -7.5,
+      "peakDbfs": -7.937752446482296,
+      "seconds": 8.0,
+      "clippedSamples": 0
+    },
+    "a05_amb_waterfall_far": {
+      "source": "a05_amb_waterfall_far",
+      "targetLufs": -36,
+      "metric": "integratedLufs",
+      "gainDb": -20.9,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "lowpassHz": 3000
+        },
+        {
+          "notchHz": 200,
+          "Q": 8
+        },
+        {
+          "loopCrossfadeSeconds": 2
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_amb_waterfall_far.wav",
+      "integratedLufs": -36.0,
+      "maxMomentaryLufs": -35.6,
+      "truePeakDbtp": -25.2,
+      "peakDbfs": -25.18908416474632,
+      "seconds": 18.0,
+      "clippedSamples": 0
+    },
+    "a05_amb_leaves": {
+      "source": "a05_amb_leaves",
+      "targetLufs": -40,
+      "metric": "integratedLufs",
+      "gainDb": -6.0,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "lowpassHz": 8000
+        },
+        {
+          "loopCrossfadeSeconds": 2
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_amb_leaves.wav",
+      "integratedLufs": -40.0,
+      "maxMomentaryLufs": -33.2,
+      "truePeakDbtp": -22.0,
+      "peakDbfs": -22.532770429723886,
+      "seconds": 18.0,
+      "clippedSamples": 0
+    },
+    "a05_amb_night_crickets": {
+      "source": "a05_amb_night_crickets",
+      "targetLufs": -42,
+      "metric": "integratedLufs",
+      "gainDb": -20.8,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "highShelfHz": 9000,
+          "highBandDb": -4
+        },
+        {
+          "loopCrossfadeSeconds": 2
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_amb_night_crickets.wav",
+      "integratedLufs": -42.0,
+      "maxMomentaryLufs": -37.6,
+      "truePeakDbtp": -27.9,
+      "peakDbfs": -28.239766257300264,
+      "seconds": 18.0,
+      "clippedSamples": 0
+    },
+    "a05_cave_room": {
+      "source": "a05_cave_room",
+      "targetLufs": -36,
+      "metric": "integratedLufs",
+      "gainDb": -0.20000000000000284,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "loopCrossfadeSeconds": 2
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_cave_room.wav",
+      "integratedLufs": -36.0,
+      "maxMomentaryLufs": -23.0,
+      "truePeakDbtp": -5.6,
+      "peakDbfs": -6.334207897106035,
+      "seconds": 18.0,
+      "clippedSamples": 0
+    },
+    "a05_stone_chime_g6": {
+      "source": "a05_stone_chime_high",
+      "targetLufs": -17,
+      "metric": "maxMomentaryLufs",
+      "gainDb": 2.6000000000000014,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "measuredHz": 1635.0294906578515,
+          "targetHz": 1567.981744,
+          "playbackRate": 0.9589929435273519,
+          "outputMeasuredHz": 1567.9769666678962
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_stone_chime_g6.wav",
+      "integratedLufs": -22.6,
+      "maxMomentaryLufs": -17.0,
+      "truePeakDbtp": -9.9,
+      "peakDbfs": -9.901773046240201,
+      "seconds": 3.1282916666666667,
+      "clippedSamples": 0
+    },
+    "a05_stone_chime_d6": {
+      "source": "a05_stone_chime_high",
+      "targetLufs": -21,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -1.1000000000000014,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "measuredHz": 1635.0294906578515,
+          "targetHz": 1174.659072,
+          "playbackRate": 0.7184329571495238,
+          "outputMeasuredHz": 1174.6542938165053
+        },
+        {
+          "sourceReflectionTailSeconds": 1.5
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_stone_chime_d6.wav",
+      "integratedLufs": -26.9,
+      "maxMomentaryLufs": -21.0,
+      "truePeakDbtp": -13.6,
+      "peakDbfs": -13.600260803157195,
+      "seconds": 5.675791666666667,
+      "clippedSamples": 0
+    },
+    "a05_tuning_fork": {
+      "source": "a05_tuning_fork",
+      "targetLufs": -22,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -13.0,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "measuredHz": 387.87683313987066,
+          "targetHz": 391.995436,
+          "playbackRate": 1.010618326510478,
+          "outputMeasuredHz": 391.99609922747374
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_tuning_fork.wav",
+      "integratedLufs": -27.5,
+      "maxMomentaryLufs": -22.0,
+      "truePeakDbtp": -15.8,
+      "peakDbfs": -16.258664750431347,
+      "seconds": 4.9474583333333335,
+      "clippedSamples": 0
+    },
+    "hum_stone_g2": {
+      "source": "a05_core_stone_hum",
+      "targetLufs": -27,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -24.0,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "unrecoveredClippedSamples": 7021,
+          "requiresUserListening": true
+        },
+        {
+          "measuredHz": 97.83019319229349,
+          "targetHz": 97.998859,
+          "playbackRate": 1.001724067000205,
+          "outputMeasuredHz": 97.99846099860487
+        },
+        {
+          "sourceReflectionTailSeconds": 2.5
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\hum_stone_g2.wav",
+      "integratedLufs": -28.6,
+      "maxMomentaryLufs": -27.0,
+      "truePeakDbtp": -23.9,
+      "peakDbfs": -23.87703008988748,
+      "seconds": 5.494854166666666,
+      "clippedSamples": 0
+    },
+    "core_motif_05": {
+      "source": "a05_core_melody",
+      "targetLufs": -18,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -6.800000000000001,
+      "headroomLimited": false,
+      "operations": [],
+      "path": "previews\\area05-audio-qa\\assets\\core_motif_05.wav",
+      "integratedLufs": -23.0,
+      "maxMomentaryLufs": -18.0,
+      "truePeakDbtp": -9.1,
+      "peakDbfs": -9.135923867746953,
+      "seconds": 6.0,
+      "clippedSamples": 0,
+      "measuredChordHz": [
+        260.67308413078155,
+        329.8734743154246,
+        392.2617398067494
+      ]
+    },
+    "a05_wall_murmur": {
+      "source": "[whispers] ...Ove talu... [exhales] mernai..mp3",
+      "targetLufs": -25,
+      "metric": "maxMomentaryLufs",
+      "gainDb": -4.5,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "lowpassHz": 1200
+        },
+        {
+          "sourceReflectionTailSeconds": 2.5
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_wall_murmur.wav",
+      "integratedLufs": -30.9,
+      "maxMomentaryLufs": -25.0,
+      "truePeakDbtp": -14.3,
+      "peakDbfs": -14.279552428764937,
+      "seconds": 6.052666666666667,
+      "clippedSamples": 0
+    },
+    "a05_bgm_day": {
+      "source": "a05_bgm_day",
+      "targetLufs": -25.75,
+      "metric": "integratedLufs",
+      "gainDb": -7.149999999999999,
+      "headroomLimited": false,
+      "operations": [
+        {
+          "highpassHz": 120
+        }
+      ],
+      "path": "previews\\area05-audio-qa\\assets\\a05_bgm_day.wav",
+      "integratedLufs": -25.8,
+      "maxMomentaryLufs": -20.1,
+      "truePeakDbtp": -6.4,
+      "peakDbfs": -6.42037704792032,
+      "seconds": 150.0,
+      "clippedSamples": 0
+    },
+    "bird_0": {
+      "source": "lake_birds_day",
+      "cutStart": 1.5,
+      "cutEnd": 6.5,
+      "integratedLufs": -41.0,
+      "maxMomentaryLufs": -36.0,
+      "truePeakDbtp": -27.1,
+      "peakDbfs": -27.106392355522324,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "bird_1": {
+      "source": "lake_birds_day",
+      "cutStart": 10,
+      "cutEnd": 15,
+      "integratedLufs": -41.7,
+      "maxMomentaryLufs": -36.0,
+      "truePeakDbtp": -25.6,
+      "peakDbfs": -25.61222013873062,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "bird_2": {
+      "source": "lake_birds_day",
+      "cutStart": 16.25,
+      "cutEnd": 21.25,
+      "integratedLufs": -42.3,
+      "maxMomentaryLufs": -36.0,
+      "truePeakDbtp": -29.2,
+      "peakDbfs": -29.32230152495152,
+      "seconds": 5.0,
+      "clippedSamples": 0
+    },
+    "bird_3": {
+      "source": "lake_birds_day",
+      "cutStart": 26.5,
+      "cutEnd": 30,
+      "integratedLufs": -37.6,
+      "maxMomentaryLufs": -36.0,
+      "truePeakDbtp": -28.6,
+      "peakDbfs": -28.610006672680207,
+      "seconds": 3.5,
+      "clippedSamples": 0
+    }
+  },
+  "auditions": {
+    "01-12.wav": {
+      "title": "白天 60 秒",
+      "musicPercent": 12,
+      "integratedLufs": -48.0,
+      "maxMomentaryLufs": -40.7,
+      "truePeakDbtp": -29.1,
+      "peakDbfs": -29.117730341169008,
+      "seconds": 60.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "bird_0",
+          "at": 10,
+          "end": 15.0,
+          "gain": 0.6,
+          "rate": 1,
+          "position": -0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wind_bell_soft",
+          "at": 34,
+          "end": 38.90197916666666,
+          "gain": 1,
+          "rate": 1.02,
+          "position": 0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "bird_2",
+          "at": 46,
+          "end": 51.0,
+          "gain": 0.6,
+          "rate": 1,
+          "position": 0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "01-25.wav": {
+      "title": "白天 60 秒",
+      "musicPercent": 25,
+      "integratedLufs": -44.6,
+      "maxMomentaryLufs": -37.9,
+      "truePeakDbtp": -25.3,
+      "peakDbfs": -25.30059865301648,
+      "seconds": 60.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "bird_0",
+          "at": 10,
+          "end": 15.0,
+          "gain": 0.6,
+          "rate": 1,
+          "position": -0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wind_bell_soft",
+          "at": 34,
+          "end": 38.90197916666666,
+          "gain": 1,
+          "rate": 1.02,
+          "position": 0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "bird_2",
+          "at": 46,
+          "end": 51.0,
+          "gain": 0.6,
+          "rate": 1,
+          "position": 0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "02-12.wav": {
+      "title": "夜晚 60 秒",
+      "musicPercent": 12,
+      "integratedLufs": -49.6,
+      "maxMomentaryLufs": -40.8,
+      "truePeakDbtp": -29.8,
+      "peakDbfs": -29.852186481663804,
+      "seconds": 60.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "a05_wind_bell_soft",
+          "at": 8,
+          "end": 12.901979166666667,
+          "gain": 1,
+          "rate": 1.02,
+          "position": 0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "02-25.wav": {
+      "title": "夜晚 60 秒",
+      "musicPercent": 25,
+      "integratedLufs": -46.5,
+      "maxMomentaryLufs": -39.4,
+      "truePeakDbtp": -27.6,
+      "peakDbfs": -27.63822053179001,
+      "seconds": 60.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "a05_wind_bell_soft",
+          "at": 8,
+          "end": 12.901979166666667,
+          "gain": 1,
+          "rate": 1.02,
+          "position": 0.2,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "03-12.wav": {
+      "title": "梵鐘一次與壓低配樂",
+      "musicPercent": 12,
+      "integratedLufs": -39.7,
+      "maxMomentaryLufs": -25.7,
+      "truePeakDbtp": -17.5,
+      "peakDbfs": -17.477533635630852,
+      "seconds": 30.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "a05_bell_log_pull",
+          "at": 1,
+          "end": 4.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 4,
+          "end": 26.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": []
+    },
+    "03-25.wav": {
+      "title": "梵鐘一次與壓低配樂",
+      "musicPercent": 25,
+      "integratedLufs": -39.2,
+      "maxMomentaryLufs": -25.7,
+      "truePeakDbtp": -17.6,
+      "peakDbfs": -17.599323762896116,
+      "seconds": 30.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "a05_bell_log_pull",
+          "at": 1,
+          "end": 4.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 4,
+          "end": 26.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": []
+    },
+    "04-12.wav": {
+      "title": "首訪石磬雙音",
+      "musicPercent": 12,
+      "integratedLufs": -39.8,
+      "maxMomentaryLufs": -30.0,
+      "truePeakDbtp": -22.7,
+      "peakDbfs": -22.66865784769699,
+      "seconds": 12.0,
+      "clippedSamples": 0,
+      "foregroundMax": 2,
+      "events": [
+        {
+          "id": "a05_stone_chime_g6",
+          "at": 2.15,
+          "end": 5.278291666666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_stone_chime_d6",
+          "at": 3.25,
+          "end": 8.925791666666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": []
+    },
+    "04-25.wav": {
+      "title": "首訪石磬雙音",
+      "musicPercent": 25,
+      "integratedLufs": -39.2,
+      "maxMomentaryLufs": -30.0,
+      "truePeakDbtp": -22.7,
+      "peakDbfs": -22.69030943258032,
+      "seconds": 12.0,
+      "clippedSamples": 0,
+      "foregroundMax": 2,
+      "events": [
+        {
+          "id": "a05_stone_chime_g6",
+          "at": 2.15,
+          "end": 5.278291666666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_stone_chime_d6",
+          "at": 3.25,
+          "end": 8.925791666666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": []
+    },
+    "05-12.wav": {
+      "title": "回音巨石：拍手與回音",
+      "musicPercent": 12,
+      "integratedLufs": -44.2,
+      "maxMomentaryLufs": -32.7,
+      "truePeakDbtp": -18.1,
+      "peakDbfs": -18.059679420131513,
+      "seconds": 10.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "a05_boulder_call",
+          "at": 2.3,
+          "end": 4.3,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 2.9,
+          "end": 4.9,
+          "gain": 0.35481338923357547,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 3.5,
+          "end": 5.5,
+          "gain": 0.1778279410038923,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "05-25.wav": {
+      "title": "回音巨石：拍手與回音",
+      "musicPercent": 25,
+      "integratedLufs": -42.3,
+      "maxMomentaryLufs": -32.7,
+      "truePeakDbtp": -18.0,
+      "peakDbfs": -18.04485165711916,
+      "seconds": 10.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "a05_boulder_call",
+          "at": 2.3,
+          "end": 4.3,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 2.9,
+          "end": 4.9,
+          "gain": 0.35481338923357547,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 3.5,
+          "end": 5.5,
+          "gain": 0.1778279410038923,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "06-12.wav": {
+      "title": "風孔岩：原速／1.5 倍",
+      "musicPercent": 12,
+      "integratedLufs": -41.7,
+      "maxMomentaryLufs": -32.7,
+      "truePeakDbtp": -27.5,
+      "peakDbfs": -27.54294473586873,
+      "seconds": 16.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "a05_wind_rock",
+          "at": 2,
+          "end": 7.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wind_rock",
+          "at": 9,
+          "end": 12.333333333333334,
+          "gain": 1,
+          "rate": 1.5,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "06-25.wav": {
+      "title": "風孔岩：原速／1.5 倍",
+      "musicPercent": 25,
+      "integratedLufs": -40.3,
+      "maxMomentaryLufs": -32.5,
+      "truePeakDbtp": -26.5,
+      "peakDbfs": -26.502364735788532,
+      "seconds": 16.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "a05_wind_rock",
+          "at": 2,
+          "end": 7.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wind_rock",
+          "at": 9,
+          "end": 12.333333333333334,
+          "gain": 1,
+          "rate": 1.5,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "07-12.wav": {
+      "title": "山風 60 秒與十三下梵鐘",
+      "musicPercent": 12,
+      "integratedLufs": -34.2,
+      "maxMomentaryLufs": -26.6,
+      "truePeakDbtp": -17.6,
+      "peakDbfs": -17.559204108944144,
+      "seconds": 60.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "a05_bell_strike",
+          "at": 0.0,
+          "end": 13.5,
+          "gain": 0.8912509381337456,
+          "rate": 0.98,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_birds_flush",
+          "at": 0,
+          "end": 3.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wind_bell_gust",
+          "at": 2.0,
+          "end": 5.5,
+          "gain": 1,
+          "rate": 1,
+          "position": -0.25,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 4.5,
+          "end": 18.0,
+          "gain": 0.7943282347242815,
+          "rate": 0.99,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_wind_bell_gust",
+          "at": 5.5,
+          "end": 9.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0.25,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 9.0,
+          "end": 22.5,
+          "gain": 0.7079457843841379,
+          "rate": 1.0,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 13.5,
+          "end": 27.0,
+          "gain": 0.8912509381337456,
+          "rate": 1.01,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 18.0,
+          "end": 31.5,
+          "gain": 0.7943282347242815,
+          "rate": 1.02,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 22.5,
+          "end": 36.0,
+          "gain": 0.7079457843841379,
+          "rate": 0.98,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 27.0,
+          "end": 40.5,
+          "gain": 0.8912509381337456,
+          "rate": 0.99,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 31.5,
+          "end": 45.0,
+          "gain": 0.7943282347242815,
+          "rate": 1.0,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 36.0,
+          "end": 49.5,
+          "gain": 0.7079457843841379,
+          "rate": 1.01,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 40.5,
+          "end": 54.0,
+          "gain": 0.8912509381337456,
+          "rate": 1.02,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 45.0,
+          "end": 67.449,
+          "gain": 0.7943282347242815,
+          "rate": 0.98,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 49.5,
+          "end": 71.72222916666666,
+          "gain": 0.7079457843841379,
+          "rate": 0.99,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 54.0,
+          "end": 76.0,
+          "gain": 0.8912509381337456,
+          "rate": 1.0,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": [
+        {
+          "released": "a05_wind_bell_gust",
+          "at": 5.5,
+          "reason": "foreground cap"
+        },
+        {
+          "released": "a05_wind_bell_gust",
+          "at": 9.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 9.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 12.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 13.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 16.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 18.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 19.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 22.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 23.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 26.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 27.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 30.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 31.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 33.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 36.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 37.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 40.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 40.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 44.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 45.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 47.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 49.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 51.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 54.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 54.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 58.0,
+          "reason": "three higher priority voices"
+        }
+      ]
+    },
+    "07-25.wav": {
+      "title": "山風 60 秒與十三下梵鐘",
+      "musicPercent": 25,
+      "integratedLufs": -34.2,
+      "maxMomentaryLufs": -26.6,
+      "truePeakDbtp": -17.5,
+      "peakDbfs": -17.52524750047928,
+      "seconds": 60.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "a05_bell_strike",
+          "at": 0.0,
+          "end": 13.5,
+          "gain": 0.8912509381337456,
+          "rate": 0.98,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_birds_flush",
+          "at": 0,
+          "end": 3.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wind_bell_gust",
+          "at": 2.0,
+          "end": 5.5,
+          "gain": 1,
+          "rate": 1,
+          "position": -0.25,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 4.5,
+          "end": 18.0,
+          "gain": 0.7943282347242815,
+          "rate": 0.99,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_wind_bell_gust",
+          "at": 5.5,
+          "end": 9.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0.25,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 9.0,
+          "end": 22.5,
+          "gain": 0.7079457843841379,
+          "rate": 1.0,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 13.5,
+          "end": 27.0,
+          "gain": 0.8912509381337456,
+          "rate": 1.01,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 18.0,
+          "end": 31.5,
+          "gain": 0.7943282347242815,
+          "rate": 1.02,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 22.5,
+          "end": 36.0,
+          "gain": 0.7079457843841379,
+          "rate": 0.98,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 27.0,
+          "end": 40.5,
+          "gain": 0.8912509381337456,
+          "rate": 0.99,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 31.5,
+          "end": 45.0,
+          "gain": 0.7943282347242815,
+          "rate": 1.0,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 36.0,
+          "end": 49.5,
+          "gain": 0.7079457843841379,
+          "rate": 1.01,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 40.5,
+          "end": 54.0,
+          "gain": 0.8912509381337456,
+          "rate": 1.02,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 45.0,
+          "end": 67.449,
+          "gain": 0.7943282347242815,
+          "rate": 0.98,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 49.5,
+          "end": 71.72222916666666,
+          "gain": 0.7079457843841379,
+          "rate": 0.99,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 54.0,
+          "end": 76.0,
+          "gain": 0.8912509381337456,
+          "rate": 1.0,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": [
+        {
+          "released": "a05_wind_bell_gust",
+          "at": 5.5,
+          "reason": "foreground cap"
+        },
+        {
+          "released": "a05_wind_bell_gust",
+          "at": 9.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 9.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 12.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 13.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 16.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 18.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 19.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 22.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 23.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 26.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 27.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 30.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 31.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 33.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 36.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 37.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 40.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 40.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 44.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 45.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 47.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 49.5,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 51.0,
+          "reason": "three higher priority voices"
+        },
+        {
+          "released": "a05_bell_strike",
+          "at": 54.0,
+          "reason": "foreground cap"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 54.5,
+          "reason": "three higher priority voices"
+        },
+        {
+          "dropped": "a05_wind_bell_gust",
+          "at": 58.0,
+          "reason": "three higher priority voices"
+        }
+      ]
+    },
+    "08-12.wav": {
+      "title": "洞內探索：聽回音",
+      "musicPercent": 12,
+      "integratedLufs": -42.6,
+      "maxMomentaryLufs": -35.0,
+      "truePeakDbtp": -18.4,
+      "peakDbfs": -19.103690741940063,
+      "seconds": 65.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "hum_stone_g2",
+          "at": 0,
+          "end": 5.494854166666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_leaf_on_water",
+          "at": 1,
+          "end": 4.5,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_stone_chime_g6",
+          "at": 4,
+          "end": 9.628291666666666,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_stone_chime_d6",
+          "at": 5.1,
+          "end": 13.275791666666667,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 8,
+          "end": 13.494854166666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 15,
+          "end": 19.5,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 15.6,
+          "end": 20.1,
+          "gain": 0.14125375446227545,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 16,
+          "end": 16.2,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 16.2,
+          "end": 20.7,
+          "gain": 0.0707945784384138,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 24,
+          "end": 48.5,
+          "gain": 0.31622776601683794,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 24,
+          "end": 29.494854166666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 32,
+          "end": 37.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 40,
+          "end": 45.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_wind_rock",
+          "at": 48,
+          "end": 55.5,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 48,
+          "end": 53.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 56,
+          "end": 61.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_wall_knock",
+          "at": 58,
+          "end": 62.5,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 64,
+          "end": 69.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        }
+      ],
+      "voiceActions": [
+        {
+          "released": "hum_stone_g2",
+          "at": 16.2,
+          "reason": "foreground cap"
+        }
+      ]
+    },
+    "08-25.wav": {
+      "title": "洞內探索：聽回音",
+      "musicPercent": 25,
+      "integratedLufs": -42.2,
+      "maxMomentaryLufs": -34.9,
+      "truePeakDbtp": -18.4,
+      "peakDbfs": -19.11325933518323,
+      "seconds": 65.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "hum_stone_g2",
+          "at": 0,
+          "end": 5.494854166666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_leaf_on_water",
+          "at": 1,
+          "end": 4.5,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_stone_chime_g6",
+          "at": 4,
+          "end": 9.628291666666666,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_stone_chime_d6",
+          "at": 5.1,
+          "end": 13.275791666666667,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 8,
+          "end": 13.494854166666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 15,
+          "end": 19.5,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 15.6,
+          "end": 20.1,
+          "gain": 0.14125375446227545,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 16,
+          "end": 16.2,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_boulder_call",
+          "at": 16.2,
+          "end": 20.7,
+          "gain": 0.0707945784384138,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": 2500,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "a05_bell_strike",
+          "at": 24,
+          "end": 48.5,
+          "gain": 0.31622776601683794,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 24,
+          "end": 29.494854166666666,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 32,
+          "end": 37.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 40,
+          "end": 45.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_wind_rock",
+          "at": 48,
+          "end": 55.5,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 48,
+          "end": 53.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 56,
+          "end": 61.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        },
+        {
+          "id": "a05_wall_knock",
+          "at": 58,
+          "end": 62.5,
+          "gain": 0.3981071705534972,
+          "rate": 1,
+          "position": 0,
+          "reflection": 2.5,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 64,
+          "end": 69.49485416666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 2
+        }
+      ],
+      "voiceActions": [
+        {
+          "released": "hum_stone_g2",
+          "at": 16.2,
+          "reason": "foreground cap"
+        }
+      ]
+    },
+    "09-12.wav": {
+      "title": "第二次造訪：低喃",
+      "musicPercent": 12,
+      "integratedLufs": -46.2,
+      "maxMomentaryLufs": -35.1,
+      "truePeakDbtp": -18.4,
+      "peakDbfs": -19.161261058004214,
+      "seconds": 16.0,
+      "clippedSamples": 0,
+      "foregroundMax": 2,
+      "events": [
+        {
+          "id": "wall_hum_short",
+          "at": 2,
+          "end": 5.7,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wall_murmur",
+          "at": 4,
+          "end": 10.052666666666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "09-25.wav": {
+      "title": "第二次造訪：低喃",
+      "musicPercent": 25,
+      "integratedLufs": -44.7,
+      "maxMomentaryLufs": -35.1,
+      "truePeakDbtp": -18.5,
+      "peakDbfs": -19.258067740081152,
+      "seconds": 16.0,
+      "clippedSamples": 0,
+      "foregroundMax": 2,
+      "events": [
+        {
+          "id": "wall_hum_short",
+          "at": 2,
+          "end": 5.7,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        },
+        {
+          "id": "a05_wall_murmur",
+          "at": 4,
+          "end": 10.052666666666667,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 1
+        }
+      ],
+      "voiceActions": []
+    },
+    "10-12.wav": {
+      "title": "營火剪影遠鐘",
+      "musicPercent": 12,
+      "integratedLufs": -44.3,
+      "maxMomentaryLufs": -37.5,
+      "truePeakDbtp": -29.1,
+      "peakDbfs": -29.07241255330038,
+      "seconds": 14.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "distant_bell",
+          "at": 1.35,
+          "end": 9.35,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": []
+    },
+    "10-25.wav": {
+      "title": "營火剪影遠鐘",
+      "musicPercent": 25,
+      "integratedLufs": -44.3,
+      "maxMomentaryLufs": -37.5,
+      "truePeakDbtp": -29.1,
+      "peakDbfs": -29.07241255330038,
+      "seconds": 14.0,
+      "clippedSamples": 0,
+      "foregroundMax": 1,
+      "events": [
+        {
+          "id": "distant_bell",
+          "at": 1.35,
+          "end": 9.35,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ],
+      "voiceActions": []
+    },
+    "11-12.wav": {
+      "title": "取得藏聲石完整演出",
+      "musicPercent": 12,
+      "integratedLufs": -34.5,
+      "maxMomentaryLufs": -25.5,
+      "truePeakDbtp": -17.3,
+      "peakDbfs": -17.31840738023798,
+      "seconds": 50.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "hum_stone_g2",
+          "at": 0.6,
+          "end": 2.2,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": -24,
+          "priority": 3
+        },
+        {
+          "id": "a05_core_swell",
+          "at": 1.0,
+          "end": 8.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 1.5,
+          "end": 6.8348125,
+          "gain": 1,
+          "rate": 1.03,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": -22,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 2.2,
+          "end": 7.3838333333333335,
+          "gain": 1,
+          "rate": 1.06,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": -20,
+          "priority": 3
+        }
+      ],
+      "voiceActions": [
+        {
+          "released": "hum_stone_g2",
+          "at": 2.2,
+          "reason": "foreground cap"
+        }
+      ],
+      "backgroundEvents": [
+        {
+          "id": "core_motif_05",
+          "at": 7.6,
+          "end": 13.6,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ]
+    },
+    "11-25.wav": {
+      "title": "取得藏聲石完整演出",
+      "musicPercent": 25,
+      "integratedLufs": -34.3,
+      "maxMomentaryLufs": -25.5,
+      "truePeakDbtp": -17.3,
+      "peakDbfs": -17.32619741630998,
+      "seconds": 50.0,
+      "clippedSamples": 0,
+      "foregroundMax": 3,
+      "events": [
+        {
+          "id": "hum_stone_g2",
+          "at": 0.6,
+          "end": 2.2,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": -24,
+          "priority": 3
+        },
+        {
+          "id": "a05_core_swell",
+          "at": 1.0,
+          "end": 8.0,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 1.5,
+          "end": 6.8348125,
+          "gain": 1,
+          "rate": 1.03,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": -22,
+          "priority": 3
+        },
+        {
+          "id": "hum_stone_g2",
+          "at": 2.2,
+          "end": 7.3838333333333335,
+          "gain": 1,
+          "rate": 1.06,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": -20,
+          "priority": 3
+        }
+      ],
+      "voiceActions": [
+        {
+          "released": "hum_stone_g2",
+          "at": 2.2,
+          "reason": "foreground cap"
+        }
+      ],
+      "backgroundEvents": [
+        {
+          "id": "core_motif_05",
+          "at": 7.6,
+          "end": 13.6,
+          "gain": 1,
+          "rate": 1,
+          "position": 0,
+          "reflection": 0,
+          "lowpass": null,
+          "target": null,
+          "priority": 3
+        }
+      ]
+    }
+  },
+  "comparisons": {
+    "a05_core_stone_hum": {
+      "originalGainDb": -24.0,
+      "retainsSourceDistortion": true,
+      "processedId": "hum_stone_g2"
+    },
+    "a05_core_swell": {
+      "originalGainDb": -8.8,
+      "retainsSourceDistortion": true,
+      "processedId": "a05_core_swell"
+    },
+    "a05_birds_flush": {
+      "originalGainDb": -16.1,
+      "retainsSourceDistortion": true,
+      "processedId": "a05_birds_flush"
+    },
+    "a05_winch": {
+      "originalGainDb": -13.5,
+      "retainsSourceDistortion": true,
+      "processedId": "a05_winch"
+    }
+  },
+  "excluded": [
+    "a05_amb_wind",
+    "a05_stone_chime_low",
+    "two unselected whisper recordings"
+  ],
+  "sourceAttribution": {
+    "generator": "ElevenLabs",
+    "generationDate": "user-supplied; exact date unconfirmed",
+    "plan": "unconfirmed; no publication performed"
+  },
+  "notes": [
+    "No synthesized oscillators, noise, impulse responses or sample-library sounds.",
+    "Reverberation consists only of filtered, delayed copies of each original recording.",
+    "Waterfall calibrated to -36 LUFS then capped below leaves in each mix.",
+    "60s day/night excerpts start music at 25s; excerpt ends before runtime 60-120s segment ends.",
+    "Core preview uses existing scene timeline: swell peak 3.6s, stone packed 7.6s.",
+    "Campfire silhouette preview is the isolated distant bell, without changing or remixing other maps.",
+    "No technical measurement constitutes listening approval."
+  ],
+  "musicBarAnalysis": {
+    "bpmReference": 68,
+    "barSeconds": 3.5294117647058822,
+    "energyPhaseSeconds": 0.01,
+    "candidateStartsBefore147": [
+      0.01,
+      3.5394,
+      7.0688,
+      10.5982,
+      14.1276,
+      17.6571,
+      21.1865,
+      24.7159,
+      28.2453,
+      31.7747,
+      35.3041,
+      38.8335,
+      42.3629,
+      45.8924,
+      49.4218,
+      52.9512,
+      56.4806,
+      60.01,
+      63.5394,
+      67.0688,
+      70.5982,
+      74.1276,
+      77.6571,
+      81.1865,
+      84.7159,
+      88.2453,
+      91.7747,
+      95.3041,
+      98.8335,
+      102.3629,
+      105.8924,
+      109.4218,
+      112.9512,
+      116.4806,
+      120.01,
+      123.5394,
+      127.0688,
+      130.5982,
+      134.1276,
+      137.6571,
+      141.1865,
+      144.7159
+    ],
+    "method": "positive 10ms RMS differences folded over 68 BPM four-beat bars; candidate downbeats"
+  },
+  "coreTiming": {
+    "humSeconds": [
+      0.6,
+      1.5,
+      2.2
+    ],
+    "swellStart": 1,
+    "swellPeak": 3.6,
+    "motifStart": 7.6,
+    "nextMusicNotBefore": 43.6
+  },
+  "sourceHashesUnchanged": true,
+  "checkedOriginalCount": 36,
+  "sourceInventorySha256": {
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_amb_leaves.wav": "d113e841bfa965f62c73b734f7b2b433bef0f834cb93b84b5494a487a81cec4f",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_amb_night_crickets.wav": "bdc40c8b0b89b67b2a80f6fc83db9625824449fd224d157f3d132c17cf1a4006",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_amb_waterfall_far.wav": "da3e8be0b2269222e8b4018b610c918f86bac68d1c7063a5e4858047868eb8c8",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_amb_wind.wav": "6760ec8169652e1d5bd12cf2f25f5f38ea859a6a8ec8e0e1f7a4dc987365fe0f",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_bell_log_pull.wav": "2ea65f60a505b0cf4cd58b4a4ea7717a67789089f8198aeed96ccc63759efb2c",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_bell_strike.wav": "7a4c1c51c7cb5ae09846b561f2bb8288190f2dcd03c71d01167901be976d6590",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_bgm_day.wav": "4829e2b2f1af468e3676f54c79a3e48359c8275cd314e4a51b378bf6e879d243",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_birds_flush.wav": "1f90f792d85a708cc382e1ad01ff98a2b07a6fc73352b6be68421d310e790174",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_boulder_call.wav": "6f352666938f3f92fd37374bb1a2841fd51ad7a4692c07f8429cfef5f5f0bed2",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_cave_room.wav": "2b8e89397ebacde0d3a94561a263cca1b267e0e5722a745ebd10d2cfc91d57d4",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_core_melody.wav": "ac6439cdd0a7ef8445c29e22c847dabaab9d82490302aaf4673f6461ee000f64",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_core_stone_hum.wav": "3ce1c330f8a7166e66cfdef67a1e4232f4b39a8c80e29a4bc58c4a277e6721e2",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_core_swell.wav": "6588f95113ebf75b2d6f9b23ce9a7ff0cdd55e0c2a0c09d9c30d41327cb08a56",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_crane.wav": "8d32c7805d50837d672bbaafa19420b5bdef0498768adcaae943c41c8fb02387",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_grit_fall.wav": "2cb6138ac3dbc4399963cbacbc17d5c20a13531033c540a818d9ab5a637a4500",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_gust.wav": "6b646cbe67fb7df97861c805ebe9f85adb68a19be67500a4e56b5501df8be579",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_gust_leaves.wav": "dd65e281a11d4bb800aa0a1d31c0fcbba254ff2a8e61954994ae5ef400af80d4",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_handcart.wav": "48e96e304e8cc5d554e40c1cde30c0203e5eee90db5eb3134a69698189f0ef3d",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_leaf_on_water.wav": "9a4514c7b9c2b100d9b42a84771a3a505715677c399965caf9422b53e1aabeeb",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_mica_peel.wav": "7265559a9c85db7802f9fe3b9ed24059c135515363b1592691cf612879c4487f",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_ropeway.wav": "3385c089ec3e3d2c2f44148dd97ab08733ad0b04a1e74ef0732eff0e20d4baeb",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_stone_chime_high.wav": "7caf92ba69014d76bc084de661e0c338838c128a13abe0bda3a7716fc3664fe4",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_stone_chime_low.wav": "4d8ef32920ea16955158e86f7f1e83980b5d3d8980ace7e758fd7900070e5309",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_stone_saw.wav": "9d2f68c65d056a759728b656ca65660437a4c1aa1466a0764c2346b63d076fd6",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_tuning_fork.wav": "30d8d53ec90a738d7a23f51731b65aaefc2c1471112a58fa75681ffb5976e6cc",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wall_hum.wav": "1d80728a03251aefe17cf41ba056664191f96b717928ad936e64f3511571b03f",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wall_knock.wav": "df2346f799ce02d0e4fdbb1164df1af033266a965a3e4573219fbc23dc8fd123",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_water_wheel.wav": "28be9daa33a712883a703869828b1c26dbc65d04fdda681bd3d5e5e9dafa9772",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_winch.wav": "c075b26c0807bab8954bc35be697659705f19d896c701585ffcc46e69d2e9f24",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wind_bell_gust.wav": "22b28e9fe24a5dc179bd3a2e91474f30ef6520401f4b670f3738b159740cb5b2",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wind_bell_soft.wav": "0aa1acc83292c1b00d08e1853f9ae0e6fa39147c6752d714d4cd5a2930332270",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\a05_wind_rock.wav": "588eac42279b5bb94b69c2c93f1166c3dd78b944c2e82e210f0a8c8c0f73766a",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\[whispers] ...Hesse ruvan... [sighs] nalo..mp3": "6404283a7f1877621415bf2de0eb51af2e680861f2816b8f8cab3b2977ce4d41",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\[whispers] ...Ove talu... [exhales] mernai..mp3": "b3b0dcd52dc5a4311be13bb0c943002a88210df3c4425b7c853cf4250d12a08a",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\[whispers] Ilvo... seth ruana... [sighs].mp3": "6c6db18fc2d7ce6279acc84cfea25befa3309a1ba86f46759cdfeb87b6e9216e",
+    "C:\\Users\\User\\Documents\\game project\\audio-incoming\\lake_birds_day.wav": "20d2e675c1a0c4ef3d103357883aa09baf666059856a62fbe65da8b11e967a14"
+  },
+  "tools": {
+    "python": "3.12.14",
+    "numpy": "2.5.3",
+    "ffmpeg": "ffmpeg version 7.1-essentials_build-www.gyan.dev Copyright (c) 2000-2024 the FFmpeg developers"
+  }
+}

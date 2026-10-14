@@ -1,5 +1,5 @@
 import { TravelLoading } from './loading/TravelLoading'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { GlassNurseryFocusScene } from './GlassNurseryFocusScene'
 import type { NurserySnapshot,NurseryExit } from '../../shared/area07'
 import { ReflectionLakeFocusScene } from './ReflectionLakeFocusScene'
@@ -54,17 +54,29 @@ export function AreaFocusScene(props: AreaFocusSceneProps): React.JSX.Element {
   const { snapshot, session, node, departureElapsedMs } = props
   const area = node?.areaId === NURSERY ? NURSERY : node?.areaId === LAKE ? LAKE : node?.areaId === MOSS ? MOSS : 'area-01-cloud-ruins'
   const parent = node?.parentNodeId ? snapshot.expeditionNodes.find((entry) => entry.id === node.parentNodeId) : undefined
+  const [nurseryCueSettled, setNurseryCueSettled] = useState(false)
+  const [lakeCueSettled, setLakeCueSettled] = useState(false)
+  const [cueTimedOut, setCueTimedOut] = useState(false)
+  const cueExpired = useRef(false)
+  useEffect(() => {
+    setCueTimedOut(false)
+    cueExpired.current = false
+    // IPC failure must also release a destination when effective Focus time is paused.
+    const timer = window.setTimeout(() => { cueExpired.current = true; setCueTimedOut(true) }, 8000)
+    return () => window.clearTimeout(timer)
+  }, [session.id])
   const [nurseryLeave,setNurseryLeave]=useState<{cue:{exit:NurseryExit;durationMs:number};state:NurserySnapshot|null}|null>(null)
-  useEffect(()=>{let live=true;if(parent?.areaId===NURSERY&&departureElapsedMs<8000)void window.focusQuest.getNurseryDeparture(session.id).then(async cue=>{if(cue){const state=await window.focusQuest.getNurseryScene(cue.fromExpeditionNodeId);if(live)setNurseryLeave({cue,state})}}).catch(()=>undefined);return()=>{live=false}},[session.id])
+  useEffect(()=>{let live=true;setNurseryCueSettled(false);if(parent?.areaId===NURSERY&&departureElapsedMs<8000)void window.focusQuest.getNurseryDeparture(session.id).then(async cue=>{if(cue){const state=await window.focusQuest.getNurseryScene(cue.fromExpeditionNodeId);if(live&&!cueExpired.current)setNurseryLeave({cue,state})}}).catch(()=>undefined).finally(()=>{if(live)setNurseryCueSettled(true)});else setNurseryCueSettled(true);return()=>{live=false}},[session.id])
   const [lakeLeave, setLakeLeave] = useState<{cue:{exit:LakeExit;durationMs:number};state:LakeSnapshot|null}|null>(null)
   const [lakeFallback,setLakeFallback] = useState<LakeSnapshot|null>(null)
-  useEffect(() => { let live=true; if(parent?.areaId===LAKE && departureElapsedMs<5000) void window.focusQuest.getLakeDeparture(session.id).then(async cue=>{if(cue){const state=await window.focusQuest.getLakeScene(cue.fromExpeditionNodeId);if(live)setLakeLeave({cue,state})}}).catch(()=>undefined);return()=>{live=false} },[session.id])
+  useEffect(() => { let live=true;setLakeCueSettled(false);if(parent?.areaId===LAKE && departureElapsedMs<5000) void window.focusQuest.getLakeDeparture(session.id).then(async cue=>{if(cue){const state=await window.focusQuest.getLakeScene(cue.fromExpeditionNodeId);if(live&&!cueExpired.current)setLakeLeave({cue,state})}}).catch(()=>undefined).finally(()=>{if(live)setLakeCueSettled(true)});else setLakeCueSettled(true);return()=>{live=false} },[session.id])
   const lakeState = snapshot.lake?.nodeId===node?.id ? snapshot.lake : lakeFallback?.nodeId===node?.id ? lakeFallback : null
   useEffect(()=>{let live=true;if(area===LAKE && node && !lakeState)void window.focusQuest.getLakeScene(node.id).then(s=>{if(live)setLakeFallback(s)}).catch(()=>undefined);return()=>{live=false}},[area,node?.id,lakeState===null])
   const expectMossLeave = parent?.areaId === MOSS && departureElapsedMs < DEPARTURE_WINDOW_MS
   const [mossLeave, setMossLeave] = useState<MossLeave | null | 'loading'>(expectMossLeave ? 'loading' : null)
   const [mossFallback, setMossFallback] = useState<MossSceneSnapshot | null>(null)
   const [departureReported, setDepartureReported] = useState(false)
+  const [sourceReady, setSourceReady] = useState(false)
   const [readySession, setReadySession] = useState<string | null>(null)
   const [releasedSession, setReleasedSession] = useState<string | null>(null)
   const [campfireFailed, setCampfireFailed] = useState(false)
@@ -78,21 +90,17 @@ export function AreaFocusScene(props: AreaFocusSceneProps): React.JSX.Element {
   })
   const [entranceDismissed, setEntranceDismissed] = useState(false)
   const destinationReady = readySession === session.id
-  useEffect(() => {
-    if (!destinationReady) return
-    const timer = window.setTimeout(() => setReleasedSession(session.id), 350)
-    return () => window.clearTimeout(timer)
-  }, [destinationReady, session.id])
 
   useEffect(() => {
     setDepartureReported(false)
+    setSourceReady(false)
     if (!expectMossLeave) { setMossLeave(null); return }
     let live = true
     setMossLeave('loading')
     void (async () => {
       const cue = await window.focusQuest.getMossDeparture(session.id)
       const state = cue ? await window.focusQuest.getMossScene(cue.fromExpeditionNodeId) : null
-      if (live) setMossLeave(cue ? { cue: { exit: cue.exit, route: cue.route, durationMs: cue.durationMs }, state } : null)
+      if (live && !cueExpired.current) setMossLeave(cue ? { cue: { exit: cue.exit, route: cue.route, durationMs: cue.durationMs }, state } : null)
     })().catch(() => { if (live) setMossLeave(null) })
     return () => { live = false }
     // Fetched once per Focus; later seconds only move the clock.
@@ -142,26 +150,51 @@ export function AreaFocusScene(props: AreaFocusSceneProps): React.JSX.Element {
   }, [entranceFading])
 
   const crossing = leaving !== null && (leaving !== area || leaving === NURSERY)
-  const waitingForLake = parent?.areaId === LAKE && departureElapsedMs < 5000 && !lakeLeave
-  const waitingForCue = (parent?.areaId===NURSERY&&departureElapsedMs<8000&&!nurseryLeave) || waitingForLake || mossLeave === 'loading' && departureElapsedMs < DEPARTURE_WINDOW_MS
+  const waitingForLake = parent?.areaId === LAKE && departureElapsedMs < 5000 && !lakeCueSettled && !lakeLeave
+  const waitingForCue = !cueTimedOut && ((parent?.areaId===NURSERY&&departureElapsedMs<8000&&!nurseryCueSettled&&!nurseryLeave) || waitingForLake || mossLeave === 'loading' && departureElapsedMs < DEPARTURE_WINDOW_MS)
   const showDestination = !waitingForCue && (!crossing || departureOver)
+  // Once the source has drawn, prepare the destination during the authored
+  // departure instead of adding its full construction time after the exit.
+  const mountDestination = !waitingForCue && (!crossing || sourceReady || departureOver)
+  const destinationVisible = destinationReady && showDestination
+  const destinationStatus = useRef<{ activity: string | null; cinematic: boolean }>({ activity: null, cinematic: false })
+  const destinationCallbacks = {
+    onActivityChange: (activity: string): void => {
+      destinationStatus.current.activity = activity
+      if (!crossing || destinationVisible) props.onActivityChange(activity)
+    },
+    onCinematicChange: (active: boolean): void => {
+      destinationStatus.current.cinematic = active
+      if (!crossing || destinationVisible) props.onCinematicChange(active)
+    }
+  }
+  useEffect(() => {
+    if (!destinationVisible) return
+    if (destinationStatus.current.activity) props.onActivityChange(destinationStatus.current.activity)
+    props.onCinematicChange(destinationStatus.current.cinematic)
+  }, [destinationVisible])
+  useEffect(() => {
+    if (!destinationVisible) return
+    const timer = window.setTimeout(() => setReleasedSession(session.id), 350)
+    return () => window.clearTimeout(timer)
+  }, [destinationVisible, session.id])
   // Keep the last source frame on screen through destination construction AND GPU compilation.
   // Opacity 0 still gives the new canvas its real dimensions; display:none would not.
   return <div className="area-focus-scenes">
     {!destinationReady && (!entrance || departureElapsedMs >= CAMPFIRE_WINDOW_MS || campfireFailed) && (showDestination || waitingForCue) && <TravelLoading paused={props.paused} />}
     {crossing && releasedSession !== session.id && <div className="area-scene-layer" key="source" data-area-layer="source">
-      {leaving === NURSERY && nurseryLeave ? <GlassNurseryFocusScene {...common} audioSettings={snapshot.settings} audioActive={props.audioActive!==false} retainForLobby={false} nursery={nurseryLeave.state} progressSeconds={nurseryLeave.state?.effectiveSeconds??3000} nodeId={`leave:${parent?.id}`} departure={nurseryLeave.cue} onDepartureComplete={onDepartureComplete}/> : leaving === LAKE && lakeLeave ? <ReflectionLakeFocusScene {...common} audioSettings={snapshot.settings} retainForLobby={false} lake={lakeLeave.state} nodeId={`leave:${parent?.id}`} departure={lakeLeave.cue} onDepartureComplete={onDepartureComplete} /> : leaving === MOSS && mossCue
+      {leaving === NURSERY && nurseryLeave ? <GlassNurseryFocusScene {...common} audioSettings={snapshot.settings} audioActive={props.audioActive!==false} retainForLobby={false} nursery={nurseryLeave.state} progressSeconds={nurseryLeave.state?.effectiveSeconds??3000} nodeId={`leave:${parent?.id}`} departure={nurseryLeave.cue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)}/> : leaving === LAKE && lakeLeave ? <ReflectionLakeFocusScene {...common} audioSettings={snapshot.settings} retainForLobby={false} lake={lakeLeave.state} nodeId={`leave:${parent?.id}`} departure={lakeLeave.cue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)} /> : leaving === MOSS && mossCue
         ? <MossStationFocusScene departureOnly {...common} retainForLobby={false} moss={null} nodeId={`leave:${mossCue.cue.exit}`}
-          departure={mossCue.cue} departureState={mossCue.state} onDepartureComplete={onDepartureComplete} />
-        : <CloudRuinsFocusScene departureOnly {...cloudProps} retainForLobby={false} departure={cloudCue} onDepartureComplete={onDepartureComplete} />}
+          departure={mossCue.cue} departureState={mossCue.state} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)} />
+        : <CloudRuinsFocusScene departureOnly {...cloudProps} retainForLobby={false} departure={cloudCue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)} />}
     </div>}
-    {showDestination && <div className="area-scene-layer area-scene-destination" key="destination" data-area-layer="destination"
-      style={{ opacity: !crossing || destinationReady ? 1 : 0 }}>
-      {area === NURSERY ? <GlassNurseryFocusScene {...common} audioSettings={snapshot.settings} audioActive={props.audioActive !== false && (!crossing || destinationReady) && (!entrance || entranceDismissed)} nursery={snapshot.nursery??null} nodeId={node?.id??session.id} onReady={()=>{setReadySession(session.id);props.onReady?.()}}/> : area === LAKE ? <ReflectionLakeFocusScene {...common} audioActive={props.audioActive !== false && (!crossing || destinationReady) && (!entrance || entranceDismissed)} audioSettings={snapshot.settings} lake={lakeState ?? null} nodeId={node?.id??session.id} departure={leaving===LAKE?lakeLeave?.cue:null} departureState={lakeLeave?.state} onDepartureComplete={onDepartureComplete} onReady={()=>{setReadySession(session.id);props.onReady?.()}} /> : area === MOSS
-        ? <MossStationFocusScene {...common} audioActive={props.audioActive !== false && (!crossing || destinationReady) && (!entrance || entranceDismissed)} audioSettings={snapshot.settings} moss={moss} nodeId={node?.id ?? session.id}
+    {mountDestination && <div className="area-scene-layer area-scene-destination" key="destination" data-area-layer="destination"
+      style={{ opacity: !crossing || destinationVisible ? 1 : 0 }}>
+      {area === NURSERY ? <GlassNurseryFocusScene {...common} {...destinationCallbacks} audioSettings={snapshot.settings} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} nursery={snapshot.nursery??null} nodeId={node?.id??session.id} onReady={()=>{setReadySession(session.id);props.onReady?.()}}/> : area === LAKE ? <ReflectionLakeFocusScene {...common} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} audioSettings={snapshot.settings} lake={lakeState ?? null} nodeId={node?.id??session.id} departure={leaving===LAKE?lakeLeave?.cue:null} departureState={lakeLeave?.state} onDepartureComplete={onDepartureComplete} onReady={()=>{setReadySession(session.id);props.onReady?.()}} /> : area === MOSS
+        ? <MossStationFocusScene {...common} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} audioSettings={snapshot.settings} moss={moss} nodeId={node?.id ?? session.id}
           onReady={() => { setReadySession(session.id); props.onReady?.() }}
           departure={leaving === MOSS && mossCue ? mossCue.cue : null} departureState={mossCue?.state ?? null} />
-        : <CloudRuinsFocusScene {...cloudProps} audioActive={props.audioActive !== false && (!crossing || destinationReady) && (!entrance || entranceDismissed)} onReady={() => { setReadySession(session.id); props.onReady?.() }}
+        : <CloudRuinsFocusScene {...cloudProps} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} onReady={() => { setReadySession(session.id); props.onReady?.() }}
           departure={leaving === 'area-01-cloud-ruins' ? cloudCue : null} />}
     </div>}
     {entrance && !entranceDismissed && node && <div className={`campfire-depart-layer${entranceFading ? ' is-fading' : ''}`}>

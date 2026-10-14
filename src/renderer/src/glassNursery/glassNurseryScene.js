@@ -1,3 +1,4 @@
+import { advanceAnimation } from '../animationSteps';
 import * as T from '../cloudRuins/vendor/three.module.js';
 import { createEdgeGlass } from '../cloudRuins/edgeGlass.js';
 import { nurseryFog, nurseryStoryKeys } from '../../../shared/area07';
@@ -813,7 +814,7 @@ function polyAt(p, d) { for (let i = 1; i < p.length; i++) { const s = p[i].dist
 // ---- traveller state machine ----
 const TRV = { node: 'H', pos: NP('H'), yaw: Math.PI * 0.25, path: null, d: 0, speed: 2.0, onArrive: null, act: null };
 function nearestNode() { let best = 'H', bd = 1e9; Object.keys(N).forEach((k) => { const d = NP(k).distanceTo(TRV.pos); if (d < bd) { bd = d; best = k; } }); return best; }
-function walkTo(id, then, speed = 2.0) { TRV.node = nearestNode(); TRV.path = [TRV.pos.clone(), ...route(TRV.node, id)]; TRV.d = 0; TRV.speed = speed; TRV.target = id; TRV.onArrive = then; TRV.act = null; SIM.ride = false; }
+function walkTo(id, then, speed = 2.0) { TRV.savedWalk = false; TRV.node = nearestNode(); TRV.path = [TRV.pos.clone(), ...route(TRV.node, id)]; TRV.d = 0; TRV.speed = speed; TRV.target = id; TRV.onArrive = then; TRV.act = null; SIM.ride = false; }
 function faceTo(x, z) { const dx = x - TRV.pos.x, dz = z - TRV.pos.z; return Math.atan2(dx, dz); }
 function doAct(a) { TRV.act = Object.assign({ t: 0 }, a); TRV.path = null; if (a.cam) { camGoal.set(...a.cam.at); camZoomGoal = a.cam.zoom; } if (a.say) say(a.say); if (a.start) a.start(); }
 function camHome() { camGoal.copy(CI.target); camZoomGoal = 1; }
@@ -827,14 +828,18 @@ const AMB = {
   lean: { node: 'CRL', say: '旅人在空中走道上靠著欄杆，往下看整座苗圃。', dur: 6, pose: 'look', face: () => faceTo(1.8, 0) },
   valve: { node: 'PV', say: '旅人轉了一下幫浦的閥門，灑水臂噴出一陣水霧。', dur: 5, pose: 'turn', face: () => faceTo(10.3, 0.8), update: (p) => { SIM.burst = Math.sin(Math.PI * p); } },
   trough: { node: 'TR', say: '旅人用手指撥了一下育苗水槽的水。', dur: 4.5, pose: 'crouch', face: () => faceTo(4.8, -4.6) },
-  stairSit: { node: 'G2', say: '旅人在螺旋梯下坐了一會兒。', dur: 5, pose: 'sit', face: () => faceTo(2, -2) },
   tree: { node: 'G', say: '旅人停下來，抬頭看伸進玻璃裡的那棵大樹。', dur: 5, pose: 'up', face: () => faceTo(-5.8, -5.8) }
 };
 function runAmbient(id, then) { const e = AMB[id];
+  if (!e) { doAct({dur:1,pose:'idle',end:then}); return; }
   walkTo(e.node, () => {
     if (e.arc) { // walk half a circle around the machine (an ordinary walk with steps), then stop and look at the trays
       const a0 = Math.atan2(TRV.pos.z - MC.z, TRV.pos.x - MC.x); const pts = []; for (let i = 0; i <= 24; i++) { const a = a0 - i / 24 * 2.2; pts.push(V3(MC.x + Math.cos(a) * 3.15, 0.12, MC.z + Math.sin(a) * 3.15)); }
-      TRV.path = pts; TRV.d = 0; TRV.speed = 1.2; TRV.target = 'G'; TRV.onArrive = () => { TRV.node = nearestNode(); TRV.yaw = faceTo(MC.x, MC.z); doAct({ dur: e.dur, pose: e.pose, say: e.say, end: then }); }; say(e.say); return; }
+      pts[0]=TRV.pos.clone();
+      TRV.path = pts; TRV.d = 0; TRV.speed = 1.2; TRV.target = e.node; TRV.onArrive = () => { TRV.yaw = faceTo(MC.x, MC.z); doAct({ dur: e.dur, pose: e.pose, say: e.say, end: () => {
+        // Return along the same rim to the saved event anchor before the next walk.
+        TRV.path=pts.slice().reverse();TRV.d=0;TRV.speed=1.2;TRV.target=e.node;TRV.onArrive=then;
+      } }); }; say(e.say); return; }
     TRV.yaw = e.face(); doAct({ audioKey: id, dur: e.dur, pose: e.pose, say: e.say, update: e.update, end: () => { if (e.end) e.end(); if (then) then(); } }); }); }
 
 // ---- lamps ----
@@ -907,7 +912,7 @@ function moodAt(sim) { const cyc = Math.floor(sim / SEG_DEMO), ph = (sim % SEG_D
   const dawnP = heavyPrev ? MOODS.dawn : dawnClear, nightP = heavy ? MOODS.night : nightLight;
   const seq = [dawnP, MOODS.day, MOOD_DUSK, nightP, dawnClear]; const nextDawn = FOG_ROLL[cyc % 5] ? MOODS.dawn : dawnClear; seq[4] = nextDawn;
   const m = lerpMood(seq[i], seq[i + 1], sm); SIM.vortex = (i === 0 && heavyPrev) ? Math.min(1, ph * 4 / 0.8) : (i === 3 && f > 0.98 && heavy ? 0 : 0); if (!(i === 0 && heavyPrev)) SIM.vortex = 0; return m; }
-const AMB_ORDER = [['potRight', 'pool'], ['machineWalk', 'trough'], ['tree', 'stairSit'], ['valve', 'trough'], ['wipe', 'pool']];
+const AMB_ORDER = [['potRight', 'pool'], ['machineWalk', 'trough'], ['tree'], ['valve', 'trough'], ['wipe', 'pool']];
 function startExplore() { stopSim(); SIM.on = true; LIT = 0; setMemKey('pot', false); setMemKey('wipe', false); TRV.node = 'D'; TRV.pos.copy(NP('D')); EX = { sim: 0, seg: -1 }; say('旅人推開鐵門，走進苗圃。'); nextSeg(); }
 function segDue() { return (EX.seg + 1) * SEG_DEMO; }
 function est(fromId, ambId, lampId) { const e = AMB[ambId]; return polyLen(route(fromId, e.node)) / 2.0 + e.dur + polyLen(route(e.node, lampId)) / 2.0 + 0.6; }
@@ -967,7 +972,7 @@ function simUpdate(dt) {
     veil.material.opacity = 0;
     if (t > 8.1) { SIM.dep = null; camHome(); say(D.exit === 'corridor' ? '旅人走進玻璃連廊，身影慢慢沒進霧裡。下一次專注會從新的地方開始。' : '旅人走下地窖，提燈的光一階一階變小。下一次專注會從新的地方開始。'); }
   } else if (TRV.path) {
-    const L = polyLen(TRV.path); const ease = Math.max(0.35, Math.min(1, (TRV.d + 0.15) / 0.7, (L - TRV.d + 0.1) / 0.6)); TRV.d += TRV.speed * ease * dt; SIM.speedNow = TRV.speed * ease; const q = polyAt(TRV.path, Math.min(TRV.d, L)); TRV.pos.copy(q.pos); if (q.dir.lengthSq() > 1e-6 && Math.hypot(q.dir.x, q.dir.z) > 0.02) TRV.yaw = Math.atan2(q.dir.x, q.dir.z); moving = true; SIM.fade = 1;
+    const L = polyLen(TRV.path); const ease = TRV.savedWalk ? 1 : Math.max(0.35, Math.min(1, (TRV.d + 0.15) / 0.7, (L - TRV.d + 0.1) / 0.6)); TRV.d += TRV.speed * ease * dt; SIM.speedNow = TRV.speed * ease; const q = polyAt(TRV.path, Math.min(TRV.d, L)); TRV.pos.copy(q.pos); if (q.dir.lengthSq() > 1e-6 && Math.hypot(q.dir.x, q.dir.z) > 0.02) TRV.yaw = Math.atan2(q.dir.x, q.dir.z); moving = true; SIM.fade = 1;
     if (TRV.d >= L) { TRV.node = TRV.target; TRV.path = null; const f = TRV.onArrive; TRV.onArrive = null; if (f) f(); }
   } else if (TRV.act) {
     const a = TRV.act; const before=a.t; a.t += dt; for(const cue of crossedNurseryCues(a.audioKey,before,a.t,a.dur)) sound(cue.name,cue.music?undefined:(cue.end-cue.at)*a.dur,cue.music); const p = Math.min(1, a.t / a.dur); pose = a.pose || 'idle'; if (a.update) a.update(p); if (a.t >= a.dur) { TRV.act = null; if (a.end) a.end(); }
@@ -1067,7 +1072,7 @@ function polishUpdate(dt) {
 setConcept('I'); setMood('day', true);
 
 
-let key=null,view={kind:'overview'},chrome={cards:[]},routes=[],items=[],departureDone=false,departureStarted=false,ready=0,transplant=false;
+let key=null,actionElapsed=0,view={kind:'overview'},chrome={cards:[]},routes=[],items=[],departureDone=false,departureStarted=false,ready=0,transplant=false;
 let testId=null,testElapsed=0,testFinished=false;
 function testPlay(id,walkIn=false){
  if(!opts.testMode)throw new Error('Animation audition is available only in the dedicated tester.');
@@ -1100,7 +1105,7 @@ function testMood(name){
 function applyWorld(){const m=nursery?.worldMarks;if(!m)return;setMemKey('pot',m.potUpright);setMemKey('wipe',m.glassWiped);
   setSap(m.saplingTransplanted?3:m.saplingPlanted?m.saplingStage:-1);
   if(nursery.coreTaken){jar.visible=false;cageDoor.rotation.y=-1.7;padlock.visible=false;keyG.visible=false;}}
-function clearAction(){audio?.stopShots();TRV.onArrive=null;SIM.burst=0;TRV.path=null;TRV.act=null;SIM.ride=false;SIM.seatWait=false;SIM.board=null;SIM.carry=null;SIM.holdDisc=false;SIM.dripOn=false;camHome();}
+function clearAction(){audio?.stopShots();TRV.savedWalk=false;TRV.onArrive=null;SIM.burst=0;TRV.path=null;TRV.act=null;SIM.ride=false;SIM.seatWait=false;SIM.board=null;SIM.carry=null;SIM.holdDisc=false;SIM.dripOn=false;camHome();}
 function presentAction(now){
   if(opts.testMode)return;
   const a=nursery?.action,seconds=paused||lobby?progress:Math.min(a?.endSeconds??progress+1,progress+(now-progressAt)/1000);
@@ -1112,8 +1117,11 @@ function presentAction(now){
   cur=a?.eventId==='carry_silvered_shard'?lerpMood(MOODS.night,MOODS.night,0):moodAt(seconds/30);playSeq=null;mt=1;
   if(!a)return;
   const next=`${a.id}:${a.kind}`;
-  if(key===next)return;key=next;clearAction();applyWorld();
-  if(a.kind==='walk'){TRV.pos.copy(NP(a.route[0]));TRV.path=routePoints(a.route);TRV.d=0;TRV.speed=polyLen(TRV.path)/Math.max(1,a.endSeconds-a.startSeconds);TRV.target=a.node;}
+  if(key===next)return;key=next;
+  // Consecutive rest checkpoints keep the same rotating seat.
+  if(a.kind==='rest'&&SIM.ride){actionElapsed=0;applyWorld();return;}
+  clearAction();applyWorld();
+  if(a.kind==='walk'){TRV.pos.copy(NP(a.route[0]));TRV.path=routePoints(a.route);TRV.d=0;TRV.speed=polyLen(TRV.path)/Math.max(1,a.endSeconds-a.startSeconds);TRV.target=a.node;TRV.savedWalk=true;}
   else {TRV.node=a.fromNode??a.node;if(a.kind!=='rest')TRV.pos.copy(NP(a.fromNode??a.node));
     if(a.kind==='story'){const f=STORY[nurseryStoryKeys[a.eventId]];f?.();}
     else if(a.kind==='ambient'){runAmbient(a.eventId);}
@@ -1121,6 +1129,7 @@ function presentAction(now){
     else if(a.kind==='rest'){rest();}}
   // Reopen at the saved position in the action rather than replaying an old event.
   const elapsed=Math.max(0,Math.min(60,seconds-a.startSeconds));seeking=true;try{for(let t=0;t<elapsed;t+=.05)tick(Math.min(.05,elapsed-t));}finally{seeking=false;}
+  actionElapsed=elapsed;
 }
 function anchor(node){const p=NP(node).clone();p.y+=.7;p.project(camera);return {x:(p.x+1)*canvas.clientWidth/2,y:(1-p.y)*canvas.clientHeight/2};}
 function lobbyCam(){if(!lobby||transplant||opts.departure)return;
@@ -1138,8 +1147,15 @@ function draw(now=performance.now()){
   if(lastRun!==null&&Math.abs(run-lastRun)<.1&&audible){if(lastRun<=.0225&&run>.0225)sound('nursery_machine_start',6);if(lastRun>.0225&&run<=.0225)sound('nursery_machine_stop',5);}lastRun=run;
   if(audible&&time>nextBird&&run>.25){sound('nursery_birds_day',5,false,.5*run);nextBird=time+16+Math.random()*18;}
   if(audible&&time>nextTick&&run===0){sound('nursery_glass_tick',.5,false,.25);nextTick=time+12+Math.random()*22;}
-  const dt=paused?0:Math.min(.05,elapsed);time+=dt;tick(dt);
-  if(opts.testMode&&testId&&!testFinished){testElapsed+=dt;if(!TRV.path&&!TRV.act&&!SIM.dep&&!SIM.board&&!SIM.seatWait){testFinished=true;}}
+  const activeElapsed=paused?0:Math.min(1,elapsed),dt=Math.min(.05,activeElapsed);time+=activeElapsed;
+  if(!opts.testMode&&!lobby&&!opts.departure&&!transplant&&nursery?.action){
+    const a=nursery.action,seconds=paused?progress:Math.min(a.endSeconds,progress+(now-progressAt)/1000);
+    const targetElapsed=Math.max(0,Math.min(a.endSeconds-a.startSeconds,seconds-a.startSeconds));
+    const advance=Math.max(0,targetElapsed-actionElapsed);const oldSeeking=seeking;seeking=advance>.5;
+    try{for(let t=0;t<advance;t+=.05)tick(Math.min(.05,advance-t));}finally{seeking=oldSeeking;}
+    actionElapsed=Math.max(actionElapsed,targetElapsed);
+  }else advanceAnimation(activeElapsed,step=>tick(step));
+  if(opts.testMode&&testId&&!testFinished){testElapsed+=activeElapsed;if(!TRV.path&&!TRV.act&&!SIM.dep&&!SIM.board&&!SIM.seatWait){testFinished=true;}}
   if(!SIM.holdDisc&&CI.disc&&!lobby&&!opts.departure){const seconds=paused?progress:progress+(now-progressAt)/1000;const night=cur.lamps>.85;CI.disc.rotation.y=night?Math.floor(seconds/600)*Math.PI*2:seconds/600*Math.PI*2;}
   glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);
   opts.reportCinematic?.(transplant||nursery?.action?.kind==='story');

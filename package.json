@@ -1,6 +1,6 @@
 {
   "name": "focus-quest-windows",
-  "version": "0.6.32",
+  "version": "0.6.36",
   "private": true,
   "description": "Focus Quest - a local-first Windows focus RPG",
   "main": "./out/main/index.js",

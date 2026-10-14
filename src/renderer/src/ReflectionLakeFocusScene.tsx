@@ -20,7 +20,7 @@ export function ReflectionLakeFocusScene(p:Props) {
  useEffect(()=>{
   if(!host.current)return
   let handle:LakeSceneHandle
-  try {handle=createReflectionLakeScene(host.current,{progressSeconds:p.progressSeconds,targetSeconds:p.targetSeconds,lake:p.lake,departureState:p.departureState,paused:p.paused,departure:p.departure,departureElapsedMs:p.departureElapsedMs,reportReady:()=>live.current.onReady?.(),reportActivity:s=>live.current.onActivityChange?.(s),reportDepartureComplete:()=>live.current.onDepartureComplete?.(),reportCinematic:s=>live.current.onCinematicChange?.(s)})}
+  try {handle=createReflectionLakeScene(host.current,{progressSeconds:p.progressSeconds,targetSeconds:p.targetSeconds,lake:p.lake,departureState:p.departureState,paused:p.paused,departure:p.departure,departureElapsedMs:p.departureElapsedMs,reportReady:()=>{if(host.current)host.current.dataset.sceneReady='true';live.current.onReady?.()},reportActivity:s=>live.current.onActivityChange?.(s),reportDepartureComplete:()=>live.current.onDepartureComplete?.(),reportCinematic:s=>live.current.onCinematicChange?.(s)})}
   catch(e){console.error('倒影湖畔畫面無法建立',e);setFailed(true);live.current.onReady?.();live.current.onDepartureComplete?.();return}
   scene.current=handle
   const stopChrome = observeFocusChrome(host.current, value => handle.setChrome(value))

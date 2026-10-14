@@ -20,7 +20,8 @@ const dots=[];
 """ + s[b:]
 a=s.index('const clk = new THREE.Clock()'); s=s[:a] # Drop __quarry, QA URL branches and prototype timers.
 # Isolate all former globals in this scene instance.
-header="""import { advanceBellPendulum } from './bellPendulum';
+header="""import { advanceAnimation } from '../animationSteps';
+import { advanceBellPendulum } from './bellPendulum';
 import { createTravelLoading } from '../loading/travelLoadingDrawing';
 import * as ThreeLib from '../cloudRuins/vendor/three.module.js';
 // Area 05 v10 geometry, materials, routes and animation port. No prototype panel or global test API.
@@ -38,14 +39,14 @@ s=s.replace("function resizeAll() { const w = innerWidth, h = innerHeight, asp =
 s=s.replace("const rate = () => speed / 6;", "const rate = () => speed / 6;")
 # Authoritative visit eligibility and randomness live in the isolated Electron main process.
 a=s.index('function caveOK('); b=s.index('const SOUND_OF',a)
-s=s[:a]+"""function lampFromMouthEff(){const k=Math.min(4,Math.floor(sim/600)),saved={x:TR.x,z:TR.z,leave:TR.leave};const p=caveAxis(1);TR.x=p[0];TR.z=p[1];TR.leave=[];const route=planToXZ(...LAMPNODE[k].p);Object.assign(TR,saved);return route?plen(route)/V_WALK*6+13.2:Infinity;}
+s=s[:a]+"""function lampFromMouthEff(){const k=Math.min(4,Math.floor(sim/600)),saved={x:TR.x,z:TR.z,leave:TR.leave};const p=caveAxis(1);TR.x=p[0];TR.z=p[1];TR.leave=[];const route=planToXZ(...LAMPNODE[k].p);Object.assign(TR,saved);return route?plen(route)/V_WALK*speed/rate()+13.2:Infinity;}
 function budget(walkEff=0){return {now:sim,walkToMouth:walkEff,walkToLamp:lampFromMouthEff(),resting:TR.done||TR.lit>=5};}
 function caveOK(walkEff=0){return !inCave&&!pendingEvent&&!!backend('fits',budget(walkEff));}
 """+s[b:]
 s=s.replace("if (SOUND_OF[id] && caveVisits < 1) caveLure = { kind: SOUND_OF[id], at: tAcc };", "if(SOUND_OF[id] && !caveCalling && caveVisits<1){backend('sound',{kind:SOUND_OF[id]});caveLure={kind:SOUND_OF[id],at:tAcc};}")
 s=s.replace('tAcc - caveLure.at > 4 && !inCave)', "tAcc - caveLure.at > 4 && !inCave && backend('mouth'))")
 a=s.index('  if (caveCalling && REACH[12]',s.index('function pickNext')); b=s.index('  const cands',a)
-s=s[:a]+"  if(caveCalling&&REACH[12]&&TR.spot!==12&&!pendingEvent){const pa=planTo(12);if(pa&&backend('choose',budget(plen(pa)/V_WALK*6)))return 12;}\n"+s[b:]
+s=s[:a]+"  if(caveCalling&&REACH[12]&&TR.spot!==12&&!pendingEvent){const pa=planTo(12);if(pa&&backend('choose',budget(plen(pa)/V_WALK*speed/rate())))return 12;}\n"+s[b:]
 s=s.replace("if (g === 12 && caveCalling && (caveOK() || TR.forceCave))", "if(g===12&&(pendingEvent||(caveCalling&&backend('arrive',budget()))))")
 s=s.replace("CAVE.visit(TR.caveKind || 'chime', () => {", "CAVE.journey(pendingEvent||'echo', TR.caveKind||'chime', () => {")
 s=s.replace("if (g === 'caveOut') { TR.mode", "if(g==='caveOut'){pendingEvent=null;backend('finished');TR.mode")
@@ -85,7 +86,7 @@ s=s.replace("  return { journey,", """  async function warm(){const oldParent=tr
 # Stop fade-in completion from discarding a newly started outgoing fade.
 footer="""
 function draw(){if(inCave)CAVE.renderReflection();renderer.render(scene,cam);}
-function tick(){const now=performance.now(),elapsed=Math.max(0,(now-lastFrameAt)/1000),dt=Math.min(.05,elapsed);lastFrameAt=now;update(dt,Math.min(.25,elapsed));draw();}
+function tick(){const now=performance.now(),elapsed=Math.max(0,(now-lastFrameAt)/1000);lastFrameAt=now;advanceAnimation(elapsed,dt=>update(dt));draw();}
 let automatic=true;function frame(){if(dead)return;if(automatic)tick();raf=requestAnimationFrame(frame);}
 const watchdog=setInterval(()=>{if(!dead&&automatic&&performance.now()-lastFrameAt>250)tick();},33);
 const observer=new ResizeObserver(resizeAll);observer.observe(host);
@@ -111,6 +112,44 @@ qa="const qaChecks={};\n"
 for name in ['occlusion-all.js','cave-mouth-tunnel.js','cave-route-clearance.js']:
     body=(root/'docs/area05/qa'/name).read_text(encoding='utf-8').replace('(()=>{','return (()=>{',1)
     qa += f"qaChecks['{name}']=function(){{const __quarry={{TR,M_BELL:BELL,yAt,nav:NAV,cave:{{enter:()=>CAVE.enter(),run(sec){{for(let i=0;i<Math.ceil(sec*30);i++)update(1/30);}},M:CAVE}}}};\n{body}\n}};\n"
+qa += "qaChecks['water-flow']=function(time){\n  riverMat.uniforms.uTime.value=time;\n  curtains.forEach(m=>{m.uniforms.uTime.value=time;});\n  draw();\n  const p=riverMesh.geometry.attributes.position;let maxJoinGap=0;\n  for(let i=0;i+6<p.count;i+=6)for(const [a,b] of [[i+2,i+6],[i+4,i+7]]){\n    maxJoinGap=Math.max(maxJoinGap,Math.hypot(p.getX(a)-p.getX(b),p.getY(a)-p.getY(b),p.getZ(a)-p.getZ(b)));\n  }\n  return {time,maxJoinGap};\n};\n"
+footer=footer.replace('qa(name){return qaChecks[name]();}', 'qa(name,...args){return qaChecks[name](...args);}')
+qa += "qaChecks['water-lip']=function(close){\n  if(close){qaChecks.lipCamera={ct:CT.clone(),vh:VHU};CT.set(FW.fx,FW.fy-1,FW.fz);VHU=5;}\n  else if(qaChecks.lipCamera){CT.copy(qaChecks.lipCamera.ct);VHU=qaChecks.lipCamera.vh;}\n  resizeAll();placeCam();draw();\n  const terrain=out.children.find(c=>c.isMesh&&c.geometry.attributes.color&&c.geometry.attributes.position.count>100000);\n  const ray=new THREE.Raycaster(),p=riverMesh.geometry.attributes.position;let exposed=0,samples=0,maxBed=-Infinity;\n  for(let i=p.count-60;i<p.count;i++){\n    const x=p.getX(i),y=p.getY(i),z=p.getZ(i);ray.set(new THREE.Vector3(x,y+2,z),new THREE.Vector3(0,-1,0));\n    const hit=ray.intersectObject(terrain,false)[0];if(hit){maxBed=Math.max(maxBed,hit.point.y-y);if(hit.point.y>=y-.03)exposed++;}samples++;\n  }\n  const end=RIVER[RIVER.length-1];\n  return {exposed,samples,maxBed,lipWidth:riverWidth(5)*2,curtainWidth:3.5,lipCenterGap:Math.hypot(end[0]-FW.fx,end[1]-FW.fz)};\n};\n"
 footer=footer.replace('reset();applyLook(1);',qa+'reset();applyLook(1);')
 out=root/'src/renderer/src/echoQuarry';out.mkdir(exist_ok=True)
+# Preserve the accepted river-mouth fix when reproducing the renderer port.
+s=s.replace('const topAt = (x, z) => H(x, z);', '''const topAt = (x, z) => H(x, z);
+// Keep the rendered riverbed below the centreline water sheet, including the lip.
+// A grid-cell margin prevents interpolated bank triangles from piercing the water.
+function riverbedHeight(x, z) {
+  const height = H(x, z), [distance, along] = riverDist(x, z);
+  const width = 0.5 + along * 0.13, margin = 0.5;
+  if (distance >= width + margin) return height;
+  const k = Math.min(RIVER.length - 2, Math.floor(along)), t = along - k;
+  const a = RIVER[k], b = RIVER[k + 1];
+  const bed = H(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) + 0.12;
+  const blend = Math.max(0, Math.min(1, (width + margin - distance) / 0.25));
+  return height - Math.max(0, height - bed) * blend;
+}''')
+s=s.replace('hg[i][j] = H(X0 + i * S, Z0 + j * S);', 'hg[i][j] = riverbedHeight(X0 + i * S, Z0 + j * S);')
+# Keep river joins and long-session water flow smooth.
+s=s.replace('    const V = [], F = []; let SS = 0; for (let i = 0; i < pts.length - 1; i++) { const [x0, z0, t0] = pts[i], [x1, z1, t1] = pts[i + 1]; const tx = x1 - x0, tz = z1 - z0, L = Math.hypot(tx, tz), nx_ = -tz / L, nz_ = tx / L;\n      const w0 = 0.5 + t0 * 0.13, w1 = 0.5 + t1 * 0.13, y0 = H(x0, z0) + 0.32, y1 = H(x1, z1) + 0.32;\n      const a1 = [x0 + nx_ * w0, y0, z0 + nz_ * w0], b1 = [x0 - nx_ * w0, y0, z0 - nz_ * w0], c1 = [x1 + nx_ * w1, y1, z1 + nz_ * w1], d1 = [x1 - nx_ * w1, y1, z1 - nz_ * w1];\n', '    // Adjacent strips share their cross-section at bends: no overlapping triangles.\n    const edges = pts.map(([x, z, t], i) => {\n      const prev = pts[Math.max(0, i - 1)], next = pts[Math.min(pts.length - 1, i + 1)];\n      const dx = next[0] - prev[0], dz = next[1] - prev[1], L = Math.hypot(dx, dz);\n      const w = 0.5 + t * 0.13, y = H(x, z) + 0.32;\n      return [[x - dz / L * w, y, z + dx / L * w], [x + dz / L * w, y, z - dx / L * w]];\n    });\n    const V = [], F = []; let SS = 0; for (let i = 0; i < pts.length - 1; i++) {\n      const L = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);\n      const [a1, b1] = edges[i], [c1, d1] = edges[i + 1];\n')
+s=s.replace('void main(){ float s = vF.x, sd = vF.y; float rap = smoothstep(uLen - 4.5, uLen, s); float sp = 0.9 + 2.2 * rap;\n  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - uTime * sp)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - uTime * sp * 1.3) + 7.) * 0.4;\n  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - uTime * sp * 1.8)));\n', 'void main(){ float s = vF.x, sd = vF.y; float rap = smoothstep(uLen - 7., uLen, s);\n  // Fixed advection keeps spatial frequency stable even after a full exploration.\n  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - uTime * 0.9)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - uTime * 1.17) + 7.) * 0.4;\n  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - uTime * 1.62)));\n')
+# Align the entire river mouth with the waterfall curtain, not just the centreline.
+s=s.replace('const RIVER = [[-19, 9.4], [-14.5, 10.3], [-10.0, 11.5], [-5.7, 12.6], [-2.0, 13.1], [12 + Math.cos(FALL_TH) * (rimR(FALL_TH) + 0.05), 12 + Math.sin(FALL_TH) * (rimR(FALL_TH) + 0.05)]]; // the river reaches the rim level and drops straight off the cliff edge\n', 'const RIVER = [[-19, 9.4], [-14.5, 10.3], [-10.0, 11.5], [-5.7, 12.6], [-2.0, 13.1], [12 + Math.cos(FALL_TH) * rimR(FALL_TH), 12 + Math.sin(FALL_TH) * rimR(FALL_TH)]]; // river and curtain share the same lip\nfunction riverLipBlend(along) { const t=Math.max(0,Math.min(1,(along-4.35)/0.65));return t*t*(3-2*t); }\nfunction riverWidth(along) { const blend=riverLipBlend(along);return (0.5+along*0.13)*(1-blend)+1.75*blend; }\n')
+s=s.replace('const width = 0.5 + along * 0.13, margin = 0.5;', 'const width = riverWidth(along), margin = 0.75;')
+s=s.replace(') + 0.12;\n  const blend', ') - 0.25;\n  const blend')
+s=s.replace('      const w = 0.5 + t * 0.13, y = H(x, z) + 0.32;\n      return [[x - dz / L * w, y, z + dx / L * w], [x + dz / L * w, y, z - dx / L * w]];', '      const w = riverWidth(t), y = H(x, z) + 0.32, blend=riverLipBlend(t);\n      const nx=(-dz/L)*(1-blend)+Math.sin(FALL_TH)*blend, nz=(dx/L)*(1-blend)-Math.cos(FALL_TH)*blend;\n      const N=Math.hypot(nx,nz);\n      return [[x + nx/N*w, y, z + nz/N*w], [x - nx/N*w, y, z - nz/N*w]];')
+s=s.replace('    if (CUTZ(cx - 0.6', '    const [channelDistance,channelAlong]=riverDist(cx,cz);\n    // The spillway is bare riverbed rock, including terrain seen through the curtain.\n    if(channelAlong>4.35&&channelDistance<riverWidth(channelAlong)+0.5&&cy<0.7) col=ROCK.clone();\n    else if (CUTZ(cx - 0.6')
+# User correction: preserve narrow river; hide cliff behind opaque blue falling water.
+s=s.replace('function riverLipBlend(along) { const t=Math.max(0,Math.min(1,(along-4.35)/0.65));return t*t*(3-2*t); }\nfunction riverWidth(along) { const blend=riverLipBlend(along);return (0.5+along*0.13)*(1-blend)+1.75*blend; }\n', 'function riverWidth(along) { return 0.5+along*0.13; }\n')
+s=s.replace('function riverbedHeight(x, z) {\n  const height = H(x, z), [distance, along] = riverDist(x, z);\n  const width = riverWidth(along), margin = 0.75;\n  if (distance >= width + margin) return height;\n  const k = Math.min(RIVER.length - 2, Math.floor(along)), t = along - k;\n  const a = RIVER[k], b = RIVER[k + 1];\n  const bed = H(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) - 0.25;\n  const blend = Math.max(0, Math.min(1, (width + margin - distance) / 0.25));\n  return height - Math.max(0, height - bed) * blend;\n}\n', 'function riverbedHeight(x, z) {\n  const height = H(x, z), [distance, along] = riverDist(x, z);\n  const width = riverWidth(along), margin = 0.5;\n  if (distance >= width + margin) return height;\n  const k = Math.min(RIVER.length - 2, Math.floor(along)), t = along - k;\n  const a = RIVER[k], b = RIVER[k + 1];\n  const bed = H(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) - 0.25;\n  const blend = Math.max(0, Math.min(1, (width + margin - distance) / 0.25));\n  return height - Math.max(0, height - bed) * blend;\n}\n')
+s=s.replace('    const [channelDistance,channelAlong]=riverDist(cx,cz);\n    // The spillway is bare riverbed rock, including terrain seen through the curtain.\n    if(channelAlong>4.35&&channelDistance<riverWidth(channelAlong)+0.5&&cy<0.7) col=ROCK.clone();\n    else if (CUTZ(cx - 0.6, cz) || CUTZ(cx + 0.6, cz) || CUTZ(cx, cz - 0.6) || CUTZ(cx, cz + 0.6) ? (cy > 1.62 && ny < 0.62) : false) col = CUTC.clone(); // every steep face along the cut edge takes the sawn-stone colour (no alternating teeth)\n', '    if (CUTZ(cx - 0.6, cz) || CUTZ(cx + 0.6, cz) || CUTZ(cx, cz - 0.6) || CUTZ(cx, cz + 0.6) ? (cy > 1.62 && ny < 0.62) : false) col = CUTC.clone(); // every steep face along the cut edge takes the sawn-stone colour (no alternating teeth)\n')
+s=s.replace('      const w = riverWidth(t), y = H(x, z) + 0.32, blend=riverLipBlend(t);\n      const nx=(-dz/L)*(1-blend)+Math.sin(FALL_TH)*blend, nz=(dx/L)*(1-blend)-Math.cos(FALL_TH)*blend;\n      const N=Math.hypot(nx,nz);\n      return [[x + nx/N*w, y, z + nz/N*w], [x - nx/N*w, y, z - nz/N*w]];', '      const w = riverWidth(t), y = H(x, z) + 0.32;\n      return [[x - dz/L*w, y, z + dx/L*w], [x + dz/L*w, y, z - dx/L*w]];')
+s=s.replace('curtain(3.5, -0.05, 0, 0.75, 0.95, 1.3); curtain(3.0, 0.14, 0.1, 0.95, 1.12, 4.7); curtain(1.7, 0.34, 0.55, 0.7, 1.3, 8.1); curtain(1.1, 0.42, -0.85, 0.6, 1.22, 2.9);\n\n', "curtain(3.5, -0.05, 0, 0.75, 0.95, 1.3); curtain(3.0, 0.14, 0.1, 0.95, 1.12, 4.7); curtain(1.7, 0.34, 0.55, 0.7, 1.3, 8.1); curtain(1.1, 0.42, -0.85, 0.6, 1.22, 2.9);\n// Opaque blue water behind the original white sheets hides the cliff through their gaps.\n// Follow the falling water's arc; keep the authored river width unchanged.\nconst fallBacking=curtain(3.5,-0.10,0,1,0.95,1.3);\nfallBacking.renderOrder=1;\nfallBacking.material.transparent=false;\nfallBacking.material.depthWrite=true;\nfallBacking.material.fragmentShader=NOISE_GLSL+`\nvarying vec2 vUv; uniform float uTime; uniform vec3 uTint;\nvoid main(){\n  float flow=vn(vec2(vUv.x*10.,vUv.y*18.-uTime*1.8));\n  vec3 blue=mix(vec3(0.27,0.46,0.52),vec3(0.42,0.62,0.66),0.3+0.35*flow);\n  gl_FragColor=vec4(blue*uTint,1.);\n}`;\nfallBacking.material.needsUpdate=true;\n\n")
+footer=footer.replace('curtainWidth:3.5,lipCenterGap:', 'curtainWidth:3.5,opaqueBacking:!fallBacking.material.transparent&&fallBacking.material.depthWrite,lipCenterGap:')
 (out/'echoQuarryScene.js').write_text(header+s+footer,encoding='utf-8')
+import importlib.util
+audio_spec=importlib.util.spec_from_file_location('wire_area05_audio',root/'scripts/wire-area05-audio.py')
+audio_wire=importlib.util.module_from_spec(audio_spec);audio_spec.loader.exec_module(audio_wire)
+audio_wire.wire(out/'echoQuarryScene.js')

@@ -1,3 +1,4 @@
+import { advanceAnimation } from '../animationSteps';
 import * as T from '../cloudRuins/vendor/three.module.js';
 import AREA from '../../../../docs/area03/area-03-reflection-lake.scene.json';
 import { createEdgeGlass } from '../cloudRuins/edgeGlass.js';
@@ -3194,7 +3195,7 @@ function draw(now=performance.now()) {
   if(!programsReady){lastReal=now;return;}
   if(dead)return; const realElapsed=Math.max(0,(now-lastReal)/1000), elapsed=Math.min(.05,realElapsed);lastReal=now;
   if(!paused&&!lobby)departureMs+=realElapsed*1000;
-  if(!inspection)applyAction(now);lobbyCamera(elapsed);update(paused?0:elapsed);renderFrame();
+  if(!inspection)applyAction(now);lobbyCamera(elapsed);advanceAnimation(paused?0:realElapsed, step=>update(step));renderFrame();
   const anchors={rest:anchor('p_seat'),entry:anchor(AREA.ports.entry),a_arch:anchor('a_arch'),b_far:anchor('b_far')};items.forEach((it,i)=>{const p=anchor('p_seat');anchors['item:'+it.key]={x:p.x+(i-1)*34,y:p.y+70};});opts.reportAnchors?.(anchors);
   if(++readyFrames===2)opts.reportReady?.();
   opts.reportLights?.(lampsDue());opts.reportCinematic?.(!!(rare?.core || STY.active));

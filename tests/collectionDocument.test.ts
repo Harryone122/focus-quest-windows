@@ -9,6 +9,7 @@ describe('offline collection document bridge', () => {
     expect(result).toContain('import * as THREE from "file:///local/three.js"')
     expect(result).not.toContain('https://cdnjs.cloudflare.com')
     expect(result).toContain("type: 'ready'")
-    expect(result).toContain('panelPlace, applyExternalState, advance(sec)')
+    expect(result).toContain('panelPlace, applyExternalState, async prepare()')
+    expect(result).toContain('if (window.__roomPrepared && !window.__hold)')
   })
 })

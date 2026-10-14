@@ -18863,6 +18863,11 @@ function WebGLShadowMap( _renderer, _objects, _capabilities ) {
 
 	this.type = PCFShadowMap;
 
+	// Use the exact shadow-pass material variants during asynchronous preparation.
+	this.materialForPreparation = function ( object, material, light ) {
+		return getDepthMaterial( object, object.geometry, material, light, light.shadow.camera.near, light.shadow.camera.far, scope.type );
+	};
+
 	this.render = function ( lights, scene, camera ) {
 
 		if ( scope.enabled === false ) return;
@@ -24213,10 +24218,10 @@ function WebGLRenderer( parameters ) {
 		// Match clipping in the render pass, including planar reflections.
 		camera.updateMatrixWorld();
 		clipping.init( _this.clippingPlanes, _this.localClippingEnabled, camera );
-		const objects = [];
-		scene.traverse( object => { if ( object.material ) objects.push( object ); } );
+		const renderObjects = [];
+		scene.traverse( object => { if ( object.material ) renderObjects.push( object ); } );
 		let sliceStart = performance.now();
-		for ( const object of objects ) {
+		for ( const object of renderObjects ) {
 			if ( cancelled() ) return;
 			const diagnostics = _this.debug.checkShaderErrors;
 			_this.debug.checkShaderErrors = false;
@@ -24232,8 +24237,41 @@ function WebGLRenderer( parameters ) {
 				sliceStart = performance.now();
 			}
 		}
+		// Surface compilation alone leaves depth/distance variants to the first
+		// render, which can synchronously stall a map switch on Windows.
+		if ( _this.shadowMap.enabled ) {
+			const lights = [];
+			scene.traverseVisible( object => { if ( object.isLight && object.castShadow && object.layers.test( camera.layers ) ) lights.push( object ); } );
+			clipping.beginShadows();
+			try {
+				for ( const light of lights ) {
+					const shadowCamera = light.shadow.camera;
+					shadowCamera.updateMatrixWorld();
+					for ( const object of renderObjects ) {
+						if ( cancelled() ) return;
+						if ( ! object.castShadow || ! object.geometry || ! object.layers.test( camera.layers ) ) continue;
+						const materials = Array.isArray( object.material ) ? object.material : [ object.material ];
+						for ( const material of materials ) {
+							const depth = _this.shadowMap.materialForPreparation( object, material, light );
+							clipping.setState( depth, shadowCamera, false );
+							const diagnostics = _this.debug.checkShaderErrors;
+							_this.debug.checkShaderErrors = false;
+							try { pending.add( getProgram( depth, _emptyScene, object, true ).program ); }
+							finally { _this.debug.checkShaderErrors = diagnostics; }
+						}
+						if ( performance.now() - sliceStart > 8 ) {
+							await new Promise( resolve => setTimeout( resolve, 0 ) );
+							sliceStart = performance.now();
+						}
+					}
+				}
+			} finally { clipping.endShadows(); clipping.init( _this.clippingPlanes, _this.localClippingEnabled, camera ); }
+		}
 		while ( pending.size && ! cancelled() ) {
 			for ( const program of pending ) {
+				// A rapid exit can release a material/program between preparation
+				// slices. Deleted programs cannot complete and must not be polled.
+				if ( ! gl.isProgram( program ) ) { pending.delete( program ); continue; }
 				if ( ! gl.getProgramParameter( program, parallel.COMPLETION_STATUS_KHR ) ) continue;
 				if ( ! gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
 					throw new Error( 'Scene shader link failed: ' + gl.getProgramInfoLog( program ) );

@@ -7,6 +7,15 @@ let db:FocusQuestDatabase
 beforeEach(()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date(2026,9,5,9));db=new FocusQuestDatabase(':memory:')})
 afterEach(()=>{db.close();vi.useRealTimers()})
 const sql=()=> (db as any).db
+it('retires saved staircase sitting without changing time and never schedules it again',()=>{
+ const s=createNurseryRuntime('removed-stair',[]);s.seconds=100;s.node='G2';s.sequence=7
+ s.action={id:7,kind:'ambient',node:'G2',route:['G2'],eventId:'stairSit',startSeconds:99,endSeconds:124}
+ const recovered=advanceNurseryRuntime(s,100,emptyNurseryMarks(),[]).state
+ expect(recovered.action).toMatchObject({kind:'wait',startSeconds:99,endSeconds:124,node:'G2'})
+ expect(recovered.action?.eventId).toBeUndefined()
+ for(let seed=0;seed<30;seed++){let state=createNurseryRuntime('no-stair-'+seed,[])
+  for(let t=0;t<3000;t+=5){state=advanceNurseryRuntime(state,t,emptyNurseryMarks(),[]).state;expect(state.action?.eventId).not.toBe('stairSit')}}
+})
 function prepare(area=NURSERY_AREA_ID as string){let s=db.addListTask({title:'苗圃驗收'});s=db.startDailyRun(s.taskList.nextTaskId!);const n=s.expeditionNodes[0];sql().prepare('UPDATE expedition_nodes SET area_id=?,title=? WHERE id=?').run(area,area===NURSERY_AREA_ID?'玻璃苗圃':'苔痕驛站',n.id);s=db.selectExpeditionNode(s.todayRun!.id,n.id);return {s,node:n.id}}
 function full(node:string){const s=db.getSnapshot();const start=db.startListFocus({minimumMinutes:5,blockedProcessNames:[],runId:s.todayRun!.id,nodeId:node,plannedMinutes:50});vi.setSystemTime(Date.now()+3000000);db.finishListFocus(start.activeSession!.id,false);return db.dismissDebrief(start.activeSession!.id)}
 function forceNextNursery(parent:string){const s=db.getSnapshot(),n=s.expeditionNodes.find(n=>n.parentNodeId===parent)!;sql().prepare('UPDATE expedition_nodes SET area_id=?,title=? WHERE id=?').run(NURSERY_AREA_ID,'玻璃苗圃',n.id);db.chooseNextRoute(s.todayRun!.id,parent,n.id);return n.id}

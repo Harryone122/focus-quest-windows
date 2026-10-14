@@ -20,7 +20,7 @@ app.whenReady().then(async()=>{
  body=body.replace('rc.intersectObjects(targets, false)','rc.intersectObjects(near, false)');
  report.clearance=await js(`(()=>{const {T,scene,N,EDGES,NP,route,edgePts,polyLen,polyAt,CORR,CELL,MC,BOARD,trav,M,M2}=__nurseryAudioTester.scene.qa;const V3=(x,y,z)=>new T.Vector3(x,y,z);${body}})()`);
  report.geometry=await js(`(()=>{const q=__nurseryAudioTester.scene.qa,{T,scene,trav}=q;scene.updateMatrixWorld(true);const exclude=new Set();trav.traverse(o=>exclude.add(o));const meshes=[];scene.traverse(o=>{if(!o.isMesh||exclude.has(o))return;for(let p=o;p;p=p.parent)if(!p.visible)return;meshes.push(o)});const pts=q.edgePts('G2','CT'),ray=new T.Raycaster(),unsupported=[];for(let d=0;d<q.polyLen(pts);d+=.025){const p=q.polyAt(pts,d).pos;ray.set(p.clone().add(new T.Vector3(0,.3,0)),new T.Vector3(0,-1,0));ray.far=.65;const hit=ray.intersectObjects(meshes,false).filter(h=>!h.object.material.transparent&&Math.abs(h.point.y-p.y)<.3)[0];if(!hit)unsupported.push(p.toArray())}return {path:pts.map(p=>p.toArray()),unsupported}})()`);
- for(const id of ['lean','stairSit']){
+  for(const id of ['lean']){
   const pose=await js(`(()=>{const scene=__nurseryAudioTester.scene,q=scene.qa;q.testPlay('${id}',true);for(let i=0;i<1000&&scene.debugState().localAction?.key!=='${id}';i++)q.seek(.05);if(scene.debugState().localAction?.key!=='${id}')throw Error('pose not reached');q.seek(.8);q.advance(.05);return scene.debugState().position})()`);
   report[id]=pose;
   await delay(200);await shot(id);report.checks.push(id+' actual walk-in and pose rendered');

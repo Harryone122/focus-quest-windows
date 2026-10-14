@@ -1,3 +1,4 @@
+import { advanceAnimation } from '../animationSteps';
 // 雲上遺庭 — Focus Active scene (Area 01).
 //
 // Presentation only. React owns the focus timer and the saved state; this module never
@@ -2179,7 +2180,7 @@ export function createCloudRuinsScene(host, options) {
     TR.node = lampsLit >= 5 ? 'b_tree' : lampsLit > 0 ? lampNode(lampsLit - 1) : SPAWN_NODE;
     const p = NODE[TR.node].p; trav.position.set(p.x, groundY(p), p.z);
     TR.heading = TR.node === SPAWN_NODE ? headingTo(NODE[SPAWN_NODE].p, NODE.a_mid.p) : VIEW_FACE;
-    if (STORY.visit === 1 && lampsLit >= 5 && marks && !marks.has('tree_traces_seen') && !tracesShown) { tracesPending = true; tracesShown = true; }
+    if ((STORY.knownClues ? !STORY.knownClues.includes('c01_bark_date') : STORY.visit === 1) && lampsLit >= 5 && marks && !marks.has('tree_traces_seen') && !tracesShown) { tracesPending = true; tracesShown = true; }
     setStatus(lampsLit >= 5 ? '五盞燈都亮了，旅人在中央的大樹下休息' : progress <= 1 ? '旅人從入口石板出發' : '旅人回到島上，繼續今天的路');
   }
 
@@ -2435,7 +2436,7 @@ export function createCloudRuinsScene(host, options) {
         // the already-lit lamp is still upcoming, or replay its lighting gesture on arrival.
         setStatus('第 ' + lampsLit + ' 盞燈已亮，旅人沿路前行');
       }
-      if (STORY.visit === 1 && lampsLit >= 5 && !tracesShown && !(marks && marks.has('tree_traces_seen'))) { tracesPending = true; tracesShown = true; }
+      if ((STORY.knownClues ? !STORY.knownClues.includes('c01_bark_date') : STORY.visit === 1) && lampsLit >= 5 && !tracesShown && !(marks && marks.has('tree_traces_seen'))) { tracesPending = true; tracesShown = true; }
     }
     if (dueNow !== lastLightsReport && TR.state !== 'depart') { lastLightsReport = dueNow; try { opts.reportLights(dueNow); } catch (_) {} }
 
@@ -2652,7 +2653,7 @@ export function createCloudRuinsScene(host, options) {
     // state, then stands still. Nothing advances while paused: no dt, no tAcc, no scene clock.
     // Keep smoothing bounded, but do not slow navigation/events below 20 fps. Very long rendering
     // gaps use milestone recovery above rather than simulating minutes of movement in one frame.
-    if (!frozen || !primed) { update(frozen ? 0 : dt, frozen ? 0 : Math.min(activeDelta, 1)); primed = true; }
+    if (!frozen || !primed) { advanceAnimation(frozen ? 0 : activeDelta, step => update(step)); primed = true; }
     // Cross-map playback ends here. Do not compile/draw a new pose in the old world while React swaps it.
     if (opts.departureOnly && TR.dep && TR.dep.done) return;
     if (LOBBY) reportAnchorsIfMoved();

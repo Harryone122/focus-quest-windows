@@ -528,13 +528,6 @@
    "text": "旅人用手指撥了一下育苗水槽的水。",
    "arc": false
   },
-  "stairSit": {
-   "node": "G2",
-   "durSec": 5,
-   "pose": "sit",
-   "text": "旅人在螺旋梯下坐了一會兒。",
-   "arc": false
-  },
   "tree": {
    "node": "G",
    "durSec": 5,
@@ -553,8 +546,7 @@
    "trough"
   ],
   [
-   "tree",
-   "stairSit"
+   "tree"
   ],
   [
    "valve",
@@ -648,7 +640,7 @@
      0.8,
      1.1
     ],
-    "zoom": 3.0
+    "zoom": 3
    },
    "clue": "m07_tray"
   },
@@ -662,7 +654,7 @@
     "at": [
      -10.6,
      2.2,
-     6.0
+     6
     ],
     "zoom": 2.6
    },
@@ -676,9 +668,9 @@
    "sec": 11,
    "camera": {
     "at": [
-     -11.0,
+     -11,
      2.2,
-     -1.0
+     -1
     ],
     "zoom": 2.6
    },
@@ -697,7 +689,7 @@
      0.8,
      1.1
     ],
-    "zoom": 3.0
+    "zoom": 3
    },
    "clue": "m07_planted",
    "worldMark": "saplingStage = 0 (planted in tray 6); +1 on each later visit to 07, max 2"
@@ -717,7 +709,7 @@
       "at": [
        2.6,
        0.9,
-       1.0
+       1
       ],
       "zoom": 2.7
      },
@@ -749,7 +741,7 @@
       "zoom": 2.7
      },
      "plantAt": [
-      -5.0,
+      -5,
       0.12,
       -2.3
      ],
@@ -779,7 +771,7 @@
       "at": [
        2.4,
        0.9,
-       1.0
+       1
       ],
       "zoom": 2.4
      },

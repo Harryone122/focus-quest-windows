@@ -34,6 +34,8 @@ release-v0.6.11/
 
 # Generated packages, local profiles and previews stay on this machine.
 release-v*/
+release-area05-v*/
+docs/area05/_to_delete/
 *.lnk
 *.db-*
 *.sqlite-*

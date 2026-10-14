@@ -1,3 +1,4 @@
+import { advanceAnimation } from '../animationSteps';
 // 苔痕驛站 — Focus Active and lobby scene (Area 02).
 //
 // Presentation only. The main process owns effective focus time, the traveller's saved schedule,
@@ -160,11 +161,15 @@ const at = (u, v, dy) => W(u, v, H(u, v) + (dy || 0));
 const cMossDeep = new T.Color(0x546f3e), cMoss = new T.Color(0x6b8748), cGrass = new T.Color(0x86915c), cPath = new T.Color(0x8f7b62), cPathL = new T.Color(0xa08d73), cRock = new T.Color(0x77776e), cRockMoss = new T.Color(0x66725a), cEarth = new T.Color(0x6a5a47);
 function buildTerrain(u0, u1, v0, v1, res, colorFn) {
   const pos = [], col = []; const tmp = new T.Color();
+  // Adjacent triangles share vertices. Keep identical heights without repeating
+  // the expensive authored noise field six times for each grid cell.
+  const heights = new Map();
+  const height = (u, v) => { const key = u + ',' + v; if (!heights.has(key)) heights.set(key, H(u, v)); return heights.get(key); };
   const pt = (u, v) => { const j = 0.12 * Math.sin(u * 12.9898 + v * 78.233); return [u + j, v - j]; };
   for (let u = u0; u < u1; u += res) for (let v = v0; v < v1; v += res) {
     const A = pt(u, v), B = pt(u + res, v), C = pt(u + res, v + res), D = pt(u, v + res);
     [[A, B, C], [A, C, D]].forEach((tri) => {
-      const ps = tri.map((q) => W(q[0], q[1], H(q[0], q[1])));
+      const ps = tri.map((q) => W(q[0], q[1], height(q[0], q[1])));
       const n = new T.Vector3().subVectors(ps[1], ps[0]).cross(new T.Vector3().subVectors(ps[2], ps[0])).normalize(); if (n.y < 0) n.negate();
       const cu = (tri[0][0] + tri[1][0] + tri[2][0]) / 3, cv = (tri[0][1] + tri[1][1] + tri[2][1]) / 3;
       colorFn(cu, cv, H(cu, cv), n.y, tmp); tmp.multiplyScalar(0.975 + 0.05 * rnd());
@@ -1887,7 +1892,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     }
 
     // ----- traveller placement -----
-    let p, moving = false, want = TR.heading, animKey = 'idle', prog = 0, fade = 1, onSeat = false, curveY = false, boatRide = false, walkSpeed = 0.95;
+    let p, moving = false, want = TR.heading, animKey = 'idle', prog = 0, fade = 1, onSeat = false, curveY = false, boatRide = false, walkSpeed = 0.95, doorSeatMix = 1;
     const a = currentAction();
     syncRare(a);
     syncStory(a);
@@ -1938,11 +1943,11 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
             want = faceFor(node, ev);
             eventEffect(ev, prog);
             if (rare) rareUpdate(prog);
-            if (animKey === 'sitDoor') { p = WAGON.seat.clone(); want = WAGON.yaw; }
+            if (animKey === 'sitDoor') want = WAGON.yaw;
             onSeat = SPOT[node] && SPOT[node].seat === 'bench' && /^sit|write|drinkSit/.test(animKey);
           } else if (sev && story) {
             animKey = phaseAnim(sev, prog); want = faceFor(node, sev);
-            if (animKey === 'sitDoor') { p = WAGON.seat.clone(); want = WAGON.yaw; }
+            if (animKey === 'sitDoor') want = WAGON.yaw;
             storyUpdate(prog);
             if (story.look) want = headingTo(p, story.look);
           }
@@ -1962,16 +1967,21 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
           prog = (tAcc % 9) / 9;
         }
       }
+      if(animKey==='sitDoor'){
+        doorSeatMix=easeIO(Math.max(0,Math.min(1,(sim-a.startSeconds)/1.2,(a.endSeconds-sim)/1.2)));
+        p.y=travelY(p);p.lerp(WAGON.seat,doorSeatMix);curveY=true;
+      }
       if (!LOBBY && a && !(a.kind === 'event' && SEV[a.eventId])) { const msg = statusFor(a); if (msg) setStatus(msg); }
       else if (LOBBY) setStatus(lampsLit >= 5 ? '旅人坐在候車室的長椅上休息' : '旅人在路上停下來，等你回來');
     }
-    const gy = a && a.kind === 'event' && animKey === 'sitDoor' ? WAGON.seat.y : (curveY || boatRide) ? p.y : travelY(p);
+    const gy = (curveY || boatRide) ? p.y : travelY(p);
     trav.position.set(p.x, gy, p.z);
     if (boatRide) { trav.quaternion.copy(BOAT.g.quaternion); TR.heading = trav.rotation.y; }
     else { TR.heading = lerpAngle(TR.heading, want, !primed ? 1 : 1 - Math.exp(-dt * 5)); trav.rotation.set(0, TR.heading, 0); }
     if (moving) TR.phase += walkSpeed * dt * 9;
     const baseKey = animKey === 'umbrellaWalk' ? 'umbrella' : animKey;
     const tgt = Object.assign({ hip: 0, legX: 0, lean: 0, headX: 0, headY: 0, armL: 0, armLz: 0, staffX: 0, staffZ: 0, book: 0, lie: 0, cup: 0 }, POSE[baseKey] || {});
+    if(animKey==='sitDoor')PKEYS.forEach(key=>{tgt[key]*=doorSeatMix;});
     const tt = tAcc;
     if (animKey === 'pickup') { const s = Math.sin(Math.PI * prog); Object.assign(tgt, { hip: -0.2 * s, legX: -0.9 * s, lean: 0.5 * s, headX: 0.4 * s, armL: -1.0 * s }); }
     if (animKey === 'stretch') { const s = 0.5 + 0.5 * Math.sin(tAcc * 0.8); Object.assign(tgt, { armL: -2.9 * s, staffX: -0.25 * s, headX: -0.3 * s }); }
@@ -2076,10 +2086,11 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
       if (t - lastDrawAt < 30) { if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
       lastDrawAt = t;
     }
-    const dt = Math.min(clock.getDelta(), 0.05);
+    const activeDelta = clock.getDelta();
+    const dt = Math.min(activeDelta, 0.05);
     const frozen = isPaused();
     // A scene created already paused runs one zero-length update so it shows the saved state, then stands still.
-    if (!frozen || !primed) { update(frozen ? 0 : dt); primed = true; }
+    if (!frozen || !primed) { advanceAnimation(frozen ? 0 : activeDelta, step => update(step)); primed = true; }
     // Cross-map playback ends here. Do not compile/draw a new pose in the old world while React swaps it.
     if (opts.departureOnly && TR.dep && TR.dep.done) return;
     if (LOBBY) reportAnchorsIfMoved();

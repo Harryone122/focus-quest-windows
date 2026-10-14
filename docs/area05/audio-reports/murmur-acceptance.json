@@ -1,0 +1,59 @@
+{
+  "status": "user-approved",
+  "environmentSliderPercent": 35,
+  "murmurStartsAt": 4,
+  "baselineFilesUnchanged": true,
+  "candidates": {
+    "6": {
+      "gainDb": 6,
+      "amplitudeMultiplier": 1.9952623149688795,
+      "processedAsset": "a05_wall_murmur-plus6.wav",
+      "assetSha256": "2a3f06419378e2a14019414618377edcef3ae0ef38b73dc4b30e13ea9d33a9fc",
+      "integratedLufs": -24.9,
+      "truePeakDbtp": -8.3,
+      "mixes": {
+        "12": {
+          "file": "09-12-plus6.wav",
+          "sha256": "3260e74ce46361d1003f357801adcb6288bc6413e5f886338183ec3cd04e763b",
+          "integratedLufs": -42.7,
+          "truePeakDbtp": -18.4
+        },
+        "25": {
+          "file": "09-25-plus6.wav",
+          "sha256": "f9401a83000afd2393aac7a66f02539cba0edf5040c021f1eba471109b1e85c4",
+          "integratedLufs": -42.5,
+          "truePeakDbtp": -18.5
+        }
+      }
+    },
+    "9": {
+      "gainDb": 9,
+      "amplitudeMultiplier": 2.8183829312644537,
+      "processedAsset": "a05_wall_murmur-plus9.wav",
+      "assetSha256": "eb109df4d0b5c7611d8d7714f8b056f2d576c8008c9ef7fc1f7880eeb8a50916",
+      "integratedLufs": -21.9,
+      "truePeakDbtp": -5.3,
+      "mixes": {
+        "12": {
+          "file": "09-12-plus9.wav",
+          "sha256": "6f078c2caacb7af2a2a3b370c2e4aaaea1a5bfde649e8c76f1b55db955cffeaa",
+          "integratedLufs": -39.3,
+          "truePeakDbtp": -18.2
+        },
+        "25": {
+          "file": "09-25-plus9.wav",
+          "sha256": "001f16c0f2a0b708b98d7b722560c44196ebd5e83a74496d734a459c2caed336",
+          "integratedLufs": -40.7,
+          "truePeakDbtp": -18.2
+        }
+      }
+    }
+  },
+  "sourceHashes": {
+    "C:\\Users\\User\\Documents\\game project\\focus-quest-windows\\previews\\area05-audio-qa\\assets\\a05_wall_murmur.wav": "3bed855575f0d8fb3d75226e50ca03dbd860ec0b19d0bb3e5d9e54ad6df8ea4d",
+    "C:\\Users\\User\\Documents\\game project\\focus-quest-windows\\previews\\area05-audio-qa\\09-12.wav": "631bf9addea13bd0584ee2d10bacaefee75ab5cdaeb6b5c546158633109f59f2",
+    "C:\\Users\\User\\Documents\\game project\\focus-quest-windows\\previews\\area05-audio-qa\\09-25.wav": "7c10acbce225c0890f5a7061c3dd6b32787a0c90e1c4c4e68f7056090324c583"
+  },
+  "selectedGainDb": 9,
+  "approvalSource": "User listened to murmur-only +6/+9 dB review and chose +9 dB on 2026-10-14"
+}

@@ -1126,7 +1126,8 @@ export class FocusQuestDatabase {
     const aliases: Record<string, string> = { charcoal_rubbing: 'charcoal_paper', copper_wind_whistle: 'wind_whistle' }
     const items = [...new Set(itemRows.map((row) => aliases[String(row.item_key)] ?? String(row.item_key)))]
     const records = JSON.parse(String(plan.story_records)) as string[]
-    const story = { nodeId, visit, opening: visit === 1 && first?.node_id === nodeId, items, whaleSeed: weatherSeedFrom(nodeId), records }
+    const knownClues = (this.db.prepare("SELECT id FROM collection_clues WHERE source_id = 'm01'").all() as Row[]).map(row => String(row.id))
+    const story = { nodeId, visit, opening: visit === 1 && first?.node_id === nodeId, items, whaleSeed: weatherSeedFrom(nodeId), records, knownClues }
     return { ...story, scheduledEvents: cloudStorySchedule(story), eventHistory: JSON.parse(String(plan.ambient_history)) }
   }
 
@@ -1166,7 +1167,7 @@ export class FocusQuestDatabase {
       changed = this.saveCloudStoryRecord(story.nodeId, id) || changed
     }
     // The first complete route has seen the same tree traces even if rendering was unavailable.
-    if (ending && story.visit === 1 && progress >= plannedSeconds) {
+    if (ending && !story.knownClues?.includes('c01_bark_date') && progress >= plannedSeconds) {
       this.db.prepare('INSERT OR IGNORE INTO world_marks (map_id, mark, seen_at) VALUES (?, ?, ?)')
         .run(FOREST_MAP_ID, 'tree_traces_seen', nowIso())
       changed = this.saveCloudStoryRecord(story.nodeId, 'c01_bark_date') || changed
@@ -1181,6 +1182,9 @@ export class FocusQuestDatabase {
     if (session.ended_at || session.suspended_at) throw new Error('這次專注已停止，不能新增故事紀錄。')
     const story = this.cloudStoryForSession(session)
     if (!story) throw new Error('這次探索不在雲上遺庭。')
+    // The durable fallback can finish before a slow animation reports the same
+    // clue. Acknowledging that saved record must not turn into a UI error.
+    if (story.records.includes(clueId)) return this.getSnapshot()
     const allowed = cloudStoryEventTimes(story, Number(session.planned_minutes) * 60)
     if (!allowed[clueId]) throw new Error('這次探索沒有這個線索。')
     const end = session.ended_at ?? session.suspended_at ?? nowIso()
@@ -2194,6 +2198,28 @@ export class FocusQuestDatabase {
   importBackup(payload: BackupPayload): void {
     if (payload.format !== 'focusquest-backup' || ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(payload.version) || !payload.data) {
       throw new Error('這不是有效的 Focus Quest 備份。')
+    }
+    // SQLite accepts arbitrary TEXT, including invalid scene JSON. Validate it
+    // before the replacing transaction, so a bad import cannot brick the save.
+    const jsonFields: Record<string, Record<string, 'object' | 'strings' | 'history'>> = {
+      area_scene_states: { state_json: 'object' }, map_world_state: { state_json: 'object' },
+      forest_explorations: { story_records: 'strings', ambient_history: 'history' },
+      expedition_nodes: { reward_options: 'strings' }
+    }
+    for (const [table, fields] of Object.entries(jsonFields)) {
+      const rows = payload.data[table]
+      if (!Array.isArray(rows)) continue // Required tables are checked inside the transaction.
+      for (const row of rows) for (const [field, kind] of Object.entries(fields)) {
+        const raw = (row as Row)[field]
+        if (raw === undefined || raw === null) continue // Legacy defaults and nullable options.
+        try {
+          const value = JSON.parse(String(raw)) as unknown
+          const valid = kind === 'object' ? value !== null && typeof value === 'object' && !Array.isArray(value)
+            : Array.isArray(value) && (kind === 'strings' ? value.every(v => typeof v === 'string')
+              : value.every(v => v && typeof v === 'object' && typeof v.id === 'string' && typeof v.at === 'number' && Number.isFinite(v.at) && v.at >= 0))
+          if (!valid) throw new Error('Invalid JSON shape')
+        } catch { throw new Error(`備份中的 ${table}.${field} 無法讀取，原有存檔未變更。`) }
+      }
     }
     const tableColumns: Record<string, string[]> = {
       area_scene_states: ['node_id', 'state_json'],

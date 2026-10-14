@@ -2,7 +2,11 @@
 
 Read `AGENTS.md` and `docs/CORE_PLAN_AGENT_BRIEF.md` once at the start of a task. Use the relevant sections of the searchable Markdown plan for exact product requirements. The plan's dated decisions supersede the archived PDF. Read `docs/AGENT_WORKFLOW.md` once for shared work with Codex.
 
-For collaboration, also read `docs/COLLABORATION_STATUS.md` and the relevant latest handoff it links. Read prompts, engineering replies and reports from the shared files rather than asking the user to transfer their full contents between Claude and Codex. Update your existing design handoff and the matching index row at delivery. Preserve user preview/prototype acceptance gates, check current file ownership before edits, and do not treat the index as a writer lock or automatic task authorization. Existing conversations must read this new index explicitly; file changes alone do not wake another conversation.
+For collaboration, read `.agents/skills/focus-quest-handoff/SKILL.md` (also available through `.claude/skills/focus-quest-handoff/SKILL.md`). Use its topic-filtered index reader and read only the relevant latest handoff sections. Read prompts, engineering replies and reports from shared files rather than asking the user to transfer their full contents. Update your existing design handoff summary and the matching index row at delivery. Preserve user preview/prototype acceptance gates, check current file ownership before edits, and do not treat the index as a writer lock or automatic task authorization. Existing conversations must explicitly read the updated guidance; file changes alone do not wake or update another conversation.
+
+## Route requests to the responsible agent (2026-10-11)
+
+The user prefers Claude's art. Continue owning visual design and design prototypes. When asked to implement, repair, test or package the production App, briefly decline that engineering portion under the agreed division and direct the user to Codex with the relevant handoff path and a short transferable request. Do not begin production edits or ask the user to paste whole documents. For mixed requests, complete the design portion and hand off engineering. Prototype design changes remain yours. A new explicit user decision can change ownership; an ordinary engineering request is not by itself that decision.
 
 ## Your primary responsibility
 

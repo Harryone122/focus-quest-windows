@@ -5,6 +5,7 @@ import { CORE_UNDERSTANDING_CLUES } from '../../shared/collectionRoom'
 import prototypeHtml from '../../../docs/prototypes/collection-room.html?raw'
 import threeModuleUrl from './cloudRuins/vendor/three.module.js?url'
 import './collectionRoom.css'
+import { createQuarryHum } from './echoQuarry/quarryAudio'
 
 const MAP_INDEX: Record<string, number> = {
   'area-01-cloud-ruins': 1,
@@ -29,6 +30,7 @@ interface RoomBridge {
   pinClue: (clueId: string) => void
   playLink: () => void
   advance: (seconds: number) => void
+  prepare: () => Promise<void>
 }
 
 interface RoomState {
@@ -48,7 +50,7 @@ interface RoomState {
 }
 
 declare global {
-  interface Window { __room?: RoomBridge; __hold?: boolean }
+  interface Window { __room?: RoomBridge; __hold?: boolean; __roomOnStoneHum?: ()=>void }
 }
 
 export function roomDocument(html = prototypeHtml, threeUrl = new URL(threeModuleUrl, window.location.href).href): string {
@@ -67,6 +69,8 @@ export function roomDocument(html = prototypeHtml, threeUrl = new URL(threeModul
     // The water disc cannot sample its own render target during the reflection pass.
     // Main view includes layer 2; the reflection camera retains the room and ghost layers.
     .replace('e.core.add(water);', 'e.core.add(water); water.layers.set(2); camera.layers.enable(2);')
+    .replace('const per = e.state > 1 || k.link ? 4.5 : 8; const ph = (t % per) / per; const humming = e.state > 0 && ph < 0.3;', `const per = e.state > 1 || k.link ? 4.5 : 8; const ph = (t % per) / per; const humming = e.state > 0 && ph < 0.3;
+    const humCycle=Math.floor(t/per); if(e.state>0&&dt>0&&e.humCycle!==undefined&&humCycle-e.humCycle===1)window.__roomOnStoneHum?.(); e.humCycle=humCycle;`)
     .replace("GHOSTS.forEach((gh, n) => { gh.visible = s === 1 ? n < 2 : s > 1; });", "GHOSTS.forEach((gh, n) => { gh.visible = s > 0 && (n < 2 || (n === 3 ? Boolean(S.lakeBoots) : s > 1)); });")
     .replace("let target = null; if (placeNew) { const order = [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]; const i = order.find((n) => EX[n].state === 0); if (i) target = EX[i]; }",
       "let target = null; if (placeNew) { const order = targetIndex ? [targetIndex] : [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]; const i = order.find((n) => EX[n].state === 0); if (i) target = EX[i]; }")
@@ -94,7 +98,8 @@ export function roomDocument(html = prototypeHtml, threeUrl = new URL(threeModul
         boardDirty = true; renderHeader(); renderTray();
         if (S.mode === 'table') { panelTableDefault(); layoutHits(); measure(); }
       }
-      window.__room = { S, EX, applyPreset, setState, enterBag, playLink, enterTable, leaveTable, pinClue, pinAllClues, openBook, activate, panelPlace, applyExternalState, advance(sec) {`)
+      window.__room = { S, EX, applyPreset, setState, enterBag, playLink, enterTable, leaveTable, pinClue, pinAllClues, openBook, activate, panelPlace, applyExternalState, async prepare() { await renderer.compileAsync(scene, camera); await renderer.compileAsync(scene, mirrorCam); window.__roomPrepared = true; }, advance(sec) {`)
+    .replace('if (!window.__hold) { update(dt); renderer.render(scene, camera); }', 'if (window.__roomPrepared && !window.__hold) { update(dt); renderer.render(scene, camera); }')
     .replace('};\n})();\n</script>', "}; parent.postMessage({ source: 'focusquest-collection-room', type: 'ready' }, '*');\n})();\n</script>")
 }
 
@@ -146,6 +151,16 @@ export function CollectionRoom({ snapshot, active, onReady, onChanged, onError, 
   visible.current = active
   latest.current = snapshot
   const srcDoc = useMemo(() => roomDocument(), [])
+  useEffect(()=>{
+    if(!loaded)return
+    const target=frame.current?.contentWindow
+    if(!target)return
+    const hum=createQuarryHum()
+    const update=()=>hum.update(latest.current.settings,visible.current&&!document.hidden)
+    const cue=()=>{update();hum.play()}
+    target.__roomOnStoneHum=cue;update();const timer=window.setInterval(update,120)
+    return ()=>{window.clearInterval(timer);if(target.__roomOnStoneHum===cue)target.__roomOnStoneHum=undefined;hum.dispose()}
+  },[loaded])
 
   const room = (): RoomBridge | undefined => frame.current?.contentWindow?.__room
   const sync = (): void => room()?.applyExternalState(toRoomState(latest.current))
@@ -158,8 +173,9 @@ export function CollectionRoom({ snapshot, active, onReady, onChanged, onError, 
       if (event.source !== frame.current?.contentWindow || data?.source !== 'focusquest-collection-room') return
       try {
         if (data.type === 'ready') {
-          if (frame.current?.contentWindow) frame.current.contentWindow.__hold = !active
+          if (frame.current?.contentWindow) frame.current.contentWindow.__hold = !visible.current
           sync()
+          await room()?.prepare()
           room()?.advance(0.04)
           onReady()
           setLoaded(true)

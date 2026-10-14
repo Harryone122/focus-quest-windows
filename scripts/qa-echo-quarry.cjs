@@ -9,6 +9,15 @@ module.exports=async({app,win,profile,root})=>{
   for(let i=0;i<600;i++){if(await js('typeof echoTrialScene!=="undefined"'))break;await sleep(50);}assert(await js('typeof echoTrialScene!=="undefined"'));
   assert.equal(await js('!!window.__quarry'),false);assert.equal(await js('!!document.getElementById("hudBar")'),false);
   await js('echoTrialScene.time("day");echoTrialScene.pause()');await shot('01-outdoor-day');
+  await js('echoTrialScene.automatic(false)');report.waterFlow=[];
+  for(const t of [0,500,3000]){
+   const r=await js(`echoTrialScene.qa('water-flow',${t})`);assert.equal(r.maxJoinGap,0);report.waterFlow.push(r);await shot('water-flow-'+t);
+  }
+  report.checks.push('shared water-strip joins; stable flow material visually checked at 0, 500 and 3000 seconds');
+  report.waterLip=await js("echoTrialScene.qa('water-lip',true)");assert.equal(report.waterLip.exposed,0);assert.equal(report.waterLip.lipCenterGap,0);assert.equal(report.waterLip.lipWidth,2.3);assert(report.waterLip.opaqueBacking);
+  await shot('water-lip-closeup');await js("echoTrialScene.qa('water-lip',false)");
+  report.checks.push('original 2.3m river width; opaque blue waterfall backing; close-up rendering and riverbed clearance checked');
+  await js('echoTrialScene.automatic(true)');
   const reach=await js('echoTrialScene.state().reach');assert(Object.values(reach).every(Boolean));assert.equal(Object.keys(reach).length,17);report.checks.push('offline port; 17 reachable spots; prototype HUD and global interface removed');
   for(const file of ['occlusion-all.js','cave-mouth-tunnel.js','cave-route-clearance.js']){
    const result=await js(`echoTrialScene.qa(${JSON.stringify(file)})`);report[file]=result;

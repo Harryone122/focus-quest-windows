@@ -1,25 +1,28 @@
 import {describe,it,expect} from 'vitest'
-import {NurseryBgmSchedule} from '../src/renderer/src/glassNursery/nurseryBgm'
-describe('nursery intermittent music',()=>{
- it('waits on arrival, leaves daytime gaps and avoids repeating its previous daytime cut',()=>{
-  const s=new NurseryBgmSchedule(0,()=>.5)
-  expect(s.pick(29,'day')).toBeNull();const first=s.pick(30,'day');expect(first).toBeTruthy()
-  s.ended(89.2,'day');expect(s.nextAt).toBe(194.2);expect(s.pick(190,'day')).toBeNull()
-  expect(s.pick(194.2,'day')).not.toBe(first)
+import {NurseryBgmSchedule,nurseryLeafEnvelope} from '../src/renderer/src/glassNursery/nurseryBgm'
+describe('nursery continuous music and leaf swells',()=>{
+ it('starts on arrival and selects consecutive daytime cuts without a silent gap',()=>{
+  const s=new NurseryBgmSchedule(0,()=>.5),first=s.pick(0,'day')
+  expect(first).toBeTruthy();s.ended(59.2,'day');expect(s.nextAt).toBe(59.2)
+  expect(s.pick(59.2,'day')).not.toBe(first)
  })
- it('selects the next library from the current period and never starts at dusk',()=>{
+ it('keeps music available at dusk, at night and throughout core discovery',()=>{
   const s=new NurseryBgmSchedule(0,()=>0)
-  expect(s.pick(100,'dusk')).toBeNull();expect(s.pick(100,'night')).toBe('bgm_c')
-  s.ended(138.5,'night');expect(s.nextAt).toBe(228.5);expect(s.pick(228,'night')).toBeNull()
-  expect(s.pick(228.5,'day')).toBe('bgm_a')
+  expect(s.pick(0,'dusk')).toBeTruthy();expect(s.pick(10,'night')).toBe('bgm_c')
+  s.setCore(true,20);expect(s.pick(20,'night')).toBe('bgm_c')
+  s.setCore(false,21);expect(s.pick(21,'day')).toBeTruthy()
  })
- it('holds music throughout core pickup and for a six second motif plus thirty seconds afterwards',()=>{
-  const s=new NurseryBgmSchedule(0,()=>0);s.setCore(true,20)
-  expect(s.pick(200,'day')).toBeNull();s.setCore(false,201)
-  expect(s.pick(236.9,'day')).toBeNull();expect(s.pick(237,'day')).toBeTruthy()
+ it('uses audio time deadlines that remain frozen while paused',()=>{
+  const s=new NurseryBgmSchedule(12,()=>0)
+  expect(s.pick(11,'day')).toBeNull();expect(s.pick(11,'night')).toBeNull()
+  expect(s.pick(12,'night')).toBe('bgm_c')
  })
- it('uses the frozen audio clock for pause rather than elapsed wall time',()=>{
-  const s=new NurseryBgmSchedule(0,()=>0);s.ended(40,'day')
-  expect(s.pick(40,'day')).toBeNull();expect(s.pick(40,'night')).toBeNull();expect(s.nextAt).toBe(100)
+ it('gently rises and falls with an eleven-second silent interval',()=>{
+  expect(nurseryLeafEnvelope(0)).toBe(0)
+  expect(nurseryLeafEnvelope(1)).toBeLessThan(nurseryLeafEnvelope(2))
+  expect(nurseryLeafEnvelope(3.5)).toBeCloseTo(.65)
+  expect(nurseryLeafEnvelope(6)).toBeCloseTo(nurseryLeafEnvelope(1))
+  for(const t of [7,10,17,18])expect(nurseryLeafEnvelope(t)).toBe(0)
+  expect(nurseryLeafEnvelope(21.5)).toBeCloseTo(.65)
  })
 })

@@ -9,6 +9,10 @@ const scene=await createEchoQuarryScene($('scene'),{authority:(a,b)=>globalThis.
 loading.remove();
 // Only this independent tester exposes its controller for Electron runtime QA.
 globalThis.echoTrialScene=scene
+scene.speed(1);$('speed').value='1'
+function applyAudio(){scene.audioSettings({environmentVolume:Number($('env-volume').value),musicVolume:Number($('music-volume').value),audioMuted:$('audio-muted').checked})}
+for(const id of ['env-volume','music-volume','audio-muted'])$(id).oninput=applyAudio
+applyAudio()
 sceneData.spots.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=`${s.id} · ${s.name}`;$('spot').append(o)})
 $('play').onclick=()=>scene.state().playing?scene.pause():scene.play()
 $('speed').onchange=()=>scene.speed(Number($('speed').value))
@@ -18,6 +22,7 @@ $('complete').onclick=()=>{if(!scene.complete())$('activity').textContent='請�
 $('wind').onclick=()=>scene.wind()
 $('go').onclick=()=>{if(!scene.go(Number($('spot').value)))$('activity').textContent='這段演出結束後，就能走去其他地點。'}
 document.querySelectorAll('[data-event]').forEach(b=>b.onclick=()=>scene.event(b.dataset.event))
+document.querySelectorAll('[data-discovery]').forEach(b=>b.onclick=()=>scene.discoverySound(b.dataset.discovery))
 $('echo').onclick=()=>{scene.speed(6);$('speed').value='6';scene.echoScenario();$('activity').textContent='獨立試看：從第二盞燈之後、石磬架附近開始。旅人敲石磬，再依回音與時間預算決定是否進洞。'}
 setInterval(()=>{const s=scene.state(),t=Math.floor(s.sim);$('clock').textContent=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')} / 50:00`;$('lamps').textContent=Array.from({length:5},(_,i)=>i<s.lamps?'●':'○').join(' ');$('phase').textContent=s.inCave?'共鳴洞':'戶外';$('play').textContent=s.playing?'暫停':'繼續'},200)
 addEventListener('beforeunload',()=>scene.destroy())

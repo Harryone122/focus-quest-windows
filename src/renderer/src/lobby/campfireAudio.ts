@@ -58,6 +58,7 @@ export function buildCampfireAudioGraph(context: BaseAudioContext, seed = 481) {
   const actionEnvelopes = new Map<AudioScheduledSourceNode, GainNode>()
   let scheduledEventNames: string[] = []
   const actionBuffers: Partial<Record<CampfireActionName, AudioBuffer>> = {}
+  let stoneHum: AudioBuffer | null = null
   let actionsReady = false
   const actionBus = context.createGain(); actionBus.gain.value = 0; actionBus.connect(context.destination); nodes.push(actionBus)
   const output = context.createGain(); output.gain.value = 0.8
@@ -139,6 +140,7 @@ export function buildCampfireAudioGraph(context: BaseAudioContext, seed = 481) {
   const transients = Object.fromEntries(['paper', 'staff', 'soil', 'metal', 'spark', 'stone'].map(kind => [kind, transient(kind as DepartureCue)])) as Record<string, AudioBuffer>
   let disposed = false
   const graph = {
+    installStoneHum(buffer: AudioBuffer) { if (!disposed) stoneHum = buffer },
     installActions(assets: Awaited<ReturnType<typeof loadCampfireActions>>) {
       if (!disposed) { Object.assign(actionBuffers, assets); actionsReady = true }
     },
@@ -174,6 +176,14 @@ export function buildCampfireAudioGraph(context: BaseAudioContext, seed = 481) {
         source.connect(envelope); envelope.connect(actionBus); actionSources.add(source); actionEnvelopes.set(source, envelope); scheduledEventNames.push(event.name)
         source.onended = () => { actionSources.delete(source); actionEnvelopes.delete(source); source.disconnect(); envelope.disconnect() }
         source.start(start, event.offset + Math.max(0, elapsed - event.actualStart) * event.rate); source.stop(end)
+        if (stoneHum && way === 'steps' && event.name.startsWith('stone_step_dry_') && event.main >= elapsed) {
+          const hum = context.createBufferSource(), level = context.createGain(), at = when + event.main - elapsed
+          hum.buffer = stoneHum; level.gain.setValueAtTime(0, at); level.gain.linearRampToValueAtTime(.4, at + .02)
+          level.gain.setValueAtTime(.4, at + .25); level.gain.linearRampToValueAtTime(0, at + .32)
+          hum.connect(level); level.connect(actionBus); actionSources.add(hum); actionEnvelopes.set(hum, level)
+          hum.onended=()=>{actionSources.delete(hum);actionEnvelopes.delete(hum);hum.disconnect();level.disconnect()}
+          hum.start(at); hum.stop(at + .32)
+        }
       }
       if (way !== 'return' && 5.05 >= elapsed - 0.3) graph.cue('glass', when + Math.max(0, 5.05 - elapsed), true)
       if (way === 'return') for (const [at, kind] of [[2, 'cloth'], [2.15, 'wood']] as const) if (at >= elapsed - 0.3) graph.cue(kind, when + Math.max(0, at - elapsed), true)
@@ -258,6 +268,7 @@ export function createCampfireSoundscape() {
   const abort = new AbortController()
   void loadCampfireAssets(context, abort.signal).then(assets => { if (!disposed) graph.installAssets(assets) }).catch(() => undefined)
   void loadCampfireActions(context, abort.signal).then(assets => { if (!disposed) graph.installActions(assets) }).catch(() => undefined)
+  void fetch(stoneHumUrl, {signal:abort.signal}).then(r=>r.arrayBuffer()).then(x=>context.decodeAudioData(x)).then(buffer=>{if(!disposed)graph.installStoneHum(buffer)}).catch(()=>undefined)
   let stopped = true, disposed = false, revision = 0, previous: CampfireAudioScene | null = null
   let birdIndex = 0, nextBirdAt = Infinity
   let scheduledMode: string | null = null, scheduledEpoch = 0
@@ -316,5 +327,6 @@ export function createCampfireSoundscape() {
 }
 import { loadCampfireAssets, type CampfireAssetKey, type AssetCalibration } from './campfireAssets'
 import { campfireActionPlans, loadCampfireActions, type CampfireActionName } from './campfireActions'
+import stoneHumUrl from '../echoQuarry/audio/hum_stone_g2.wav?url'
 export { loadCampfireAssets } from './campfireAssets'
 export { loadCampfireActions, campfireActionPlans } from './campfireActions'

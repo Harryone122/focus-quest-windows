@@ -19,7 +19,9 @@ require(path.join(bundle,'out/main/index.js'));
   const result=await js(`(()=>{const scene=__nurseryScene,q=scene.qa;scene.setNurseryState({areaId:'area-07-glass-nursery',nodeId:'qa',seed:1,effectiveSeconds:0,coreTaken:false,worldMarks:{potUpright:false,glassWiped:false,shardPile:false,saplingInLuggage:false,saplingPlanted:false,saplingStage:-1,saplingTransplanted:false},action:{id:${id},kind:'walk',node:'${to}',fromNode:'${from}',route:['${from}','${to}'],startSeconds:0,endSeconds:30}});scene.setProgress(0);scene.renderNow();const path=q.edgePts('${from}','${to}'),samples=[];for(let i=0;i<33;i++){q.seek(1);const p=scene.debugState().position;samples.push(p);let min=Infinity;for(let d=0;d<=q.polyLen(path);d+=.01)min=Math.min(min,q.polyAt(path,d).pos.distanceTo(new q.T.Vector3(...p)));if(min>.02)throw Error('saved walk left the spiral: '+min)}return {from:'${from}',to:'${to}',samples,end:scene.debugState().position,target:q.NP('${to}').toArray()}})()`);
   assert(Math.hypot(...result.end.map((v,i)=>v-result.target[i]))<.04);report.checks.push(from+' -> '+to+' saved action follows spiral and reaches endpoint');report[from]=result;
  }
- await delay(200);fs.writeFileSync(path.join(out,'scene.png'),(await win.webContents.capturePage()).toPNG());
+ // Capture the actual nursery framebuffer: hidden Electron compositor captures may retain the campfire frame.
+ const png=await js('(()=>{const q=__nurseryScene.qa;q.renderer.render(q.scene,q.camera);return q.renderer.domElement.toDataURL("image/png")})()');
+ fs.writeFileSync(path.join(out,'scene.png'),Buffer.from(png.split(',')[1],'base64'));
  assert.equal(report.errors.length,0);sql.close();fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));app.exit(0);
 })().catch(e=>{report.failure=e.stack;fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));console.error(e);app.exit(1)});
 

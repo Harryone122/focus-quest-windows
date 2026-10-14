@@ -4,7 +4,7 @@ import motifUrl from '../../../previews/nursery-audio-qa/core_motif_07-preview.w
 import './style.css'
 type Choice={id:string;label:string;note?:string}
 const groups:Record<string,Choice[]>={
- '日常動作':[{id:'walk',label:'走路與腳步'},{id:'machineWalk',label:'沿育苗機走半圈'},{id:'wipe',label:'擦玻璃'},{id:'potRight',label:'扶正盆栽與撥土'},{id:'valve',label:'轉閥門與噴霧'},{id:'trough',label:'撥水槽的水'},{id:'pool',label:'看積水池'},{id:'tree',label:'抬頭看大樹'},{id:'stairSit',label:'在螺旋梯下坐著'},{id:'lean',label:'空中走道看苗圃'}],
+ '日常動作':[{id:'walk',label:'走路與腳步'},{id:'machineWalk',label:'沿育苗機走半圈'},{id:'wipe',label:'擦玻璃'},{id:'potRight',label:'扶正盆栽與撥土'},{id:'valve',label:'轉閥門與噴霧'},{id:'trough',label:'撥水槽的水'},{id:'pool',label:'看積水池'},{id:'tree',label:'抬頭看大樹'},{id:'lean',label:'空中走道看苗圃'}],
  '故事發現':[{id:'first',label:'首訪 · 澆空苗盤'},{id:'chart',label:'再次造訪 · 摸刻度'},{id:'shard',label:'背銀鏡片 · 手印',note:'這段會切到夜晚；反光與手印保留安靜。'},{id:'leaf',label:'取得壓葉標本'},{id:'mulch',label:'取得護根布'},{id:'core',label:'取得封存種莢',note:'取鑰匙 → 走向鐵籠 → 開鎖與籠門 → 鐘罩抬起／縮小。木琴尚待確認。'}],
  '照料者':[{id:'plant',label:'種下驛站的幼苗'},{id:'transplant',label:'完整移植演出',note:'挖起 → 抱著走 → 種下壓土 → 畫三條刻度 → 澆空苗盤。演出約一分鐘。'}],
  '休息出口':[{id:'rest',label:'跨上轉盤休息',note:'會持續休息，包含寫筆記與抬頭觀看；可隨時暫停或換動作。'},{id:'lamps',label:'依序點亮五盞燈',note:'旅途中點燈保持安靜，可以同時檢查走路與站位。'},{id:'corridor',label:'出口一 · 玻璃連廊'},{id:'cellar',label:'出口二 · 地窖鐵梯'}]
@@ -39,7 +39,6 @@ for(const name of ['environment','music'] as const){el<HTMLInputElement>(name).o
 motif.volume=.35
 motif.onplay=()=>{el<HTMLAudioElement>('bgm-preview').pause();previewPlaying=true;scene.setPaused(true);updateAudio();el('play-state').textContent='單獨試聽核心木琴'}
 motif.onpause=motif.onended=()=>{previewPlaying=false;scene.setPaused(paused);updateAudio()}
-el<HTMLInputElement>('short-gaps').onchange=()=>scene.setShortMusicGaps(el<HTMLInputElement>('short-gaps').checked)
 for(const value of [12,25])el('music-'+value).onclick=()=>{el<HTMLInputElement>('music').value=String(value);el<HTMLInputElement>('music').dispatchEvent(new Event('input'))}
 for(const name of ['a','b','ab','c']){const b=document.createElement('button');b.textContent='單獨試聽 '+name.toUpperCase();b.onclick=()=>{motif.pause();scene.setPaused(true);const preview=el<HTMLAudioElement>('bgm-preview');preview.src=new URL(Object.entries(import.meta.glob('../src/glassNursery/audio/bgm_*.wav',{eager:true,query:'?url',import:'default'})).find(([p])=>p.endsWith('bgm_'+name+'.wav'))![1] as string,location.href).href;preview.volume=Math.pow((settings.musicVolume??0)/100,1.4);preview.muted=!!settings.audioMuted;void preview.play()};el('bgm-buttons').append(b)}
 const bgmPreview=el<HTMLAudioElement>('bgm-preview');bgmPreview.onplay=()=>{previewPlaying=true;scene.setPaused(true);updateAudio()};bgmPreview.onpause=bgmPreview.onended=()=>{previewPlaying=false;scene.setPaused(paused);updateAudio()}
@@ -47,7 +46,7 @@ el('bgm-mix').onclick=()=>{bgmPreview.pause();motif.pause();previewPlaying=false
 const timer=setInterval(()=>{
  const s=scene.qa.testState()
  if(!ready){el('load-detail').textContent=`正在準備畫面與音效 · ${s.audio?.loaded??0} / 48`;if(s.ready&&s.audio?.loaded===48){ready=true;el('loading').hidden=true;renderActions();el('load-detail').textContent='準備完成'}}
- el('bgm-state').textContent=s.audio?.bgm?`正在播放 ${s.audio.bgm.name} · 剩 ${Math.ceil(s.audio.bgm.remaining)} 秒`:`環境音留白 · 約 ${Math.max(0,Math.ceil((s.audio?.nextMusicAt??0)-(s.audio?.musicClock??0)))} 秒後選曲`
+ el('bgm-state').textContent=s.audio?.bgm?`正在播放 ${s.audio.bgm.name} · 剩 ${Math.ceil(s.audio.bgm.remaining)} 秒`:`正在準備配樂…`
  const sec=Math.floor(s.elapsed);el('elapsed').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`
  if(!previewPlaying)el('play-state').textContent=paused?'已暫停':current?s.finished?'播放完成，可重播或換一段':s.moving?'旅人正在移動':'動畫播放中':'選一段動作，開始試看'
 },100)

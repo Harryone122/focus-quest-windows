@@ -3,17 +3,22 @@ export interface CloudStoryPlan {
   visit: number
   opening: boolean
   items: readonly string[]
+  /** Permanent knowledge at this read; omitted by legacy presentation callers. */
+  knownClues?: readonly string[]
 }
+
+const needsFirst = (plan: CloudStoryPlan): boolean => plan.knownClues ? !plan.knownClues.includes('c01_first_tree') : plan.visit === 1
+const needsSecond = (plan: CloudStoryPlan): boolean => plan.knownClues ? plan.visit >= 2 : plan.visit === 2
 
 export function cloudStorySchedule(plan: CloudStoryPlan & { records: readonly string[] }): Array<{ at: number; evs: string[]; forced?: boolean }> {
   const schedule: Array<{ at: number; evs: string[]; forced?: boolean }> = []
   const has = (id: string) => plan.records.includes(id)
-  if (plan.visit === 1 && !has('c01_first_tree')) schedule.push(plan.opening
+  if (needsFirst(plan) && !has('c01_first_tree')) schedule.push(plan.opening
     ? { at: 40, evs: has('story_opening_a') ? ['opening_b'] : ['opening_a', 'opening_b'], forced: true }
     : { at: 240, evs: ['notebook_a', 'notebook_b'] })
-  if (plan.visit === 2) {
-    if (!has('c01_stele_scale')) schedule.push({ at: 60, evs: ['stele'] })
-    if (!has('h1a')) schedule.push({ at: 1260, evs: ['well'] })
+  if (needsSecond(plan)) {
+    if (!has('c01_stele_scale') && !plan.knownClues?.includes('c01_stele_scale')) schedule.push({ at: 60, evs: ['stele'] })
+    if (!has('h1a') && !plan.knownClues?.includes('h1a')) schedule.push({ at: 1260, evs: ['well'] })
   }
   if (plan.items.includes('wind_whistle') && !has('item_whistle')) schedule.push({ at: 150, evs: ['whistle'] })
   if (plan.items.includes('charcoal_paper') && !has('c01_rubbing')) schedule.push({ at: 330, evs: ['rubbing'] })
@@ -32,13 +37,15 @@ export function cloudStoryEventTimes(plan: CloudStoryPlan, plannedSeconds: numbe
 
 export function cloudStoryClueTimes(plan: CloudStoryPlan, plannedSeconds: number): Record<string, { earliest: number; fallback: number }> {
   const times: Record<string, { earliest: number; fallback: number }> = {}
-  if (plan.visit === 1) {
+  if (needsFirst(plan)) {
     times.c01_first_tree = plan.opening ? { earliest: 40, fallback: 130 } : { earliest: 240, fallback: 340 }
+  }
+  if (plan.knownClues ? !plan.knownClues.includes('c01_bark_date') : plan.visit === 1) {
     times.c01_bark_date = { earliest: plannedSeconds, fallback: plannedSeconds + 46 }
   }
-  if (plan.visit === 2) {
-    times.c01_stele_scale = { earliest: 60, fallback: 140 }
-    times.h1a = { earliest: 1260, fallback: 1400 }
+  if (needsSecond(plan)) {
+    if (!plan.knownClues?.includes('c01_stele_scale')) times.c01_stele_scale = { earliest: 60, fallback: 140 }
+    if (!plan.knownClues?.includes('h1a')) times.h1a = { earliest: 1260, fallback: 1400 }
   }
   if (plan.items.includes('charcoal_paper')) times.c01_rubbing = { earliest: 330, fallback: 450 }
   if (plan.items.includes('pressed_leaf')) times.c01_tag = { earliest: 1320, fallback: 1450 }

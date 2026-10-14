@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-14",
+  "approved": true,
+  "approvalSource": "User answered the three audition questions: 25%, 1.5倍, 全部可接受，可以接進場景",
+  "musicPercent": 25,
+  "environmentPercent": 35,
+  "windRockRate": 1.5,
+  "murmurGainDb": 9,
+  "murmurApprovalSource": "User listened to murmur-only +6/+9 dB review and chose +9 dB on 2026-10-14",
+  "humDistortionAccepted": true,
+  "swellAndBirdFlushAccepted": true,
+  "scope": "Area 05 audio and BGM; no other map sounds or exploration backend redesign"
+}

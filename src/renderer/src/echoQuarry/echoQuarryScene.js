@@ -1,9 +1,14 @@
+import { advanceAnimation } from '../animationSteps';
+import { createQuarryAudio } from './quarryAudio';
 import { advanceBellPendulum } from './bellPendulum';
 import { createTravelLoading } from '../loading/travelLoadingDrawing';
 import * as ThreeLib from '../cloudRuins/vendor/three.module.js';
 // Area 05 v10 geometry, materials, routes and animation port. No prototype panel or global test API.
 export async function createEchoQuarryScene(host, opts) {
 const THREE=ThreeLib;
+const audio=createQuarryAudio();
+function sound(kind,payload){audio.cue(kind,payload);}
+let audioStep=-1;
 const window={}, realDocument=globalThis.document, nodes=new Map(), listeners=[];
 let dead=false, raf=0, lastFrameAt=performance.now(), pendingEvent=null, storyDone=null, stoneOwned=false;
 const document={createElement:realDocument.createElement.bind(realDocument),body:host,getElementById(id){if(!nodes.has(id)){const el=realDocument.createElement('div');el.id=id;nodes.set(id,el);}return nodes.get(id);}};
@@ -80,7 +85,8 @@ const SPIRE = [5.2, 10.6];
 const CHIME1 = [0.9, -1.5, Math.PI / 4 - 0.25], HORN1 = [14.6, 0.2, Math.atan2(7.6 - 14.6, 9.6 - 0.2)], LAMP1 = [-2.6, -0.2]; // v10: moved out from behind the bell tower
 const STAGE = { x0: 4.6, x1: 11.6, z0: 7.0, z1: 13.5, y: 0.6, bz: 10.25 }; // the bell pavilion's stage over the abyss
 const FALL_TH = 3.06;
-const RIVER = [[-19, 9.4], [-14.5, 10.3], [-10.0, 11.5], [-5.7, 12.6], [-2.0, 13.1], [12 + Math.cos(FALL_TH) * (rimR(FALL_TH) + 0.05), 12 + Math.sin(FALL_TH) * (rimR(FALL_TH) + 0.05)]]; // the river reaches the rim level and drops straight off the cliff edge
+const RIVER = [[-19, 9.4], [-14.5, 10.3], [-10.0, 11.5], [-5.7, 12.6], [-2.0, 13.1], [12 + Math.cos(FALL_TH) * rimR(FALL_TH), 12 + Math.sin(FALL_TH) * rimR(FALL_TH)]]; // river and curtain share the same lip
+function riverWidth(along) { return 0.5+along*0.13; }
 function riverDist(x, z) { let best = 1e9, bt = 0; for (let i = 0; i < RIVER.length - 1; i++) { const [ax, az] = RIVER[i], [bx, bz] = RIVER[i + 1]; const vx = bx - ax, vz = bz - az; let t = ((x - ax) * vx + (z - az) * vz) / (vx * vx + vz * vz); t = Math.max(0, Math.min(1, t)); const d = Math.hypot(x - ax - vx * t, z - az - vz * t); if (d < best) { best = d; bt = i + t; } } return [best, bt]; }
 function H(x, z) {
   const dx = x - HC[0], dz = z - HC[1], r = Math.hypot(dx, dz), th = Math.atan2(dz, dx), e = r - rimR(th);
@@ -105,11 +111,23 @@ function H(x, z) {
   return h;
 }
 const topAt = (x, z) => H(x, z);
+// Keep the rendered riverbed below the centreline water sheet, including the lip.
+// A grid-cell margin prevents interpolated bank triangles from piercing the water.
+function riverbedHeight(x, z) {
+  const height = H(x, z), [distance, along] = riverDist(x, z);
+  const width = riverWidth(along), margin = 0.5;
+  if (distance >= width + margin) return height;
+  const k = Math.min(RIVER.length - 2, Math.floor(along)), t = along - k;
+  const a = RIVER[k], b = RIVER[k + 1];
+  const bed = H(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) - 0.25;
+  const blend = Math.max(0, Math.min(1, (width + margin - distance) / 0.25));
+  return height - Math.max(0, height - bed) * blend;
+}
 function buildOutdoor() {
   // ---- terrain mesh (flat-shaded, coloured by slope / height) ----
   const X0 = -24, X1 = 50, Z0 = -24, Z1 = 50, S = 0.5;
   const nx = Math.round((X1 - X0) / S), nz = Math.round((Z1 - Z0) / S);
-  const hg = []; for (let i = 0; i <= nx; i++) { hg[i] = []; for (let j = 0; j <= nz; j++) hg[i][j] = H(X0 + i * S, Z0 + j * S); }
+  const hg = []; for (let i = 0; i <= nx; i++) { hg[i] = []; for (let j = 0; j <= nz; j++) hg[i][j] = riverbedHeight(X0 + i * S, Z0 + j * S); }
   window.__T = { hg, X0, Z0, S, nx, nz }; const P = [], CO = [];
   const ROCK = C('#a6a29e'), ROCK2 = C('#938f8f'), STAIN = C('#a8968a'), CUTC = C('#d3cec6');
   const GR = [C('#93a061'), C('#86955a'), C('#a3a96a'), C('#c4b47c')], LEDGE = C('#6e8656'), GRAVEL = C('#c8c2b8');
@@ -293,9 +311,16 @@ function buildOutdoor() {
   const waterM = new THREE.MeshStandardMaterial({ color: '#4f98a5', roughness: 0.06, metalness: 0.2, transparent: true, opacity: 0.9, emissive: '#244f58', emissiveIntensity: 0.3 });
   { const pts = []; for (let i = 0; i < RIVER.length - 1; i++) { const [x0, z0] = RIVER[i], [x1, z1] = RIVER[i + 1]; const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.25); for (let k = 0; k < n; k++) pts.push([x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n, i + k / n]); }
     pts.push([...RIVER[RIVER.length - 1], RIVER.length - 1]);
-    const V = [], F = []; let SS = 0; for (let i = 0; i < pts.length - 1; i++) { const [x0, z0, t0] = pts[i], [x1, z1, t1] = pts[i + 1]; const tx = x1 - x0, tz = z1 - z0, L = Math.hypot(tx, tz), nx_ = -tz / L, nz_ = tx / L;
-      const w0 = 0.5 + t0 * 0.13, w1 = 0.5 + t1 * 0.13, y0 = H(x0, z0) + 0.32, y1 = H(x1, z1) + 0.32;
-      const a1 = [x0 + nx_ * w0, y0, z0 + nz_ * w0], b1 = [x0 - nx_ * w0, y0, z0 - nz_ * w0], c1 = [x1 + nx_ * w1, y1, z1 + nz_ * w1], d1 = [x1 - nx_ * w1, y1, z1 - nz_ * w1];
+    // Adjacent strips share their cross-section at bends: no overlapping triangles.
+    const edges = pts.map(([x, z, t], i) => {
+      const prev = pts[Math.max(0, i - 1)], next = pts[Math.min(pts.length - 1, i + 1)];
+      const dx = next[0] - prev[0], dz = next[1] - prev[1], L = Math.hypot(dx, dz);
+      const w = riverWidth(t), y = H(x, z) + 0.32;
+      return [[x - dz/L*w, y, z + dx/L*w], [x + dz/L*w, y, z - dx/L*w]];
+    });
+    const V = [], F = []; let SS = 0; for (let i = 0; i < pts.length - 1; i++) {
+      const L = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+      const [a1, b1] = edges[i], [c1, d1] = edges[i + 1];
       V.push(...a1, ...b1, ...c1, ...b1, ...d1, ...c1); F.push(SS, 1, SS, -1, SS + L, 1, SS, -1, SS + L, -1, SS + L, 1); SS += L; }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(V, 3)); g.setAttribute('aFlow', new THREE.Float32BufferAttribute(F, 2)); g.computeVertexNormals(); window.__riverLen = SS;
     const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: '#4f98a5', roughness: 0.06, metalness: 0.2, transparent: true, opacity: 0.9, emissive: '#244f58', emissiveIntensity: 0.3, side: THREE.DoubleSide })); m.receiveShadow = true; out.add(m); }
@@ -626,7 +651,8 @@ function say(t) { statusEl.textContent = t; opts.reportActivity?.(t); const c = 
 
 /* ---------- lamps, sim clock, looks ---------- */
 let speed = 6, sim = 0, playing = false, tAcc = 0, timeMode = 'auto', started = false;
-const rate = () => speed / 6;
+// The prototype used 6x exploration as its reference. Normal exploration must not slow the traveller to one sixth.
+const rate = () => Math.max(1, speed / 6);
 const dueOf = (k) => (k + 1) * (PLANNED / 5); // k=0..4
 const lampsDue = () => Math.min(5, Math.floor(sim / (PLANNED / 5) + 1e-6));
 const LAMPNODE = window.__lamps.map(l => { const b = bestStand({ p: [l.x + 0.8, l.z + 0.8], look: [l.x, l.z], maxLook: 1.9 }); return { p: [b.x, b.z], look: [l.x, l.z], occ: !!b.oc }; });
@@ -688,7 +714,7 @@ function updateSound(dt) {
   dustM.uniforms.uPx.value = renderer.domElement.height / ((cam.top - cam.bottom) / cam.zoom);
   // the hidden stone in the cave hums: a slow, faint, cool breath of sound from the mouth every few seconds
   updateSound.cave = (updateSound.cave || 2) - dt; if (updateSound.cave <= 0) { updateSound.cave = 6.5 + Math.random() * 2;
-    if (caveLure && !caveCalling && tAcc - caveLure.at > 4 && !inCave && backend('mouth')) { caveCalling = true; const E = CAVE.ECHO[caveLure.kind]; pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 4.2, dur: 3.6, amp: 0.5, col: '#ffe4bf', dust: 10 }); pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 3.4, r0: 0.3, dur: 2.6, amp: 0.3, delay: 1.0, col: '#c4e2ff', dust: 0 }); if (TR.mode !== 'light') say(`共鳴洞的洞口傳出一聲回音，像剛才的${E.name}。`); }
+    if (caveLure && !caveCalling && tAcc - caveLure.at > 4 && !inCave && backend('mouth')) { caveCalling = true;sound('mouthEcho',{echo:caveLure.kind});const E = CAVE.ECHO[caveLure.kind]; pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 4.2, dur: 3.6, amp: 0.5, col: '#ffe4bf', dust: 10 }); pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 3.4, r0: 0.3, dur: 2.6, amp: 0.3, delay: 1.0, col: '#c4e2ff', dust: 0 }); if (TR.mode !== 'light') say(`共鳴洞的洞口傳出一聲回音，像剛才的${E.name}。`); }
     else pulse(CAVE_MOUTH[0], CAVE_MOUTH[1], CAVE_MOUTH[2], { R: 3.2, dur: 3.4, amp: 0.32, col: '#c4e2ff', dust: 8 }); }
 }
 // where things sound from
@@ -702,12 +728,13 @@ const worldHorn = (hx, hz, ry, s) => [hx + Math.sin(ry) * 1.05 * s, H(hx, hz) + 
    never after the five lamps (resting), and only when the next lamp is far enough away for the whole visit (~3 min of focus) plus the walk to it. */
 const VISIT_EFF = 200; // effective seconds a visit takes (walk in 11 units, listen ~7 s, walk out), measured on the focus clock
 let caveLure = null, caveCalling = false, caveVisits = 0, fade = null;
-function lampFromMouthEff(){const k=Math.min(4,Math.floor(sim/600)),saved={x:TR.x,z:TR.z,leave:TR.leave};const p=caveAxis(1);TR.x=p[0];TR.z=p[1];TR.leave=[];const route=planToXZ(...LAMPNODE[k].p);Object.assign(TR,saved);return route?plen(route)/V_WALK*6+13.2:Infinity;}
+function lampFromMouthEff(){const k=Math.min(4,Math.floor(sim/600)),saved={x:TR.x,z:TR.z,leave:TR.leave};const p=caveAxis(1);TR.x=p[0];TR.z=p[1];TR.leave=[];const route=planToXZ(...LAMPNODE[k].p);Object.assign(TR,saved);return route?plen(route)/V_WALK*speed/rate()+13.2:Infinity;}
 function budget(walkEff=0){return {now:sim,walkToMouth:walkEff,walkToLamp:lampFromMouthEff(),resting:TR.done||TR.lit>=5};}
 function caveOK(walkEff=0){return !inCave&&!pendingEvent&&!!backend('fits',budget(walkEff));}
 const SOUND_OF = { 1: 'chime', 3: 'echo', 5: 'bell', 6: 'wind', 13: 'wall' };
 let swayChime = 0, bellSwing = 0, bellStrikes = 0, bellCool = 0, windSim = 0, wind = 0, windFirst = true, gondolaBoost = 0, cageBoost = 0;
 function actFx(id) {
+  const cue={1:'chime',3:'clap',6:'windRock',13:'wall',14:'cart',15:'crane',17:'winch'}[id];if(cue)sound(cue);
   const S0 = SOURCES[0]; if(SOUND_OF[id] && !caveCalling && caveVisits<1){backend('sound',{kind:SOUND_OF[id]});caveLure={kind:SOUND_OF[id],at:tAcc};}
   switch (id) {
     case 1: swayChime = 1; pulse(S0.x, S0.y, S0.z, { R: 2.6, amp: 0.85, delay: 0.15 }); pulse(S0.x, S0.y, S0.z, { R: 3.4, amp: 0.55, delay: 1.25, col: '#cfe6ff', dur: 2.2 }); break; // one strike, two notes come back
@@ -866,7 +893,7 @@ const BELL = (() => {
   [-0.55, 0.55].forEach(px => cyl(piv, 0.016, 0.016, DROP, 4, ropeMat, px, -DROP / 2, 0)); cyl(log, 0.014, 0.014, 0.9, 4, ropeMat, LOGL / 2 - 0.05, -0.45, 0);
   const st = { th: 0, v: 0, sway: 0, swayV: 0, queue: 0, cool: 0, rung: 0, waveT: -99, waveC: new THREE.Vector3(P.x, seatY, P.z) };
   const HIT = Math.asin(GAP / DROP);
-  function strike(k) { st.rung++; st.waveT = tAcc; const c = st.waveC;
+  function strike(k) { sound('bell',{strength:k});st.rung++; st.waveT = tAcc; const c = st.waveC;
     pulse(c.x, c.y, c.z, { R: 15 * k, dur: 4.6, amp: 0.6 * k, r0: 1.2, dust: 60, col: '#ffe4bf' }); pulse(c.x, c.y, c.z, { R: 22 * k, dur: 6.5, amp: 0.25 * k, r0: 1.2, delay: 0.35, dust: 0, col: '#d8e8ff' });
     st.swayV -= 0.06 * k; (window.__birds || []).forEach(b => b.boost = 1); }
   function update(dt) {
@@ -878,7 +905,7 @@ const BELL = (() => {
     (window.__futaku || []).forEach(f => { f.hb.rotation.x = Math.sin(tAcc * 1.3 + f.ph) * (0.03 + 0.28 * wind); f.hb.rotation.z = Math.sin(tAcc * 1.1 + f.ph * 2) * (0.02 + 0.2 * wind); });
     lanterns.forEach((L, i) => { const f = 1 + Math.sin(tAcc * 6.1 + i * 2) * 0.05; L.lm.emissiveIntensity = (0.3 + 1.3 * cur.lamp) * f; L.l.intensity = (0.15 + 1.1 * cur.lamp) * f; });
   }
-  return { g, P, st, update, ring(n) { st.queue += n; }, pull() { st.queue = Math.max(st.queue, 1); }, stand: [P.x + 0.95, P.z + GX - 0.35] };
+  return { g, P, st, update, ring(n) { st.queue += n; }, pull() { sound('pull');st.queue = Math.max(st.queue, 1); }, stand: [P.x + 0.95, P.z + GX - 0.35] };
 })();
 if (window.__bell) window.__bell.visible = false; // the old small bell on the spire is retired
 const collar = []; for (let k = 0; k < 10; k++) { const a = k / 10 * 6.283; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: '#f6ecdf', transparent: true, opacity: 0, depthWrite: false })); sp.position.set(8.1 + Math.cos(a) * 4.2, -6.8 + (k % 3) * 0.7, 9.6 + Math.sin(a) * 3.4); sp.scale.set(7.5, 2.6, 1); out.add(sp); collar.push({ sp, ph: k * 0.9, x: sp.position.x }); }
@@ -914,6 +941,20 @@ function curtain(w, outOff, lat0, alpha, speed, seed, cols = 22, rows = 40) {
   const m = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uSpeed: { value: speed }, uAlpha: { value: alpha }, uSeed: { value: seed }, uTint: { value: new THREE.Color(1, 1, 1) } }, vertexShader: UV_VS, fragmentShader: CURTAIN_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(g, m); mesh.renderOrder = 2; mesh.frustumCulled = false; out.add(mesh); curtains.push(m); return mesh; }
 curtain(3.5, -0.05, 0, 0.75, 0.95, 1.3); curtain(3.0, 0.14, 0.1, 0.95, 1.12, 4.7); curtain(1.7, 0.34, 0.55, 0.7, 1.3, 8.1); curtain(1.1, 0.42, -0.85, 0.6, 1.22, 2.9);
+// Opaque blue water behind the original white sheets hides the cliff through their gaps.
+// Follow the falling water's arc; keep the authored river width unchanged.
+const fallBacking=curtain(3.5,-0.10,0,1,0.95,1.3);
+fallBacking.renderOrder=1;
+fallBacking.material.transparent=false;
+fallBacking.material.depthWrite=true;
+fallBacking.material.fragmentShader=NOISE_GLSL+`
+varying vec2 vUv; uniform float uTime; uniform vec3 uTint;
+void main(){
+  float flow=vn(vec2(vUv.x*10.,vUv.y*18.-uTime*1.8));
+  vec3 blue=mix(vec3(0.27,0.46,0.52),vec3(0.42,0.62,0.66),0.3+0.35*flow);
+  gl_FragColor=vec4(blue*uTint,1.);
+}`;
+fallBacking.material.needsUpdate=true;
 
 /* particles: droplets, spray and foam share one soft-point shader (sizes in world units, so they scale with the camera) */
 const PT_VS = `attribute float aSize; attribute float aAlpha; varying float vA; uniform float uPx;
@@ -974,9 +1015,10 @@ rainbow.position.set(PLUNGE[0] + fo[0] * 1.8, PLUNGE[1] + 1.4, PLUNGE[2] + fo[1]
 const RIV_VS = `attribute vec2 aFlow; varying vec2 vF; void main(){ vF = aFlow; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
 const RIV_FS = NOISE_GLSL + `
 varying vec2 vF; uniform float uTime, uLen; uniform vec3 uTint;
-void main(){ float s = vF.x, sd = vF.y; float rap = smoothstep(uLen - 4.5, uLen, s); float sp = 0.9 + 2.2 * rap;
-  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - uTime * sp)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - uTime * sp * 1.3) + 7.) * 0.4;
-  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - uTime * sp * 1.8)));
+void main(){ float s = vF.x, sd = vF.y; float rap = smoothstep(uLen - 7., uLen, s);
+  // Fixed advection keeps spatial frequency stable even after a full exploration.
+  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - uTime * 0.9)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - uTime * 1.17) + 7.) * 0.4;
+  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - uTime * 1.62)));
   float bank = smoothstep(0.6, 1., abs(sd));
   vec3 c = mix(vec3(0.27, 0.46, 0.52), vec3(0.42, 0.62, 0.66), 0.25 + 0.5 * n + 0.25 * bank);
   c = mix(c, vec3(0.90, 0.97, 0.97), clamp(st * 0.6 + bank * 0.35 * smoothstep(0.45, 0.8, n) + rap * 0.55 * smoothstep(0.35, 0.75, n), 0., 1.));
@@ -1004,7 +1046,7 @@ const caveAxis = (d) => { const g = window.__cave; return [g.position.x + Math.s
 function startWalk(path, goalId, why) { TR.path = path; TR.wi = 0; TR.goal = goalId; TR.mode = 'walk'; TR.why = why || 'wander'; }
 function spotNow() { return TR.spot; }
 function pickNext() {
-  if(caveCalling&&REACH[12]&&TR.spot!==12&&!pendingEvent){const pa=planTo(12);if(pa&&backend('choose',budget(plen(pa)/V_WALK*6)))return 12;}
+  if(caveCalling&&REACH[12]&&TR.spot!==12&&!pendingEvent){const pa=planTo(12);if(pa&&backend('choose',budget(plen(pa)/V_WALK*speed/rate())))return 12;}
   const cands = SPOT_IDS.filter(id => id !== TR.spot && REACH[id] && !TR.recent.includes(id) && id !== 4); if (!cands.length) return 4;
   const w = cands.map(id => 1); let tot = w.reduce((a, b) => a + b, 0), r = Math.random() * tot; if (window.__seededRand) { r = window.__seededRand() * tot; }
   for (let k = 0; k < cands.length; k++) { r -= w[k]; if (r <= 0) return cands[k]; } return cands[0]; }
@@ -1107,7 +1149,7 @@ function ambient(dt) {
   scene.fog.color.copy(cur.bot).convertSRGBToLinear();
 }
 let bellRung = 0; const SPY = () => H(SPIRE[0], SPIRE[1]);
-function startWind(first) { windSim = 60; if (first) { bellStrikes = 13; windFirst = false; } say(first ? '風穿過石縫。沒有人敲，鐘樓的大鐘自己響了起來。' : '山風從洞口與石縫吹過，整座採石場輕輕地嗡。'); }
+function startWind(first) { if(windSim<=0)sound('windStart');windSim = 60; if (first) { bellStrikes = 13; windFirst = false; } say(first ? '風穿過石縫。沒有人敲，鐘樓的大鐘自己響了起來。' : '山風從洞口與石縫吹過，整座採石場輕輕地嗡。'); }
 
 /* =====================================================================
    共鳴洞 · 洞內 (v9): a still, glowing pool under one shaft of light.
@@ -1318,7 +1360,7 @@ const CAVE = (() => {
   const waves = []; // mirror of the cave's pulses, so motes and leaves can feel the wavefront
   function cavePulse(x, y, z, o) { pulse(x, y, z, Object.assign({ parent: G, cut: WY + 0.005, dust: 0 }, o)); waves.push({ x, y, z, R: o.R, r0: o.r0 || 0.15, dur: o.dur || 1.8, t: -(o.delay || 0), push: o.push === undefined ? 1 : o.push, inward: !!o.inward }); }
   let humT = 3.0, stoneHere = true, glowBoost = 0, holeFlash = 0;
-  function hum(k = 1) { if (!stoneHere) return; cavePulse(CX, STONE_Y, CZ, { R: 5.2 * k, r0: 0.35, dur: 3.8, amp: 0.48 * k, col: '#bfe0ff', push: 0.8 * k }); ripple(CX, CZ, 0.7 * k); holeFlash = 1; glowBoost = Math.max(glowBoost, 0.6 * k); }
+  function hum(k = 1) { if (!stoneHere) return;sound(busy==='core'?'coreHum':'hum',{k}); cavePulse(CX, STONE_Y, CZ, { R: 5.2 * k, r0: 0.35, dur: 3.8, amp: 0.48 * k, col: '#bfe0ff', push: 0.8 * k }); ripple(CX, CZ, 0.7 * k); holeFlash = 1; glowBoost = Math.max(glowBoost, 0.6 * k); }
 
   /* ---------- traveller in the cave: follows a route of nodes, then acts ---------- */
   const SAVE = {}; let route = null, ri = 0, afterRoute = null; const V_CAVE = 0.95; let visiting = false, visitDone = null;
@@ -1347,38 +1389,39 @@ const CAVE = (() => {
   function evSecond() { // second visit: the first walk into the cave, a voice in the rock: "……柴都濕了。"
     resetCave(); busy = 'second'; standAt('E1', [NODES.E1[0], NODES.E1[1]]); camTo({ x: 6.5, y: 0.8, z: 2.6, vh: 12 }, 3); say('旅人走進共鳴洞。');
     walk(ROUTE_IN.slice(1), () => { act('cv_look', 2.4); camTo({ x: 0.2, y: 1.2, z: 3.2, vh: 13 }, 0.9); say('旅人在岔口停下，左邊的岩壁裡好像有聲音。');
-      timeline([[1.2, () => cavePulse(WALLP[0] + 0.6, 2.1, WALLP[1] + 0.1, { R: 2.2, r0: 0.3, dur: 2.4, amp: 0.22, col: '#e9dccb', push: 0.4 })],
+      timeline([[1.2, () => {sound('wallWarm');cavePulse(WALLP[0] + 0.6, 2.1, WALLP[1] + 0.1, { R: 2.2, r0: 0.3, dur: 2.4, amp: 0.22, col: '#e9dccb', push: 0.4 });}],
         [2.4, () => walk(ROUTE_WALL, () => { act('cv_wall', 1e9); TR.hd = Math.atan2(WALLP[0] - TR.x, WALLP[1] - TR.z); camTo({ x: (WALLP[0] + NODES.WL[0]) / 2 + 0.3, y: 1.7, z: (WALLP[1] + NODES.WL[1]) / 2 + 0.2, vh: 8.5 }, 0.7);
-          timeline([[1.4, () => { cavePulse(WALLP[0] + 0.35, 1.9, WALLP[1] + 0.06, { R: 1.8, r0: 0.25, dur: 2.6, amp: 0.3, col: '#efdcc4', push: 0.5 }); sub('……柴都濕了。', 4.2); say('岩壁裡有人低低地說了一句話。'); }],
+          timeline([[1.4, () => { sound('murmur');cavePulse(WALLP[0] + 0.35, 1.9, WALLP[1] + 0.06, { R: 1.8, r0: 0.25, dur: 2.6, amp: 0.3, col: '#efdcc4', push: 0.5 }); sub('……柴都濕了。', 4.2); say('岩壁裡有人低低地說了一句話。'); }],
             [2.6, () => cavePulse(WALLP[0] + 0.35, 1.9, WALLP[1] + 0.06, { R: 2.6, r0: 0.25, dur: 3.2, amp: 0.16, col: '#efdcc4', push: 0.3 })],
             [6.2, () => { toast('<b>永久線索 h2c</b>　共鳴洞的岩壁裡有人說話：「……柴都濕了。」'); camTo(HOME, 0.8); act('cv_look', 1e9); busy='';say('旅人在封住的牆前站了很久。');if(storyDone)walk([...ROUTE_WALL].reverse().concat([...ROUTE_IN].reverse().slice(1,-1)),finishStory); }]]); })]]); }); }
   function evWhistle() { // copper wind-whistle (04): blown at the wind-hole crag outside; in here the sealed wall hums
     if (busy) return; busy = 'whistle'; camTo({ x: WALLP[0] + 2.6, y: 2.0, z: WALLP[1] + 0.6, vh: 10 }, 1.1); say('外面的風孔岩傳來風哨聲。');
-    timeline([[0.9, () => { for (let k = 0; k < 4; k++) cavePulse(WALLP[0] + 0.45, 2.2, WALLP[1] + 0.07, { R: 3.4 + k * 0.4, r0: 0.6, dur: 2.8, amp: 0.42 - k * 0.06, delay: k * 0.75, col: '#eadfce', push: 0.7 }); shakeGrit(30); wallBuzz = 3.6; say('封住的牆跟著嗡了起來，像後面是空的。'); }],
+    timeline([[0.9, () => { sound('whistle');for (let k = 0; k < 4; k++) cavePulse(WALLP[0] + 0.45, 2.2, WALLP[1] + 0.07, { R: 3.4 + k * 0.4, r0: 0.6, dur: 2.8, amp: 0.42 - k * 0.06, delay: k * 0.75, col: '#eadfce', push: 0.7 }); shakeGrit(30); wallBuzz = 3.6; say('封住的牆跟著嗡了起來，像後面是空的。'); }],
       [2.5, () => shakeGrit(30)], [4.6, () => { toast('<b>信物：銅製風哨</b>　風哨一響，洞裡有一面牆跟著嗡，那後面是空的。'); camTo(HOME,.8);busy='';if(storyDone)finishStory();}]]);}
   let wallBuzz = 0;
   function evCore() { // the map core: blue light, the stone shrinks into the luggage
     stoneOwned=false;resetCave();busy='core';standAt('E1',[NODES.L0[0],NODES.L0[1]]); camTo({ x: 0.0, y: 1.0, z: 0.4, vh: 12 }, 1.2); say('旅人走向光柱下的石壇。');
     walk(ROUTE_IN.slice(1).concat(ROUTE_STONE.slice(1)), () => { act('cv_stone', 1e9); TR.hd = Math.atan2(CX - TR.x, CZ - TR.z); camTo({ x: CX + 0.35, y: 1.45, z: CZ + 0.35, vh: 7.5 }, 0.9); humT = 99;
+      sound('coreStart',{timelineRate:rate()});
       timeline([[0.6, () => { hum(1.0); say('藏聲石亮了起來，一聲比一聲急。'); }], [1.5, () => hum(1.1)], [2.2, () => hum(1.25)], [2.7, () => { ascend = 1; }],
-        [3.6, () => { cavePulse(CX, STONE_Y + 0.4, CZ, { R: 15, r0: 0.5, dur: 4.4, amp: 1.0, col: '#5fa8ff', push: 2.2 }); cavePulse(CX, STONE_Y + 0.4, CZ, { R: 22, r0: 0.5, dur: 6, amp: 0.4, delay: 0.35, col: '#8cc4ff', push: 0 }); ripple(CX, CZ, 1.6); flash = 1; say('一道藍光從石頭裡湧出來，整座洞都亮了。'); }],
+        [3.6, () => { sound('coreWave');cavePulse(CX, STONE_Y + 0.4, CZ, { R: 15, r0: 0.5, dur: 4.4, amp: 1.0, col: '#5fa8ff', push: 2.2 }); cavePulse(CX, STONE_Y + 0.4, CZ, { R: 22, r0: 0.5, dur: 6, amp: 0.4, delay: 0.35, col: '#8cc4ff', push: 0 }); ripple(CX, CZ, 1.6); flash = 1; say('一道藍光從石頭裡湧出來，整座洞都亮了。'); }],
         [5.0, () => { shrinkT = 0; camTo({ x: CX + 0.6, y: 1.4, z: CZ + 0.6, vh: 9 }, 0.8); }],
-        [7.6, () => { stoneHere=false;stoneOwned=true;VS.visible=false;ascend=0; cavePulse(packPos.x, packPos.y, packPos.z, { R: 1.4, r0: 0.1, dur: 1.4, amp: 0.6, col: '#9fd2ff', push: 0.3 }); say('藏聲石縮成一顆小石子，收進了旅人的行李。'); }],
+        [7.6, () => { sound('coreMotif');stoneHere=false;stoneOwned=true;VS.visible=false;ascend=0; cavePulse(packPos.x, packPos.y, packPos.z, { R: 1.4, r0: 0.1, dur: 1.4, amp: 0.6, col: '#9fd2ff', push: 0.3 }); say('藏聲石縮成一顆小石子，收進了旅人的行李。'); }],
         [9.6, () => { toast('<b>地圖核心：藏聲石</b>　會留住聲音的石頭，收進了行李。'); camTo(HOME, 0.7); act('cv_look',1e9);busy='';if(storyDone)walk([...ROUTE_STONE].reverse().concat([...ROUTE_IN].reverse().slice(1,-1)),finishStory);}]]);});}
   // 聽回音: the stone keeps the sounds made in the valley and lets them out again. The traveller walks in as far as the fork,
   // listens to his own sound come back from the stone, and walks out. He never crosses the sacred rope: the stone has not answered him.
   const ECHO = {
     chime: { name: '石磬', line: '藏聲石放出兩個音，正是剛才石磬的那一下。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.2, r0: 0.3, dur: 2.6, amp: 0.55, col: '#ffe4bf', push: 0.8 }); cavePulse(CX, STONE_Y, CZ, { R: 5.2, r0: 0.3, dur: 3.2, amp: 0.4, delay: 1.2, col: '#cfe6ff', push: 0.6 }); } },
-    echo: { name: '巨石的回聲', line: '藏聲石把旅人剛才喊的那一聲，慢慢地還了回來。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.0, r0: 0.3, dur: 2.4, amp: 0.5, col: '#ffe4bf', push: 0.7 }); cavePulse(CX, STONE_Y, CZ, { R: 4.4, r0: 0.4, dur: 1.8, amp: 0.4, delay: 1.6, inward: true, col: '#cfe6ff', push: 0 }); } },
+    echo: { name: '巨石的回聲', line: '藏聲石把旅人剛才拍手的那一聲，慢慢地還了回來。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.0, r0: 0.3, dur: 2.4, amp: 0.5, col: '#ffe4bf', push: 0.7 }); cavePulse(CX, STONE_Y, CZ, { R: 4.4, r0: 0.4, dur: 1.8, amp: 0.4, delay: 1.6, inward: true, col: '#cfe6ff', push: 0 }); } },
     bell: { name: '鐘聲', line: '藏聲石低低地放出一聲鐘響，是鐘樓那一下。', play: () => { cavePulse(CX, STONE_Y + 0.2, CZ, { R: 9.5, r0: 0.6, dur: 4.6, amp: 0.55, col: '#ffe4bf', push: 1.2 }); cavePulse(CX, STONE_Y + 0.2, CZ, { R: 13, r0: 0.6, dur: 6, amp: 0.22, delay: 0.4, col: '#d8e8ff', push: 0 }); ripple(CX, CZ, 0.9); } },
-    wind: { name: '風孔岩的嗚聲', line: '藏聲石裡傳出風穿過孔洞的嗚嗚聲。', play: () => { for (let k = 0; k < 3; k++) cavePulse(CX, STONE_Y, CZ, { R: 3.6 + k * 0.5, r0: 0.4, dur: 2.6, amp: 0.36, delay: k * 0.7, col: '#e2ddd2', push: 0.5 }); } },
+    wind: { name: '風孔岩的嗚聲', line: '藏聲石裡傳出風穿過孔洞的一聲長嗚。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.2, r0: 0.4, dur: 3.3, amp: 0.36, col: '#e2ddd2', push: 0.5 }); } },
     wall: { name: '聲壁', line: '藏聲石悶悶地響了一下，像剛才敲聲壁的那一聲。', play: () => { cavePulse(CX, STONE_Y, CZ, { R: 4.6, r0: 0.5, dur: 2.4, amp: 0.5, col: '#ead9c0', push: 0.8 }); } }
   };
   function visit(kind, onDone) { // called by the outdoor runtime after the traveller has walked into the cave mouth
     enter('visit'); visiting = true; visitDone = onDone; busy = 'visit'; standAt('E1', [NODES.L0[0], NODES.L0[1]]); camTo(HOME, 1.0); Object.assign(camC, HOME); humT = 99;
     const E = ECHO[kind] || ECHO.chime; say('旅人循著回音走進共鳴洞。');
     walk(['E1', 'L0', 'B1', 'B2', 'J'], () => { act('cv_wall', 1e9); TR.spot = 'cv_listen'; TR.hd = Math.atan2(CX - TR.x, CZ - TR.z); camTo({ x: 0.6, y: 0.6, z: 0.9, vh: 12.5 }, 0.8);
-      timeline([[1.0, () => { E.play(); holeFlash = 1; glowBoost = 0.7; say(E.line); }], [7.0, () => { camTo(HOME, 0.8); humT = 3; walk(['J', 'B2', 'B1', 'L0', 'E1'], () => { const f = visitDone; visitDone = null; busy = ''; if (f) f(); }); }]]); }); }
+      timeline([[1.0, () => { sound('caveEcho',{echo:kind});E.play(); holeFlash = 1; glowBoost = 0.7; say(E.line); }], [7.0, () => { camTo(HOME, 0.8); humT = 3; walk(['J', 'B2', 'B1', 'L0', 'E1'], () => { const f = visitDone; visitDone = null; busy = ''; if (f) f(); }); }]]); }); }
   let ascend = 0, shrinkT = -1; const packPos = new THREE.Vector3(), _sp = new THREE.Vector3();
 
   /* ---------- enter / leave ---------- */
@@ -1446,7 +1489,7 @@ const CAVE = (() => {
     faller.next -= dt; if (!faller.on && faller.next <= 0) { faller.on = true; const p = new THREE.Vector3().lerpVectors(SH_T, SH_O, 0.5); faller.x = p.x + 0.8; faller.y = p.y; faller.z = p.z + 0.6; faller.t = 0; }
     if (faller.on) { faller.t += dt; faller.y -= dt * 0.55; faller.x += (Math.sin(faller.t * 1.7) * 0.5 + 0.12) * dt; faller.z += (Math.cos(faller.t * 1.3) * 0.4 + 0.18) * dt;
       _q.position.set(faller.x, faller.y, faller.z); _q.rotation.set(Math.sin(faller.t * 2.3) * 0.9, faller.t * 1.4, Math.cos(faller.t * 1.9) * 0.7); _q.scale.setScalar(1.2); _q.updateMatrix(); leafI.setMatrixAt(LEAFN, _q.matrix);
-      if (faller.y <= 0.015) { faller.on = false; faller.next = 10 + Math.random() * 8; ripple(faller.x, faller.z, 0.35); let far = 0, fd = -1; lv.forEach((L, i) => { const d = Math.hypot(L.x - CX, L.z - CZ); if (d > fd) { fd = d; far = i; } });
+      if (faller.y <= 0.015) { faller.on = false; faller.next = 10 + Math.random() * 8;sound('leaf');ripple(faller.x, faller.z, 0.35); let far = 0, fd = -1; lv.forEach((L, i) => { const d = Math.hypot(L.x - CX, L.z - CZ); if (d > fd) { fd = d; far = i; } });
         if (distPath(faller.x, faller.z) > 0.8 && Math.hypot(faller.x - CX, faller.z - CZ) > 3) { lv[far].x = faller.x; lv[far].z = faller.z; } _q.scale.setScalar(0); _q.updateMatrix(); leafI.setMatrixAt(LEAFN, _q.matrix); } }
     else { _q.scale.setScalar(0); _q.updateMatrix(); leafI.setMatrixAt(LEAFN, _q.matrix); }
     leafI.instanceMatrix.needsUpdate = true;
@@ -1488,7 +1531,7 @@ const $ = id => document.getElementById(id), statusEl=$('status');
 const fadeEl=document.createElement('div'); fadeEl.style.cssText='position:absolute;inset:0;background:#05080a;opacity:0;pointer-events:none;z-index:5';document.body.appendChild(fadeEl);const travelLoader=createTravelLoading();travelLoader.hidden=true;document.body.appendChild(travelLoader);
 const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s)%60).padStart(2,'0');
 function startPlay(){playing=true;if(!started){started=true;place(...NAV[startSpot].tgt);TR.hd=0;TR.mode='idle';TR.dwell=.6;say('旅人從瀑布邊的木棧道走上來。');}}
-function resetAll(){if(inCave)CAVE.leave('visit'); CAVE.reset(); sim=0;tAcc=0;TR.lit=0;TR.done=false;TR.recent=[];TR.leave=[];TR.spot=0;TR.goal=null;TR.why='wander';TR.mode='idle';TR.dwell=.4;started=false;playing=false;windSim=0;wind=0;bellStrikes=0;windFirst=true;caveLure=null;caveCalling=false;caveVisits=0;fade=null;fadeEl.style.opacity=0;pendingEvent=null;storyDone=null;place(...NAV[startSpot].tgt);}
+function resetAll(){audio.reset();audioStep=-1;if(inCave)CAVE.leave('visit'); CAVE.reset(); sim=0;tAcc=0;TR.lit=0;TR.done=false;TR.recent=[];TR.leave=[];TR.spot=0;TR.goal=null;TR.why='wander';TR.mode='idle';TR.dwell=.4;started=false;playing=false;windSim=0;wind=0;bellStrikes=0;windFirst=true;caveLure=null;caveCalling=false;caveVisits=0;fade=null;fadeEl.style.opacity=0;pendingEvent=null;storyDone=null;place(...NAV[startSpot].tgt);}
 function goSpot(id, rest){if(inCave||pendingEvent||TR.why==='cave')return false;const pa=planTo(id);if(!pa)return false;startPlay();startWalk(pa,id,rest?'rest':'goto');return true;}
 const dots=[];
 /* ---------- main update ---------- */
@@ -1503,6 +1546,10 @@ function update(dt,fadeDt=dt) {
   const due = lampsDue(); dots.forEach((d, i) => d.classList.toggle('on', i < due)); $('lampCount').textContent = due + ' / 5'; $('clockNow').textContent = fmt(sim);
   const ph = (sim % DAYLEN) / DAYLEN, nm = timeMode === 'auto' ? (ph < 0.09 || ph >= 0.95 ? '晨霧' : ph < 0.4 ? '白天' : ph < 0.6 ? '薄暮' : '夜') : { dawn: '晨霧', day: '白天', dusk: '薄暮', night: '夜' }[timeMode];
   $('sky').innerHTML = `<b style="color:var(--ink);font-weight:600">晴</b> · ${nm}${wind > 0.3 ? ' · 山風石歌' : ''}`;
+  const walking=playing&&TR.mode==='walk',step=Math.floor(TR.phase/Math.PI);
+  if(walking&&audioStep>=0&&step!==audioStep)sound((inCave?Math.abs(TR.y-.32)<.12:TR.y>H(TR.x,TR.z)+.12)?'woodStep':'stoneStep');
+  audioStep=walking?step:-1;
+  audio.update({playing,inactive:opts.inactive?.()??globalThis.document.hidden,inCave,period:timeMode==='auto'?(ph<.09||ph>=.95?'dawn':ph<.4?'day':ph<.6?'dusk':'night'):timeMode,saw:!inCave&&TR.mode==='act'&&TR.spot===7,ropeway:gondolaBoost,winch:cageBoost,wind:windSim});
   camera_update(dt);
 }
 
@@ -1522,7 +1569,7 @@ SPOT_IDS.forEach(id => { REACH[id] = !!NAV[id].tgt && !!planTo(id, NAV[startSpot
 resetAll();
 
 function draw(){if(inCave)CAVE.renderReflection();renderer.render(scene,cam);}
-function tick(){const now=performance.now(),elapsed=Math.max(0,(now-lastFrameAt)/1000),dt=Math.min(.05,elapsed);lastFrameAt=now;update(dt,Math.min(.25,elapsed));draw();}
+function tick(){const now=performance.now(),elapsed=Math.max(0,(now-lastFrameAt)/1000);lastFrameAt=now;advanceAnimation(elapsed,dt=>update(dt));draw();}
 let automatic=true;function frame(){if(dead)return;if(automatic)tick();raf=requestAnimationFrame(frame);}
 const watchdog=setInterval(()=>{if(!dead&&automatic&&performance.now()-lastFrameAt>250)tick();},33);
 const observer=new ResizeObserver(resizeAll);observer.observe(host);
@@ -1532,8 +1579,31 @@ function event(kind){reset(kind==='core'||kind==='second'?kind:null);pendingEven
  const pa=planTo(12);if(!pa)throw Error('洞口不可到達');startWalk(pa,12,'goto');say(kind==='core'?'旅人往共鳴洞走去，石頭正在回應他。':'旅人往共鳴洞走去，聽岩壁裡的聲音。');}
 let remoteWhistle=false;
 function echoScenario(){reset();sim=1205;TR.lit=2;place(...NAV[1].tgt);TR.spot=1;TR.leave=[];goSpot(1);}
-function state(){return {sim,lamps:lampsDue(),playing,speed,mode:TR.mode,spot:TR.spot,goal:TR.goal,position:[TR.x,TR.y,TR.z],bell:{angle:BELL.st.th,velocity:BELL.st.v,rung:BELL.st.rung,queue:BELL.st.queue},transition:fade?{kind:fade.k,opacity:Number(fadeEl.style.opacity)}:null,caveWarmMs,inCave,visits:caveVisits,pendingEvent,stoneOwned,cave:CAVE.state(),status:statusEl.textContent,reach:{...REACH}};}
+function state(){return {audio:audio.debug(),sim,lamps:lampsDue(),playing,speed,mode:TR.mode,spot:TR.spot,goal:TR.goal,position:[TR.x,TR.y,TR.z],bell:{angle:BELL.st.th,velocity:BELL.st.v,rung:BELL.st.rung,queue:BELL.st.queue},transition:fade?{kind:fade.k,opacity:Number(fadeEl.style.opacity)}:null,caveWarmMs,inCave,visits:caveVisits,pendingEvent,stoneOwned,cave:CAVE.state(),status:statusEl.textContent,reach:{...REACH}};}
 automatic=false;const qaChecks={};
+qaChecks['water-lip']=function(close){
+  if(close){qaChecks.lipCamera={ct:CT.clone(),vh:VHU};CT.set(FW.fx,FW.fy-1,FW.fz);VHU=5;}
+  else if(qaChecks.lipCamera){CT.copy(qaChecks.lipCamera.ct);VHU=qaChecks.lipCamera.vh;}
+  resizeAll();placeCam();draw();
+  const terrain=out.children.find(c=>c.isMesh&&c.geometry.attributes.color&&c.geometry.attributes.position.count>100000);
+  const ray=new THREE.Raycaster(),p=riverMesh.geometry.attributes.position;let exposed=0,samples=0,maxBed=-Infinity;
+  for(let i=p.count-60;i<p.count;i++){
+    const x=p.getX(i),y=p.getY(i),z=p.getZ(i);ray.set(new THREE.Vector3(x,y+2,z),new THREE.Vector3(0,-1,0));
+    const hit=ray.intersectObject(terrain,false)[0];if(hit){maxBed=Math.max(maxBed,hit.point.y-y);if(hit.point.y>=y-.03)exposed++;}samples++;
+  }
+  const end=RIVER[RIVER.length-1];
+  return {exposed,samples,maxBed,lipWidth:riverWidth(5)*2,curtainWidth:3.5,opaqueBacking:!fallBacking.material.transparent&&fallBacking.material.depthWrite,lipCenterGap:Math.hypot(end[0]-FW.fx,end[1]-FW.fz)};
+};
+qaChecks['water-flow']=function(time){
+  riverMat.uniforms.uTime.value=time;
+  curtains.forEach(m=>{m.uniforms.uTime.value=time;});
+  draw();
+  const p=riverMesh.geometry.attributes.position;let maxJoinGap=0;
+  for(let i=0;i+6<p.count;i+=6)for(const [a,b] of [[i+2,i+6],[i+4,i+7]]){
+    maxJoinGap=Math.max(maxJoinGap,Math.hypot(p.getX(a)-p.getX(b),p.getY(a)-p.getY(b),p.getZ(a)-p.getZ(b)));
+  }
+  return {time,maxJoinGap};
+};
 qaChecks['occlusion-all.js']=function(){const __quarry={TR,M_BELL:BELL,yAt,nav:NAV,cave:{enter:()=>CAVE.enter(),run(sec){for(let i=0;i<Math.ceil(sec*30);i++)update(1/30);},M:CAVE}};
 // Fixed-camera occlusion: for every spot (prop and standing point) and lamp, cast rays toward the camera and report what blocks them.
 return (()=>{ const RC=new THREE.Raycaster(); const cd=new THREE.Vector3(Math.sin(Math.PI/4)*Math.cos(31*Math.PI/180),Math.sin(31*Math.PI/180),Math.cos(Math.PI/4)*Math.cos(31*Math.PI/180)); const B=new Set(); __quarry.M_BELL.g.traverse(o=>B.add(o));
@@ -1578,11 +1648,11 @@ return (()=>{ const C=__quarry.cave.M, G=C.G; G.updateMatrixWorld(true); const t
 
 };
 reset();applyLook(1);update(.001);draw();const warmAt=performance.now();await CAVE.warm();const caveWarmMs=performance.now()-warmAt;draw();lastFrameAt=performance.now();automatic=true;raf=requestAnimationFrame(frame);
-return {state,reset,event,echoScenario,automatic(value){automatic=!!value;lastFrameAt=performance.now();},pause(){playing=false;},play:startPlay,speed(v){if([1,6,20,60].includes(v))speed=v;},time(m){if(['auto','dawn','day','dusk','night'].includes(m)){timeMode=m;lookInit=false;}},go:goSpot,
+return {discoverySound(kind){if(kind==='fork'||kind==='mica')sound(kind);},audioSettings(value){audio.settings(value);},audioReady:audio.ready,state,reset,event,echoScenario,automatic(value){automatic=!!value;lastFrameAt=performance.now();},pause(){playing=false;},play:startPlay,speed(v){if([1,6,20,60].includes(v)&&v!==speed){audio.seek(true);speed=v;audio.seek(false);}},time(m){if(['auto','dawn','day','dusk','night'].includes(m)){timeMode=m;lookInit=false;}},go:goSpot,
 wind(){startWind(windFirst);},complete(){if(inCave||pendingEvent||remoteWhistle||TR.why==='cave')return false;sim=3000;TR.lit=5;TR.done=false;TR.mode='idle';decide();return true;},
 // Explicit test entry points, confined to the independent tester, never published as window.__quarry.
-qa(name){return qaChecks[name]();},
-advance(sec){for(let i=0;i<Math.ceil(sec*30);i++)update(1/30);draw();},setTime(sec){sim=sec;TR.lit=lampsDue();},
-destroy(){dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();listeners.forEach(([t,f])=>globalThis.removeEventListener(t,f));scene.traverse(o=>{o.geometry?.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.filter(Boolean).forEach(m=>m.dispose());});renderer.dispose();host.replaceChildren();}};
+qa(name,...args){return qaChecks[name](...args);},
+advance(sec){audio.seek(true);try{for(let i=0;i<Math.ceil(sec*30);i++)update(1/30);draw();}finally{audio.seek(false);}},setTime(sec){audio.seek(true);sim=sec;TR.lit=lampsDue();audio.seek(false);},
+destroy(){audio.dispose();dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();listeners.forEach(([t,f])=>globalThis.removeEventListener(t,f));scene.traverse(o=>{o.geometry?.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.filter(Boolean).forEach(m=>m.dispose());});renderer.dispose();host.replaceChildren();}};
 }
 }

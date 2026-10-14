@@ -42,6 +42,8 @@ export const nurseryStoryKeys:Record<string,string> = {story_first_tray:'first',
 const events = scene.storyEvents.filter(e=>e.id!=='caretaker_transplant').map(e=>({id:e.id,node:e.standNode!,sec:e.sec!,kind:'story' as const}))
 export function advanceNurseryRuntime(saved:NurseryRuntime, target:number, world:NurseryMarks, finds:readonly {id:string;eventId:string;lampIndex:number}[]) {
   const s=structuredClone(saved),marks={...world},end=Math.max(s.seconds,Math.floor(target))
+  // Retire a removed pose in old saves without changing its saved focus time.
+  if(s.action?.kind==='ambient'&&s.action.eventId==='stairSit'){s.action.kind='wait';delete s.action.eventId}
   const start=(kind:NurseryAction['kind'],node:string,sec:number,eventId?:string,lamp?:number,route=[node])=>{s.action={id:++s.sequence,kind,node,route,eventId,lamp,startSeconds:s.seconds,endSeconds:s.seconds+Math.max(1,Math.ceil(sec))}}
   for(;s.seconds<=end;s.seconds++){
     // A wiped window becomes covered by the next seeded heavy night.
