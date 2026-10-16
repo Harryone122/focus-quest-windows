@@ -8093,10 +8093,10 @@ const FRAG = [
 // stones and shores, cross each other and fade by themselves; a wading traveller leaves a real wake.
 '  float ripS = 0.0;',
 '  { vec2 su = (uv - uDom.xy) / (uDom.zw - uDom.xy); if (su.x > 0.0 && su.x < 1.0 && su.y > 0.0 && su.y < 1.0) {',
-'    float hx = texture2D(uSim, su + vec2(uSimTx.x, 0.0)).r - texture2D(uSim, su - vec2(uSimTx.x, 0.0)).r;',
-'    float hy = texture2D(uSim, su + vec2(0.0, uSimTx.y)).r - texture2D(uSim, su - vec2(0.0, uSimTx.y)).r;',
+'    float hx = (texture2D(uSim, su + vec2(uSimTx.x * 1.5, 0.0)).r - texture2D(uSim, su - vec2(uSimTx.x * 1.5, 0.0)).r) / 1.5;',
+'    float hy = (texture2D(uSim, su + vec2(0.0, uSimTx.y * 1.5)).r - texture2D(uSim, su - vec2(0.0, uSimTx.y * 1.5)).r) / 1.5;',
 '    vec2 sl = vec2(hx, hy) * uSimK * ringMask;',
-'    ripF += sl * 0.0035; float tw = dot(sl, uFwd); ripS += tw * 1.2; ripL += max(0.0, -tw - 0.15) * 1.2 + max(0.0, length(sl) - 0.5) * 0.4; } }',
+'    ripF += sl * 0.0032; float tw = dot(sl, uFwd); ripS += tw * 0.9; ripL += smoothstep(0.25, 1.4, -tw) * 0.6; } }',
 // procedural sky: base colour, drifting clouds, thin haze toward the top of the screen, stars at night
 '  float sy = gl_FragCoord.y / uRes.y;',
 '  float hazeK = uHazeLo > 0.99 ? 0.0 : pow(smoothstep(uHazeLo, 1.0, sy), 1.0 - (0.8 - uHazeLo) * 1.4);',
@@ -8150,9 +8150,10 @@ const FRAG = [
 // Now a soft, multiplicative brightness variation of a few percent that follows the water colour, so it never adds pale patches, and it fades
 // out on far water (px = lake units per pixel), where its noise cells would otherwise alias into a mosaic of little rectangles.
 '  col *= 1.0 + 0.045 * (smoothstep(0.25, 0.85, vn(uv * 3.1 + vec2(uTime * 0.25, -uTime * 0.17))) - 0.5) * uRipple * uSwell * rfade * ringMask * (1.0 - smoothstep(0.02, 0.06, px));',
-'  col = mix(col, col * 0.74 + uSkyTop * 0.08, clamp(ripS, 0.0, 1.0) * 0.8);',
-'  col = mix(col, mix(uHaze, vec3(1.0), 0.35), clamp(-ripS, 0.0, 1.0) * 0.45);',
-'  col += min(ripL, 1.5) * 0.12 * mix(uHaze, vec3(1.0), 0.6) * (0.4 + 0.6 * uBot);',
+'  float rsS = ripS / (0.55 + abs(ripS));',   // soft saturation: clear at small slopes, never a hard band at large ones
+'  col = mix(col, col * 0.80 + uSkyTop * 0.07, max(rsS, 0.0) * 0.62);',
+'  col = mix(col, mix(uHaze, vec3(1.0), 0.35), max(-rsS, 0.0) * 0.34);',
+'  col += min(ripL, 1.0) * 0.09 * mix(uHaze, vec3(1.0), 0.6) * (0.4 + 0.6 * uBot);',
 '  col += vec3(0.50, 0.62, 0.92) * uWinGlow * 0.17 * exp(-max(wr - uWinR, 0.0) * 1.5) * (1.0 - winMask);',
 // depth from the baked height map: bottom shows through the shallows, wet line along the shore
 '  vec2 muv = (uv - uMap.xy) / (uMap.zw - uMap.xy);',
@@ -8191,7 +8192,7 @@ const WU = {
   uSkyTop: { value: new T.Color() }, uHaze: { value: new T.Color() }, uCloud: { value: new T.Color() }, uTint: { value: new T.Color() },
   uWinC: { value: new T.Vector2() }, uWinM: { value: new T.Vector4(1, 0, 0, 1) }, uBrip: { value: new T.Vector3(0, 0, -1) }, uWinK: { value: 0 }, uWinR: { value: 1.1 }, uWinGlow: { value: 0 }, uWinDay: { value: 0 },
   uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }, uCSK: { value: 0 }, uCSAmt: { value: 0 }, uFwd: { value: new T.Vector2(0, 1) },
-  uSim: { value: null }, uDom: { value: new T.Vector4(-21, -12, 19, 20) }, uSimTx: { value: new T.Vector2(1 / 640, 1 / 512) }, uSimK: { value: 110.0 }
+  uSim: { value: null }, uDom: { value: new T.Vector4(-21, -12, 19, 20) }, uSimTx: { value: new T.Vector2(1 / 640, 1 / 512) }, uSimK: { value: 150.0 }
 };
 const water = new T.Mesh(new T.PlaneGeometry(600, 600, 1, 1).rotateX(-Math.PI / 2), new T.ShaderMaterial({ uniforms: WU, vertexShader: VERT, fragmentShader: FRAG, extensions: { derivatives: true } }));
 water.frustumCulled = false; water.layers.set(2); water.userData.noMerge = true; scene.add(water);
@@ -8218,12 +8219,17 @@ const SIM = (() => {
       'varying vec2 vUv;',
       'void main(){',
       '  vec4 s = texture2D(uPrev, vUv);',
-      '  float avg = 0.25 * (texture2D(uPrev, vUv + vec2(uTx.x, 0.0)).r + texture2D(uPrev, vUv - vec2(uTx.x, 0.0)).r + texture2D(uPrev, vUv + vec2(0.0, uTx.y)).r + texture2D(uPrev, vUv - vec2(0.0, uTx.y)).r);',
-      '  s.g += (avg - s.r) * 2.0; s.g *= 0.985; s.r += s.g; s.r *= 0.9995;',
+      // 9-point stencil (edges 4, corners 1): rings stay round instead of drifting toward a square
+      '  float e4 = texture2D(uPrev, vUv + vec2(uTx.x, 0.0)).r + texture2D(uPrev, vUv - vec2(uTx.x, 0.0)).r + texture2D(uPrev, vUv + vec2(0.0, uTx.y)).r + texture2D(uPrev, vUv - vec2(0.0, uTx.y)).r;',
+      '  float c4 = texture2D(uPrev, vUv + uTx).r + texture2D(uPrev, vUv - uTx).r + texture2D(uPrev, vUv + vec2(uTx.x, -uTx.y)).r + texture2D(uPrev, vUv + vec2(-uTx.x, uTx.y)).r;',
+      '  float avg = (4.0 * e4 + c4) / 20.0;',
+      '  vec2 uv0 = mix(uDom.xy, uDom.zw, vUv); vec2 muv0 = (uv0 - uMap.xy) / (uMap.zw - uMap.xy); float dep = uWL - mix(uHR.x, uHR.y, texture2D(uGround, muv0).a);',
+      '  float shallow = smoothstep(0.0, 0.06, dep);',   // waves slow down and die out as the water gets shallow, instead of hitting a wall
+      '  s.g += (avg - s.r) * mix(0.9, 1.8, shallow); s.g *= mix(0.80, 0.986, shallow); s.r += s.g; s.r *= 0.9995;',
       '  vec2 uv = mix(uDom.xy, uDom.zw, vUv);',
       '  for (int i = 0; i < 8; i++) { vec4 d = uDrops[i]; if (d.w != 0.0) { float q = length(uv - d.xy) / d.z; if (q < 1.0) s.r -= (0.5 + 0.5 * cos(3.14159 * q)) * d.w; } }',
       '  vec2 muv = (uv - uMap.xy) / (uMap.zw - uMap.xy); float gh = mix(uHR.x, uHR.y, texture2D(uGround, muv).a);',
-      '  float wall = step(uWL - 0.01, gh); if (length(uv - uRingC) < uRingR) wall = 1.0;',
+      '  float wall = step(uWL - 0.004, gh); if (length(uv - uRingC) < uRingR) wall = 1.0;',
       '  float e = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y)); float edge = smoothstep(0.0, 0.04, e);',   // soak the waves up at the edge of the grid
       '  s.rg *= (1.0 - wall) * mix(0.85, 1.0, edge) * (1.0 - uClear);',
       '  gl_FragColor = vec4(s.rg, 0.0, 1.0);',
@@ -8232,15 +8238,15 @@ const SIM = (() => {
   const st = { cur: A, nxt: B, acc: 0, last: 0, drops: [], ok: !!halfOk, clear: 2, HZ: 24 };
   function step() {
     mat.uniforms.uPrev.value = st.cur.texture; mat.uniforms.uWL.value = WL; mat.uniforms.uRingR.value = WU.uRingR.value;
-    const D = mat.uniforms.uDrops.value; for (let i = 0; i < 8; i++) { const d = st.drops[i]; if (d) D[i].set(d[0], d[1], d[2], d[3]); else D[i].w = 0; }
-    st.drops = st.drops.slice(8); mat.uniforms.uClear.value = st.clear > 0 ? 1 : 0; if (st.clear > 0) st.clear--;
+    const D = mat.uniforms.uDrops.value; for (let i = 0; i < 8; i++) { const d = st.drops[i]; if (d) { const k = d[6] === 2 ? (d[5] ? 0.35 : 0.65) : d[4] / (1 + d[5]); D[i].set(d[0], d[1], d[2] * (0.75 + 0.25 * d[5] / 3), d[3] * k); } else D[i].w = 0; }
+    st.drops.slice(0, 8).forEach((d) => { d[5]++; }); st.drops = st.drops.filter((d, i) => i >= 8 || d[5] < d[6]);   // a splash pushes over 4 steps (easing in), a footstep over 2 mat.uniforms.uClear.value = st.clear > 0 ? 1 : 0; if (st.clear > 0) st.clear--;
     const prevRT = renderer.getRenderTarget(), prevClip = renderer.clippingPlanes; renderer.clippingPlanes = [];
     renderer.setRenderTarget(st.nxt); renderer.render(sc, cam); renderer.setRenderTarget(prevRT); renderer.clippingPlanes = prevClip;
     const t = st.cur; st.cur = st.nxt; st.nxt = t;
   }
   return {
     // radius in lake units, depth = how hard (a fish 0.06, a footstep 0.02)
-    drop(u, v, radius, depth) { if (st.ok) st.drops.push([u, v, radius, depth]); },
+    drop(u, v, radius, depth) { if (st.ok) st.drops.push([u, v, radius, depth, 0.48, 0, radius < 0.2 ? 2 : 4]); },   // [u, v, r, depth, weight, steps done, steps]
     update() {
       if (!st.ok) return; let dt = Math.max(0, tAcc - st.last); st.last = tAcc; if (dt > 0.25) dt = 0.25;
       st.acc += dt; let n = 0; const h = 1 / st.HZ;
@@ -8411,7 +8417,7 @@ const clamp01 = (x) => Math.max(0, Math.min(1, x));
 // ---------- wading: ripples live in the water shader (uniform array), splashes are a main-view-only Points object ----------
 const RIP = { n: 6, age: new Float32Array(6).fill(1), life: new Float32Array(6).fill(1.2), u: new Float32Array(6), v: new Float32Array(6), r: new Float32Array(6) };
 const RIPU = []; for (let i = 0; i < 6; i++) RIPU.push(new T.Vector4(0, 0, -1, 0.5));
-function addRipple(u, v, maxR, life) { const r = Math.max(0.12, Math.min(0.32, 0.1 + (maxR || 0.5) * 0.11)), k = Math.min(0.11, 0.012 + 0.016 * (life || 1.2) * (maxR || 0.5)); SIM.drop(u, v, r, k); }   // into the wave simulation
+function addRipple(u, v, maxR, life) { const r = Math.max(0.12, Math.min(0.32, 0.1 + (maxR || 0.5) * 0.11)), k = Math.min(0.11, 0.045 + 0.016 * (life || 1.2) * (maxR || 0.5)); SIM.drop(u, v, r, k); }   // into the wave simulation
 function rippleUpdate(dt) { for (let i = 0; i < RIP.n; i++) { if (RIP.age[i] < 1) RIP.age[i] += dt / RIP.life[i]; RIPU[i].set(RIP.u[i], RIP.v[i], RIP.age[i] < 1 ? RIP.age[i] : -1, RIP.r[i]); } WU.uRip.value = RIPU; }
 const SPL = (() => {
   const N = 30, pos = new Float32Array(N * 3), st = []; for (let i = 0; i < N; i++) st.push({ on: false, x: 0, y: -50, z: 0, vx: 0, vy: 0, vz: 0, age: 0 });
