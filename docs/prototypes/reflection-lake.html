@@ -8235,7 +8235,7 @@ const SIM = (() => {
       '  gl_FragColor = vec4(s.rg, 0.0, 1.0);',
       '}'].join('\n') });
   const quad = new T.Mesh(new T.PlaneGeometry(2, 2), mat); quad.frustumCulled = false; sc.add(quad);
-  const st = { cur: A, nxt: B, acc: 0, last: 0, drops: [], ok: !!halfOk, clear: 2, HZ: 32 };
+  const st = { cur: A, nxt: B, acc: 0, last: 0, drops: [], ok: !!halfOk, clear: 2, HZ: 24 };
   function step() {
     mat.uniforms.uPrev.value = st.cur.texture; mat.uniforms.uWL.value = WL; mat.uniforms.uRingR.value = WU.uRingR.value;
     const D = mat.uniforms.uDrops.value; for (let i = 0; i < 8; i++) { const d = st.drops[i]; if (d) { const k = d[6] === 2 ? (d[5] ? 0.35 : 0.65) : d[4] / (1 + d[5]); D[i].set(d[0], d[1], d[2] * (0.75 + 0.25 * d[5] / 3), d[3] * k); } else D[i].w = 0; }
@@ -8649,12 +8649,8 @@ function travUpdate(dt) {
   const wet = WL > sy + 0.005 && air < 0.02 && !SIT_KEYS[key];
   if (move && wet && (moving || key === 'spin')) {
     const si = Math.floor(TR.phase / Math.PI);
-    if (si !== TR.stepN) { TR.stepN = si; TR.ripT = 0; if (tAcc - (TR.lastRip === undefined ? -9 : TR.lastRip) > 0.09) { TR.lastRip = tAcc; SIM.drop(u + (si % 2 ? 0.05 : -0.05), v, 0.16, 0.03); /* each footfall: a softer extra push on top of the moving wake */ TR.splashCount = (TR.splashCount || 0) + 1; if (TR.splashCount >= TR.splashAt) { TR.splashCount = 0; TR.splashAt = 4 + Math.floor(Math.random() * 3); splashAt(u, v, WL); } } }
+    if (si !== TR.stepN) { TR.stepN = si; TR.ripT = 0; if (tAcc - (TR.lastRip === undefined ? -9 : TR.lastRip) > 0.09) { TR.lastRip = tAcc; addRipple(u + (si % 2 ? 0.05 : -0.05), v, RIP_STEP_R, 1.8); TR.splashCount = (TR.splashCount || 0) + 1; if (TR.splashCount >= TR.splashAt) { TR.splashCount = 0; TR.splashAt = 4 + Math.floor(Math.random() * 3); splashAt(u, v, WL); } } }
   } else if (move && wet) { TR.ripT += dt; if (TR.ripT > 1.5) { TR.ripT = 0; addRipple(u, v, 0.28, 1.2); } }
-  // moving wake (Claude 2026-10-16, user: while he walks the ripples should not be concentric circles; denser in front, sparser behind):
-  // besides each step he keeps pushing the water a little as he wades, so the simulation gets a moving source. Its fronts bunch up
-  // ahead of him and open out behind him by themselves (he walks about as fast as the ripples travel).
-  if (move && wet && moving && !hopping) { TR.wakeT = (TR.wakeT || 0) + dt; if (TR.wakeT > 0.05) { TR.wakeT = 0; SIM.drop(u, v, 0.16, 0.026); } }
   else TR.stepN = Math.floor(TR.phase / Math.PI);
   TR.wading = wet; TR.moving = moving; TR.slope = slope; TR.air = air;
   // ---- water rising over his feet: one rollCuff per rise (SPEC 8.4) ----
