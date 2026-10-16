@@ -8096,7 +8096,7 @@ const FRAG = [
 '    float hx = (texture2D(uSim, su + vec2(uSimTx.x * 1.5, 0.0)).r - texture2D(uSim, su - vec2(uSimTx.x * 1.5, 0.0)).r) / 1.5;',
 '    float hy = (texture2D(uSim, su + vec2(0.0, uSimTx.y * 1.5)).r - texture2D(uSim, su - vec2(0.0, uSimTx.y * 1.5)).r) / 1.5;',
 '    vec2 sl = vec2(hx, hy) * uSimK * ringMask;',
-'    ripF += sl * 0.0032; float tw = dot(sl, uFwd); ripS += tw * 0.9; ripL += smoothstep(0.25, 1.4, -tw) * 0.6; } }',
+'    ripF += sl * 0.0042; float tw = dot(sl, uFwd); ripS += tw * 0.9; ripL += smoothstep(0.25, 1.4, -tw) * 0.6; } }',
 // procedural sky: base colour, drifting clouds, thin haze toward the top of the screen, stars at night
 '  float sy = gl_FragCoord.y / uRes.y;',
 '  float hazeK = uHazeLo > 0.99 ? 0.0 : pow(smoothstep(uHazeLo, 1.0, sy), 1.0 - (0.8 - uHazeLo) * 1.4);',
@@ -8192,7 +8192,7 @@ const WU = {
   uSkyTop: { value: new T.Color() }, uHaze: { value: new T.Color() }, uCloud: { value: new T.Color() }, uTint: { value: new T.Color() },
   uWinC: { value: new T.Vector2() }, uWinM: { value: new T.Vector4(1, 0, 0, 1) }, uBrip: { value: new T.Vector3(0, 0, -1) }, uWinK: { value: 0 }, uWinR: { value: 1.1 }, uWinGlow: { value: 0 }, uWinDay: { value: 0 },
   uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }, uCSK: { value: 0 }, uCSAmt: { value: 0 }, uFwd: { value: new T.Vector2(0, 1) },
-  uSim: { value: null }, uDom: { value: new T.Vector4(-21, -12, 19, 20) }, uSimTx: { value: new T.Vector2(1 / 640, 1 / 512) }, uSimK: { value: 150.0 }
+  uSim: { value: null }, uDom: { value: new T.Vector4(-21, -12, 19, 20) }, uSimTx: { value: new T.Vector2(1 / 640, 1 / 512) }, uSimK: { value: 210.0 }
 };
 const water = new T.Mesh(new T.PlaneGeometry(600, 600, 1, 1).rotateX(-Math.PI / 2), new T.ShaderMaterial({ uniforms: WU, vertexShader: VERT, fragmentShader: FRAG, extensions: { derivatives: true } }));
 water.frustumCulled = false; water.layers.set(2); water.userData.noMerge = true; scene.add(water);
