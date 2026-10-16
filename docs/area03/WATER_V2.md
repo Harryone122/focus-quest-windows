@@ -31,9 +31,11 @@
    - 波光：原 glint 程式保留給 `uWaterFx = 0`（舊版比較），`else` 分支是新版。
    - 燈影：波光之後的 `uLampS` 迴圈。
 2. **JS**：`waterFxUpdate()`（在 `update()` 最後、`placeCamera()` 之後呼叫），負責陣風排程、蘆葦／松樹風力（`WFX.reedK`、`WFX.pineK`）、`uSunCol`、`uScrU`（螢幕右方在湖面 u/v 的方向），以及把 `LAMPFX.pos` 的燈火位置以水面鏡射（`y → 2·WL − y`）投影到螢幕像素。`uLampS.w` 是每單位像素數；正式 App 若畫布有 DPR 縮放，請用 drawing buffer 尺寸（與 `uRes` 相同）。
-3. **只在原型**：`?water=old`、「水面：新版／舊版」與「試看陣風」按鈕。不要移植到 App。正式 App 只保留新版（`uWaterFx = 1`）。
+3. **只在原型**：`?water=old`、「水面：新版／舊版」與「試看陣風」「水面調整」（九個倍率滑桿，`uFxA`／`uFxB`）。不要移植到 App。正式 App 只保留新版（`uWaterFx = 1`）。
 
 ## 3. 調整參數（使用者若覺得太多／太少）
+
+原型右上「水面調整」面板可以即時拖九個倍率（1 = 設計預設），按「複製數值」貼回給 Claude，Claude 會把數值寫回下表的常數；正式 App 只移植最後的常數，不需要這兩個 uniform。
 
 | 想要 | 改這裡 |
 | --- | --- |
