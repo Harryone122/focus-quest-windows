@@ -8063,7 +8063,7 @@ const FRAG = [
 // drifting clouds (Claude 2026-10-16, user: calm water, no waves, no white dots; the clouds reflected in the lake drift on the wind):
 // uCloudA / uCloudB = how far the low and the high cloud layers have travelled (lake units, JS integrates speed x wind direction),
 // uCloudEvo = slow change of shape, uCloudMore = extra cover from the test panel, uSwell = the old wind swells (0 = still water)
-'uniform vec2 uCloudA, uCloudB; uniform float uCloudEvo, uCloudMore, uSwell;',
+'uniform vec2 uCloudA, uCloudB; uniform float uCloudEvo, uCloudMore, uSwell, uCSK, uCSAmt;',
 'varying vec3 vW;',
 'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
 'float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = hash(i), b = hash(i + vec2(1.0, 0.0)), c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0)); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }',
@@ -8149,6 +8149,8 @@ const FRAG = [
 '  float dp = max(depth, 0.0);',
 '  float kk = 0.28 * (1.0 - smoothstep(0.02, 0.6, dp)) * mix(1.0, 0.30, uTide);',
 '  vec3 bot = g.rgb * uBot * mix(1.0, 0.6, smoothstep(0.0, 0.5, dp));',
+'  { vec2 csp = (uv - uCloudA) * 0.055; vec2 csq = vec2(vn(csp * 1.7 + vec2(uCloudEvo, 0.0)), vn(csp * 1.7 + vec2(7.0, 7.0 - uCloudEvo * 0.8)));',
+'    bot *= 1.0 - smoothstep(0.47, 0.80, fbm(csp + 0.35 * csq) + uCSAmt) * uCSK * 1.2; }',   // cloud shadows reach the shallow bottom too (the mirror itself stays bright)
 '  col = mix(col, bot, kk);',
 '  float wetz = smoothstep(0.12, 0.03, depth) * step(0.0, depth);',
 '  col = mix(col, bot * 0.9, wetz * 0.22);',
@@ -8176,7 +8178,7 @@ const WU = {
   uMap: { value: new T.Vector4(MAPB.u0, MAPB.v0, MAPB.u1, MAPB.v1) }, uRip: { value: Array.from({ length: 6 }, () => new T.Vector4(0, 0, -1, 0.5)) },
   uSkyTop: { value: new T.Color() }, uHaze: { value: new T.Color() }, uCloud: { value: new T.Color() }, uTint: { value: new T.Color() },
   uWinC: { value: new T.Vector2() }, uWinM: { value: new T.Vector4(1, 0, 0, 1) }, uBrip: { value: new T.Vector3(0, 0, -1) }, uWinK: { value: 0 }, uWinR: { value: 1.1 }, uWinGlow: { value: 0 }, uWinDay: { value: 0 },
-  uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }
+  uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }, uCSK: { value: 0 }, uCSAmt: { value: 0 }
 };
 const water = new T.Mesh(new T.PlaneGeometry(600, 600, 1, 1).rotateX(-Math.PI / 2), new T.ShaderMaterial({ uniforms: WU, vertexShader: VERT, fragmentShader: FRAG, extensions: { derivatives: true } }));
 water.frustumCulled = false; water.layers.set(2); water.userData.noMerge = true; scene.add(water);
@@ -8658,20 +8660,22 @@ canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointerc
 // The low puffy layer travels about 0.45 lake units a second (crosses the picture in roughly a minute and a half), the high thin layer at 40 %.
 // Driven by tAcc: paused = frozen, reduced motion = a quarter speed. Picture only.
 const CLOUD = { dir: (() => { const a = 0.22; return [Math.cos(a), Math.sin(a)]; })(), speedA: 0.45, speedB: 0.18, last: 0, a: [0, 0], b: [0, 0], evo: 0 };
-const CT = { speed: 1, more: 0, change: 1, swell: 0 };   // test panel multipliers (design default: 1 / 0 / 1 / 0)
+const CT = { speed: 1, more: 0, change: 1, swell: 0, shade: 1 };   // test panel multipliers (design default: 1 / 0 / 1 / 0)
 function cloudsUpdate() {
   const dt = Math.max(0, tAcc - CLOUD.last); CLOUD.last = tAcc;
   const sa = CLOUD.speedA * CT.speed * dt, sb = CLOUD.speedB * CT.speed * dt;
   CLOUD.a[0] += CLOUD.dir[0] * sa; CLOUD.a[1] += CLOUD.dir[1] * sa; CLOUD.b[0] += CLOUD.dir[0] * sb; CLOUD.b[1] += CLOUD.dir[1] * sb;
   CLOUD.evo += 0.012 * CT.change * dt;
   WU.uCloudA.value.set(CLOUD.a[0], CLOUD.a[1]); WU.uCloudB.value.set(CLOUD.b[0], CLOUD.b[1]); WU.uCloudEvo.value = CLOUD.evo; WU.uCloudMore.value = CT.more; WU.uSwell.value = CT.swell;
+  // cloud shadows: they only hold back the direct sun, so they are strongest by day and a faint moonlight shadow at night
+  WU.uCSK.value = (0.12 + 0.33 * cur.glint) * CT.shade; WU.uCSAmt.value = (cur.cloudAmt - 0.5) * 0.6 + CT.more;
 }
 
 { // 雲的調整 (prototype only): live multipliers; copy the numbers back to Claude
-  const DEF = [['speed', '雲飄速度', 0, 4, 1], ['more', '雲量', -0.4, 0.4, 0], ['change', '雲形變化', 0, 4, 1], ['swell', '水面波紋', 0, 1, 0]];
-  try { const sv = JSON.parse(localStorage.getItem('lakeCloudTune') || 'null'); if (sv) DEF.forEach((d) => { if (typeof sv[d[0]] === 'number') CT[d[0]] = sv[d[0]]; }); } catch (_) {}
+  const DEF = [['speed', '雲飄速度', 0, 4, 1], ['more', '雲量', -0.4, 0.4, 0], ['change', '雲形變化', 0, 4, 1], ['swell', '水面波紋', 0, 1, 0], ['shade', '雲影', 0, 2, 1]];
+  try { const sv = JSON.parse(localStorage.getItem('lakeCloudTune2') || 'null'); if (sv) DEF.forEach((d) => { if (typeof sv[d[0]] === 'number') CT[d[0]] = sv[d[0]]; }); } catch (_) {}
   const list = document.getElementById('cloudList'), out = document.getElementById('cloudOut'), box = document.getElementById('cloudBox'), btn = document.getElementById('cloudBtn');
-  const save = () => { out.value = JSON.stringify(CT); try { localStorage.setItem('lakeCloudTune', JSON.stringify(CT)); } catch (_) {} };
+  const save = () => { out.value = JSON.stringify(CT); try { localStorage.setItem('lakeCloudTune2', JSON.stringify(CT)); } catch (_) {} };
   DEF.forEach((d) => { const row = document.createElement('label'); row.className = 'tuneRow'; const nm = document.createElement('span'); nm.textContent = d[1]; const r = document.createElement('input'); r.type = 'range'; r.id = 'cloud-' + d[0]; r.min = d[2]; r.max = d[3]; r.step = 0.01; r.value = CT[d[0]]; const o = document.createElement('output'); o.textContent = (+CT[d[0]]).toFixed(2); r.addEventListener('input', () => { CT[d[0]] = +r.value; o.textContent = (+r.value).toFixed(2); save(); }); row.append(nm, r, o); list.appendChild(row); d.push(r, o); });
   btn.addEventListener('click', () => { const open = box.hidden; box.hidden = !open; btn.setAttribute('aria-expanded', String(open)); });
   document.getElementById('cloudReset').addEventListener('click', () => { DEF.forEach((d) => { CT[d[0]] = d[4]; d[5].value = d[4]; d[6].textContent = d[4].toFixed(2); }); save(); setStatus('雲回到設計預設值。'); });
@@ -9725,6 +9729,34 @@ setRingStill(true); renderJournal(); resetDemo(); applyMarks();
 const clock = new T.Clock();
 let lastFrameAt = performance.now();
 function frame() { lastFrameAt = performance.now(); update(Math.min(clock.getDelta(), 0.05)); renderFrame(); requestAnimationFrame(frame); }
+// ---------- cloud shadows (Claude 2026-10-16) ----------
+// Every lit (standard) material in the scene gets the same small patch: the sun's light is dimmed under the drifting cloud field,
+// the same field and the same wind as the cloud reflections (WU.uCloudA / uCloudEvo), so the shadows slide across the islands with them.
+// Only the direct sun is held back; the sky light stays, so shadowed ground goes soft and cool, never black. Picture only.
+const CS_GLSL = [
+  'uniform vec2 uCloudA; uniform float uCloudEvo, uCSK, uCSAmt;',
+  'float csH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
+  'float csN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(csH(i), csH(i + vec2(1.0, 0.0)), f.x), mix(csH(i + vec2(0.0, 1.0)), csH(i + vec2(1.0, 1.0)), f.x), f.y); }',
+  'float csF(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++) { s += a * csN(p); p = p * 2.03 + vec2(17.1, 9.3); a *= 0.5; } return s; }',
+  'float cloudShade(){ if (uCSK < 0.001) return 1.0;',
+  '  mat3 R = mat3(viewMatrix); vec3 t = -vViewPosition - viewMatrix[3].xyz; vec3 w = vec3(dot(R[0], t), dot(R[1], t), dot(R[2], t));',
+  '  vec2 uv = vec2((w.x - w.z) * 0.70710678, -(w.x + w.z) * 0.70710678);',
+  '  vec2 p = (uv - uCloudA) * 0.055; vec2 q = vec2(csN(p * 1.7 + vec2(uCloudEvo, 0.0)), csN(p * 1.7 + vec2(7.0, 7.0 - uCloudEvo * 0.8)));',
+  '  return 1.0 - smoothstep(0.47, 0.80, csF(p + 0.35 * q) + uCSAmt) * min(uCSK * 1.6, 0.95); }'
+].join('\n');
+const CS_LIGHTS = T.ShaderChunk.lights_fragment_begin.replace('getDirectionalDirectLightIrradiance( directionalLight, geometry, directLight );', 'getDirectionalDirectLightIrradiance( directionalLight, geometry, directLight );\n\t\tdirectLight.color *= cloudShade();');
+(function cloudShadowPatch() {
+  const seen = new Set();
+  scene.traverse((o) => { if (!o.isMesh) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
+    if (!m || !m.isMeshStandardMaterial || seen.has(m)) return; seen.add(m);
+    const prev = m.onBeforeCompile, prevKey = m.customProgramCacheKey.bind(m);
+    m.onBeforeCompile = (sh, r) => { if (prev) prev.call(m, sh, r);
+      sh.uniforms.uCloudA = WU.uCloudA; sh.uniforms.uCloudEvo = WU.uCloudEvo; sh.uniforms.uCSK = WU.uCSK; sh.uniforms.uCSAmt = WU.uCSAmt;
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + CS_GLSL).replace('#include <lights_fragment_begin>', CS_LIGHTS); };
+    m.customProgramCacheKey = () => prevKey() + '|cloudShade'; m.needsUpdate = true;
+  }); });
+})();
+
 resize(); resetAll(); placeCamera();
 
 // ---------- test hooks ----------

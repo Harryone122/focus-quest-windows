@@ -1,10 +1,10 @@
-# 倒影湖畔：平靜水面＋飄動的雲（Claude，2026-10-16）
+# 倒影湖畔：平靜水面＋飄動的雲＋雲影（Claude，2026-10-16）
 
 > **目前交接摘要（2026-10-16，Claude）**
 > 狀態：設計原型完成，**等使用者在網頁原型試看驗收**；驗收前 Codex 不移植。
 > 使用者決定（2026-10-16，同一對話裡依序試過四版後）：「都不要波浪，平靜水面的版本，也不要白點；做動態雲，湖面上反射的雲會跟著風吹往前移動」。所以今天試過的 v2 白點波光、v3 全湖小波浪、v4 扇形風紋、陣風、岸邊細浪、水底光紋、夜燈碎光**全部不採用**，原型已回到 2026-10-11 驗收版，只加下面的改動。
 > 下一位：使用者打開原型（Artifact「倒影湖畔」或 `docs/prototypes/reflection-lake.html`），可用面板「雲的調整」微調。驗收後由 Codex 移植到 `src/renderer/src/reflectionLake/reflectionLakeScene.js`。
-> 涉及檔案：只改原型 `docs/prototypes/reflection-lake.html`（湖面 shader、`WU`、`cloudsUpdate()`、測試面板）。未動正式 App、燈、潮汐、事件、獎勵或存檔。
+> 涉及檔案：只改原型 `docs/prototypes/reflection-lake.html`（湖面 shader、`WU`、`cloudsUpdate()`、`cloudShadowPatch()`、測試面板）。未動正式 App、燈、潮汐、事件、獎勵或存檔。
 > 檢查：headless Chromium（本機 three r128）白天、白天 20 秒後、薄暮、夜晚渲染，頁面無錯誤；未跑正式 App、測試或打包（屬 Codex）。
 
 ## 1. 改了什麼
@@ -17,11 +17,14 @@
    - 雲一邊飄一邊慢慢改變形狀（`uCloudEvo`，每秒 0.012），不會像一張圖平移。
    - 夜裡暗色雲慢慢滑過星空倒影，星星被雲蓋住。滿潮時淹水石台上也映著移動的雲（天空之境）。
    - 跟 `tAcc` 走：暫停時雲停住；減少動態效果時 1/4 速度。
+4. **雲影**（使用者 2026-10-16「好，加雲影」）：用同一個雲場、同一個風向與速度，柔和的陰影掃過石台、蘆葦洲、松岩、亭子、旅人。只擋直射陽光（天光保留），所以陰影是柔和偏冷的灰，不會變黑；平時的物體影子在雲影裡跟著變淡，和真實一樣。白天最明顯（強度 0.45），晨霧／薄暮約 0.25，夜裡只剩很淡的月光雲影（0.12）。淺水底下的石面也一起變暗；湖面倒影本身不變暗。
 
 ## 2. 移植要點（給 Codex）
 
 - Shader：新增 uniforms `uCloudA`、`uCloudB`（兩層已移動的距離，湖面單位）、`uCloudEvo`、`uCloudMore`、`uSwell`；`cloudD()` 的扭曲加上 `uCloudEvo`；`cp` 改用 `uCloudA`（取代原本 `0.15 * uTime` 的固定漂移）；新增高層雲 `hp/hd/hcov`。正式 App 可把 `uCloudMore` 固定 0、`uSwell` 固定 0 並刪掉相關乘項。
 - JS：`cloudsUpdate()` 每幀把「速度 × 風向 × 動態時間差」累加成位移；用累加而不是 `速度 × uTime`，速度改變時雲才不會跳。在 `update()` 設定天色 uniforms 後呼叫。
+- 雲影：場景建好後 `cloudShadowPatch()` 走訪所有 `MeshStandardMaterial`，在 `onBeforeCompile` 加入 `cloudShade()`（由 `vViewPosition` 與 `viewMatrix` 換算世界座標，取同一個雲場），並把 `lights_fragment_begin` 裡太陽（directional light）的 `directLight.color` 乘上它；會保留原本的 `onBeforeCompile`（潮痕帶、橋石紋），cache key 加 `|cloudShade`。之後才建立的材質不會套用；正式 App 若有延後建立的物件，請在建立後同樣處理。水面 shader 的 `bot` 也乘上同一個雲影（`uCSK`、`uCSAmt`）。
+- 效能：每個受光像素多一次 5 層 value noise（雲影）；如果低階機器吃緊，可把 `csF` 降到 3 層，雲影形狀差別不大。
 - 只在原型：「雲的調整」面板（雲飄速度、雲量、雲形變化、水面波紋）與 `localStorage` 記憶。不要移植面板。
 
 ## 3. 調整參數
@@ -32,8 +35,6 @@
 | 風向 | `CLOUD.dir` 的角度 0.22（湖面 u/v，0 ＝ 畫面右） |
 | 雲多／少 | 各時段 `PRE.*.cloudAmt`；面板「雲量」是加減值 |
 | 形狀變化快慢 | `CLOUD.evo` 的 0.012；面板「雲形變化」是倍率 |
+| 雲影深淺 | `WU.uCSK = (0.12 + 0.33 * cur.glint)`；面板「雲影」是倍率 |
 | 想要一點點水紋 | 面板「水面波紋」(`uSwell`)，1 ＝ 舊版風紋 |
 
-## 4. 可以再討論（未授權）
-
-- 雲影：雲飄過時，淡淡的陰影掃過石台與蘆葦洲（要改所有地面材質，效能需評估）。
