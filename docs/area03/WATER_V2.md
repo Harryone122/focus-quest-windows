@@ -1,5 +1,9 @@
 # 倒影湖畔：水面細節 v2（Claude，2026-10-16）
 
+## 網頁試玩交付（2026-10-17，Codex）
+
+使用者授權製作試玩網頁並一起提交目前進度。已合併 GitHub `claude/nifty-maxwell-g3y9yq`，保留完整原型與新舊比較面板，未移植正式場景。私人試玩入口：https://focus-quest-trial-oct17.racingeagle16.chatgpt.site （選「倒影湖畔 · 水面 v2」）。真 Electron 畫面與畫布檢查通過，未出現頁面／shader 錯誤，本機截圖在 `previews/web-trial-qa/lake.png`。下一步仍是使用者試看驗收水面取捨。
+
 > **目前交接摘要（2026-10-16，Claude）**
 > 狀態：設計原型完成，**等使用者在網頁原型試看驗收**；驗收前 Codex 不移植。
 > 下一位：使用者打開 `docs/prototypes/reflection-lake.html`，用測試面板「水面：新版／舊版」「試看陣風」「試看漲潮」及四個時段比較。驗收後由 Codex 移植到 `src/renderer/src/reflectionLake/reflectionLakeScene.js`。

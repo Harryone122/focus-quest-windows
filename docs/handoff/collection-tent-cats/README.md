@@ -1,5 +1,14 @@
 # 帳篷收藏室 · 貓咪原型（2026-10-15，Claude）
 
+## 目前交接摘要（2026-10-17，Codex）
+- 使用者授權製作試玩網頁，並將目前所有進度一起提交推送；原型仍待使用者驗收，未移植正式 App。
+- 私人試玩入口：https://focus-quest-trial-oct17.racingeagle16.chatgpt.site （選「帳篷小屋 · 三花貓 v8」）。
+- v1–v8、產生器、`newhead.py`、`cat-research.md` 與原始頁面均已保存至 GitHub；本輪未改建模來源。
+- 網頁 v8 與交付檔 MD5 均為 `F80F745A8D15080737B1671C8F51B481`。
+- 真 Electron 載入兩個試玩頁、畫布及截圖確認通過，無頁面／shader 錯誤；本機證據 `previews/web-trial-qa/`。
+- 下一步由使用者試看頭型；骨架 GLB 尚未完成。`build8.py` 仍包含 Claude 環境輸出路徑，重新生成需要相應依賴與路徑調整。
+- 網站 Site ID：`appgprj_6ad28cbbd2d88191b07adbf6997827bc`；網站來源另存本機 `sites/focus-quest-trial/`（相對上層工作區）。
+
 狀態：待使用者看原型。只是設計原型，不是正式 App 程式；沒有授權 Codex 移植。
 
 ## 檔案

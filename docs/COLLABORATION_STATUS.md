@@ -20,6 +20,7 @@ Claude 的設計範圍包含前端外觀、動效和網頁原型；正式 App �
 
 | 工作 | 文件記載狀態 | 下一個負責人／動作 | 來源 |
 | --- | --- | --- | --- |
+| 湖畔水面 v2／帳篷貓咪 v8 網頁試玩 | 2026-10-17 已合併遠端原型、發布私人試玩頁；兩頁 Electron 渲染無錯誤，貓咪來源 MD5 一致，全部進度已保存 | 使用者：開啟 https://focus-quest-trial-oct17.racingeagle16.chatgpt.site 試看驗收；未移植正式 App | `area03/WATER_V2.md`、`handoff/collection-tent-cats/README.md` |
 | 模型品質與使用者成長提案 | 2026-10-15 後續已授權工程修錯：五圖握杖／帽沿接觸及苗圃燈架修正，工具恢復；250 測試、建置、四圖低幀率與秋谷 QA 通過，未重發安裝包 | 使用者驗收；Claude 依 §56.8 做局部美術提案，Codex 後續接整合；推廣尚未啟動 | 核心企畫書 §56.8、`CORE_PLAN_AGENT_BRIEF.md` |
 | 美術補強第一輪（§56.8 第 1 項：苔痕人物辨識度、苗圃光影密度） | 2026-10-15 Claude 設計完成，使用者看對照圖後確認方向（苗圃 0.14 鐵框架影子保留）；附可直接套用的 patch，正式檔未改 | Codex：套用 patch、跑既有 QA 後交使用者在遊戲中驗收 | `docs/handoff/art-pass-2026-10-15/README.md` |
 | 精緻 low poly（§57：旅人重做＋光影材質，05 先行） | 2026-10-15 Codex 完成五圖／營火旅人與秋谷戶外材質整合；250 測試、5 fps／淨空／實機 QA 通過，本機試玩待驗收 | 使用者：開啟 `scripts/try-style-refine.cmd` 驗收；未重發安裝包 | `docs/handoff/style-refine-2026-10-15/README.md` §8、企畫書 §57 |
@@ -47,6 +48,7 @@ Claude 的設計範圍包含前端外觀、動效和網頁原型；正式 App �
 
 | 工作 | 文件記載狀態 | 下一個負責人／動作 | 來源 |
 | --- | --- | --- | --- |
+| 湖畔水面 v2／帳篷貓咪 v8 網頁試玩 | 2026-10-17 已合併遠端原型、發布私人試玩頁；兩頁 Electron 渲染無錯誤，貓咪來源 MD5 一致，全部進度已保存 | 使用者：開啟 https://focus-quest-trial-oct17.racingeagle16.chatgpt.site 試看驗收；未移植正式 App | `area03/WATER_V2.md`、`handoff/collection-tent-cats/README.md` |
 | 全遊戲邏輯與故事盤點 | 2026-10-13 使用者授權修錯與一起打包，0.6.33 已安裝並開啟：古井必要線索補訪、損壞備份保護、出發資料恢復及跨圖準備；213 測試、三目的地／包內 62 項回歸通過。最終相遇／隱藏圖等未完成內容仍見原提案 | 使用者試玩；Codex 接續具體回饋，內容設計沿用既有分工 | `RELEASE_0.6.33_QA.md`、`audits/2026-10-11/README.md` |
 
 ## Claude 與 Codex 的交付格式
