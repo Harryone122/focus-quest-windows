@@ -5,7 +5,7 @@
 > 下一位：使用者試玩；Codex 依具體回饋修正。原第 5 階段與地圖設計保持。
 > 驗證：208 測試、建置、62 項湖畔回歸及三目的地跨圖通過；詳細來源 `../RELEASE_0.6.32_QA.md`、`previews/map-switch-qa/`。發布紀錄見該報告。
 > 修改正式 `ReflectionLakeFocusScene`／`GlassNurseryFocusScene`、共用 chrome observer／edgeGlass／Three 非同步預備、四圖材質預備及湖畔 fixed ground pixels。未改計時、五燈或後端存檔規則。
-> **2026-10-16 Claude 新增**：水面細節 v2 原型完成（波光、陣風、岸邊細浪、淺水光紋、夜燈碎光），等使用者在原型驗收後再移植；見 `WATER_V2.md`。
+> **2026-10-16 Claude 新增**：使用者改要平靜水面（不要波浪、白點）＋倒影裡的雲順風飄動，原型已完成，等驗收後再移植；見 `WATER_V2.md`。
 
 ## Codex 第 5 階段整合（2026-10-03，0.6.25）
 
