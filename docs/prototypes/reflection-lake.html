@@ -132,6 +132,8 @@
     <button id="leafView" type="button" class="quiet">浮葉小庭</button>
     <button id="moonView" type="button" class="quiet">疊月橋</button>
     <button id="wideView" type="button" class="quiet">回到全景</button>
+    <button id="waterBtn" type="button" class="quiet" title="水面細節 v2：陣風、波光、岸邊細浪、水底光紋、夜裡燈影（?water=old 是舊版）">水面：新版</button>
+    <button id="gustBtn" type="button" class="quiet">試看陣風</button>
     <button id="hideUi" type="button" class="quiet" title="截圖用：隱藏所有介面。按 H 或 Esc 叫回來">隱藏介面（H）</button>
   <div class="row">
     <button id="rareBtn" type="button" class="quiet">試看特殊發現</button>
@@ -8042,6 +8044,8 @@ const FRAG = [
 'uniform vec2 uWinC; uniform vec4 uWinM; uniform vec3 uBrip; uniform float uWinK, uWinR, uWinGlow, uWinDay;',
 'uniform vec2 uRes, uCenter, uRingC, uHR, uSunUV; uniform vec4 uMap; uniform vec4 uRip[6];',
 'uniform vec3 uSkyTop, uHaze, uCloud, uTint;',
+// water detail v2 (Claude 2026-10-16): cat\'s-paw gusts, crest glitter on the sun path, lapping shore line, shallow caustics, lamp shimmer at night
+'uniform vec4 uGust; uniform vec2 uGustR; uniform vec3 uSunCol; uniform float uWind, uWaterFx, uLampK; uniform vec4 uLampS[5]; uniform vec2 uScrU;',
 'varying vec3 vW;',
 'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
 'float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = hash(i), b = hash(i + vec2(1.0, 0.0)), c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0)); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }',
@@ -8062,6 +8066,14 @@ const FRAG = [
 '  float bend = 2.2 * (vn(q * 0.35 + vec2(uTime * 0.02, -uTime * 0.015)) - 0.5);',
 '  for (int i = 0; i < 5; i++) { float fi = float(i); float an = 0.55 + fi * 1.13 + 0.25 * bend; vec2 dr = vec2(cos(an), sin(an)); float k = 1.1 + fi * 0.62; float ph = k * dot(q, dr) * 2.2 + uTime * (0.55 + 0.17 * fi) + fi * 1.7 + bend * (1.0 + fi); rip += dr * cos(ph) * (0.62 / (1.0 + fi * 0.55)) * (1.0 - smoothstep(0.35, 0.9, k * 1.1 * px * 6.0)); }',
 '  rip *= amp;',
+// cat\'s-paw gust (water v2): an oval patch of fine ripples that drifts across the lake with the wind every half minute or so;
+// inside it the reflection breaks up, the water darkens a little and the sun path sparkles harder. Dead still inside the stone ring.
+'  vec2 gdir = vec2(cos(uGust.z), sin(uGust.z)), gnor = vec2(-gdir.y, gdir.x); vec2 gd = uv - uGust.xy; float ga = dot(gd, gdir), gb = dot(gd, gnor);',
+'  ga /= uGustR.x * (ga > 0.0 ? 0.7 : 1.25); gb /= uGustR.y * (1.0 + 0.25 * sin(ga * 2.0 + uTime * 0.7));',
+'  float gust = uGust.w * exp(-(ga * ga + gb * gb)) * mix(0.45, 1.0, smoothstep(0.2, 0.65, vn(uv * 1.3 - gdir * uTime * 0.9))) * ringMask * rfade * uWaterFx;',
+'  float fineK = 1.0 - smoothstep(0.02, 0.05, px);',
+'  vec2 gq3 = uv * 3.4; float gph = dot(gq3, gdir) * 2.3 - uTime * 2.6 + 1.6 * vn(uv * 0.9 + uTime * 0.12);',
+'  rip = rip * (1.0 + 2.6 * gust) + (gdir * cos(gph) + gnor * 0.55 * cos(dot(gq3, gnor) * 1.9 + uTime * 2.1)) * 0.0036 * gust * fineK;',
 // footstep ripples (SPEC 8.4): rings of (u, v, age, maxRadius); they shake the reflection and add a faint bright line, and die at the still ring
 '  vec2 ripF = vec2(0.0); float ripL = 0.0;',
 '  for (int i = 0; i < 6; i++) { vec4 rp = uRip[i]; if (rp.z >= 0.0) { vec2 dvv = uv - rp.xy; float dd = length(dvv); float rad = rp.w * (1.0 - (1.0 - rp.z) * (1.0 - rp.z)); float wd = 0.06 + 0.05 * rp.z; float env = exp(-pow((dd - rad) / wd, 2.0)) * (1.0 - rp.z) * ringMask; ripF += dvv / max(dd, 0.001) * sin((dd - rad) / wd * 3.14159) * env * 0.006; ripL += env * exp(-pow((dd - rad) / (wd * 0.45), 2.0)); } }',
@@ -8123,11 +8135,23 @@ const FRAG = [
 '  float dp = max(depth, 0.0);',
 '  float kk = 0.28 * (1.0 - smoothstep(0.02, 0.6, dp)) * mix(1.0, 0.30, uTide);',
 '  vec3 bot = g.rgb * uBot * mix(1.0, 0.6, smoothstep(0.0, 0.5, dp));',
+// shallow caustics (water v2): a slow net of sunlight on the stones and mud under shallow water, by day only (strongest over the drowned
+// terraces at high tide, where the lake is a mirror). Follows the sun colour; fades with depth and on far water.
+'  float caus = 0.0;',
+'  if (dp > 0.0 && dp < 0.5 && uWaterFx > 0.5 && uGlint > 0.01 && px < 0.08) {',
+'    vec2 pp = uv * 1.35 + vec2(17.0, 5.0); float tt0 = uTime * 0.32, cs = 0.0;',
+'    for (int n = 0; n < 3; n++) { float tt = tt0 * (1.0 - 3.5 / float(n + 1)); vec2 ii = pp + vec2(cos(tt - pp.x) + sin(tt + pp.y), sin(tt - pp.y) + cos(tt + pp.x)); cs += 1.0 / length(vec2(pp.x / (sin(ii.x + tt) / 0.006), pp.y / (cos(ii.y + tt) / 0.006))); pp = ii; }',
+'    caus = clamp(pow(abs(1.17 - pow(cs / 3.0, 1.4)), 7.0), 0.0, 1.2) * uGlint * smoothstep(0.0, 0.03, dp) * (1.0 - smoothstep(0.10, 0.45, dp)) * (1.0 - smoothstep(0.03, 0.08, px)) * (0.55 + 0.45 * uWind);',
+'  }',
 '  col = mix(col, bot, kk);',
+'  col += mix(uSunCol, vec3(1.0), 0.35) * caus * mix(0.16, 0.10, uTide) * (0.5 + 0.5 * uBot);',
 '  float wetz = smoothstep(0.12, 0.03, depth) * step(0.0, depth);',
 '  col = mix(col, bot * 0.9, wetz * 0.22);',
 '  float edge = smoothstep(0.032, 0.0, depth) * step(-0.03, depth);',
 '  col = mix(col, mix(uHaze, vec3(1.0), 0.6) * (0.55 + 0.45 * uBot), edge * 0.5);',
+// lapping shore (water v2): two thin wavelets that creep up the shore and fade, out of step along the shoreline, then the wet sheen they leave
+'  if (uWaterFx > 0.5) { float lsh = 0.0; for (int k = 0; k < 2; k++) { float lph = fract(uTime * 0.13 + float(k) * 0.5 + 0.9 * vn(uv * 0.45 + float(k) * 7.0)); float ld = 0.034 * (1.0 - lph); lsh += exp(-pow((depth - ld) / 0.0042, 2.0)) * sin(3.14159 * lph) * step(0.0, depth); }',
+'    col += mix(uHaze, vec3(1.0), 0.7) * lsh * 0.20 * (0.45 + 0.55 * uBot) * (0.35 + 0.65 * uWind) * (1.0 - 0.5 * uTide) * (1.0 - smoothstep(0.03, 0.07, px)); }',
 // glints (SPEC 2.5, REVIEW_2): only inside one narrow band along the sun's azimuth (about 2.8 wide, 12-17 long); each spot fades in, holds 0.3-0.6 s, fades out
 '  vec2 sdv = uv - uCenter; float along = dot(sdv, uSunUV); float perp = dot(sdv, vec2(-uSunUV.y, uSunUV.x));',
 '  float gmask = smoothstep(1.55, 0.55, abs(perp)) * smoothstep(1.5, 4.5, along) * (1.0 - smoothstep(14.0, 19.0, along));',
@@ -8137,7 +8161,35 @@ const FRAG = [
 '  vec2 goff = (vec2(hash(gi + 5.1 + gcy), hash(gi + 8.7 - gcy)) - 0.5) * 0.5;',
 '  float genv = smoothstep(0.0, 0.22, gfr) * (1.0 - smoothstep(0.34, 0.56, gfr));',
 '  float gsp = gon * genv * smoothstep(0.20, 0.03, length(gf - goff));',
-'  col += gsp * uGlint * gmask * (1.0 - refl.a * 0.9) * (1.0 - smoothstep(30.0, 60.0, dc)) * (1.0 - edge) * vec3(1.0, 0.98, 0.9) * 0.9;',
+'  float farK = (1.0 - smoothstep(30.0, 60.0, dc)) * (1.0 - edge);',
+'  if (uWaterFx < 0.5) col += gsp * uGlint * gmask * (1.0 - refl.a * 0.9) * farK * vec3(1.0, 0.98, 0.9) * 0.9;',
+// crest glitter (water v2, SPEC 2.5 band kept): the sparkle sits on the crests of three crossing ripple trains that run under the wind,
+// so each point is born, slides a little and dies with its wave (never random static). A soft shimmer of broad crests carries it, which
+// gives the 'path of light' look. Still only inside the sun\'s band; a passing gust makes it flare; warm at dawn / dusk, gone at night.
+'  else {',
+'    float gb2 = (smoothstep(2.0, 0.6, abs(perp)) + 0.45 * smoothstep(4.2, 1.6, abs(perp))) * smoothstep(1.0, 4.2, along) * (1.0 - smoothstep(16.0, 24.0, along));',
+'    vec2 cq = vec2(dot(uv, uScrU) * 0.72, dot(uv, vec2(-uScrU.y, uScrU.x)) * 1.45) * 2.3 * uGlintK + rip * 60.0; float cbn = 3.4 * vn(uv * 0.55 + vec2(uTime * 0.05, -uTime * 0.04));',
+'    cq += 1.3 * vec2(vn(uv * 0.8 + vec2(uTime * 0.07, 3.0)), vn(uv * 0.8 + vec2(5.0, -uTime * 0.06)));',   // domain warp: no lattice, even on the still high-tide mirror
+'    float w1 = sin(dot(cq, vec2(0.83, 0.56)) * 4.1 + uTime * 2.1 + cbn);',
+'    float w2 = sin(dot(cq, vec2(-0.37, 0.93)) * 4.7 - uTime * 1.7 + cbn * 1.3);',
+'    float w3 = sin(dot(cq, vec2(0.99, -0.14)) * 3.6 + uTime * 2.6 - cbn * 0.7);',
+'    float crest = max(0.0, (w1 + w2 + w3) * 0.3333);',
+'    float aa = 1.0 - smoothstep(0.035, 0.08, px / uGlintK);',
+'    float clump = smoothstep(0.35, 0.8, vn(uv * 0.9 + vec2(-uTime * 0.11, uTime * 0.08)));',   // sparkle comes in drifting clusters, not an even sprinkle
+'    float spark = pow(crest, 12.0 + 12.0 * uTide) * 4.0 * aa * clump, sheen = smoothstep(0.30, 0.95, crest) * 0.22 * (0.5 + 0.5 * clump) * (1.0 - 0.6 * uTide);',
+'    float gk = uGlint * gb2 * farK * (1.0 - refl.a * 0.85) * (0.8 + 0.4 * uTide) * (1.0 + 1.6 * gust) * (0.3 + 0.7 * min(1.0, uWind + 0.25));',
+'    col += mix(vec3(1.0, 0.97, 0.88), uSunCol, 0.6) * spark * gk + mix(uHaze, uSunCol, 0.5) * sheen * gk;',
+'  }',
+// lamp shimmer (water v2): under each lit lamp\'s reflection a short column of broken warm light, longer when the water moves,
+// almost a clean point on the high-tide mirror. uLampS = (pixel x, pixel y of the mirrored flame, level, pixels per unit).
+'  if (uWaterFx > 0.5 && uLampK > 0.01 && depth > 0.01) { float lg = 0.0; float rgh = clamp(uRipple * 1.3 + gust, 0.08, 1.4);',
+'    for (int i = 0; i < 5; i++) { vec4 L = uLampS[i]; if (L.z > 0.01) { vec2 dl = (gl_FragCoord.xy - L.xy) / L.w; float yy = -dl.y; float len = mix(0.32, 1.3, min(rgh, 1.0));',
+'      float colm = smoothstep(-0.10, 0.04, yy) * (1.0 - smoothstep(len * 0.45, len, yy)); if (colm > 0.0) { float jx = 0.05 * sin(yy * 8.0 + uTime * 1.6 + float(i) * 2.0) * rgh; float wx = 0.07 + 0.09 * clamp(yy, 0.0, 1.0) * rgh;',
+'      float dash = 0.25 + 0.75 * pow(0.5 + 0.5 * sin(yy * 24.0 - uTime * 2.0 + 4.0 * vn(vec2(dl.x * 5.0, yy * 2.5 + uTime * 0.35)) + 0.8 * sin(yy * 9.0 + uTime) + float(i)), 3.0);',
+'      lg += L.z * colm * exp(-pow((dl.x - jx) / wx, 2.0)) * mix(1.0, dash, min(rgh, 1.0)); } } }',
+'    col += vec3(1.0, 0.70, 0.36) * lg * 0.75 * uLampK * smoothstep(0.01, 0.05, depth); }',
+// gusts darken the water a touch (rough water shows less sky)
+'  col *= 1.0 - 0.10 * gust * (0.4 + 0.6 * uBot);',
 '  col = mix(col, uHaze, smoothstep(45.0, 90.0, dc) * 0.5);',
 '  col = mix(col, uTint, 0.05);',
 '  gl_FragColor = vec4(col, 1.0);',
@@ -8149,7 +8201,9 @@ const WU = {
   uRes: { value: uRes }, uCenter: { value: new T.Vector2(0.8, 2.6) }, uRingC: { value: new T.Vector2(RING.c[0], RING.c[1]) }, uHR: { value: new T.Vector2(HMIN, HMAX) },
   uMap: { value: new T.Vector4(MAPB.u0, MAPB.v0, MAPB.u1, MAPB.v1) }, uRip: { value: Array.from({ length: 6 }, () => new T.Vector4(0, 0, -1, 0.5)) },
   uSkyTop: { value: new T.Color() }, uHaze: { value: new T.Color() }, uCloud: { value: new T.Color() }, uTint: { value: new T.Color() },
-  uWinC: { value: new T.Vector2() }, uWinM: { value: new T.Vector4(1, 0, 0, 1) }, uBrip: { value: new T.Vector3(0, 0, -1) }, uWinK: { value: 0 }, uWinR: { value: 1.1 }, uWinGlow: { value: 0 }, uWinDay: { value: 0 }
+  uWinC: { value: new T.Vector2() }, uWinM: { value: new T.Vector4(1, 0, 0, 1) }, uBrip: { value: new T.Vector3(0, 0, -1) }, uWinK: { value: 0 }, uWinR: { value: 1.1 }, uWinGlow: { value: 0 }, uWinDay: { value: 0 },
+  uGust: { value: new T.Vector4(0, 0, 0, 0) }, uGustR: { value: new T.Vector2(3.4, 1.9) }, uSunCol: { value: new T.Color(1, 1, 1) }, uWind: { value: 1 }, uWaterFx: { value: 1 }, uLampK: { value: 0 }, uScrU: { value: new T.Vector2(1, 0) },
+  uLampS: { value: Array.from({ length: 5 }, () => new T.Vector4(0, 0, 0, 1)) }
 };
 const water = new T.Mesh(new T.PlaneGeometry(600, 600, 1, 1).rotateX(-Math.PI / 2), new T.ShaderMaterial({ uniforms: WU, vertexShader: VERT, fragmentShader: FRAG, extensions: { derivatives: true } }));
 water.frustumCulled = false; water.layers.set(2); water.userData.noMerge = true; scene.add(water);
@@ -8666,15 +8720,61 @@ function update(dt) {
   skyEl.innerHTML = '<b>' + TIDE_NAME[tidePhase] + '</b> · ' + TOD_NAME[key];
   // ----- world motion -----
   const sway = wind * MOTION * (1 - 0.25 * tideShown);   // a little calmer at high tide, to match the mirror
-  R.crowns.forEach((q) => { q.o.rotation.z = Math.sin(tAcc * 0.7 + q.ph) * q.amp * sway; q.o.rotation.x = Math.sin(tAcc * 0.5 + q.ph * 1.7) * q.amp * 0.6 * sway; });
-  R.reeds.forEach((q) => { q.o.rotation.x = Math.sin(tAcc * 1.1 + q.ph) * q.amp * sway; q.o.rotation.z = Math.sin(tAcc * 0.8 + q.ph * 1.7) * q.amp * 0.7 * sway; });
+  const swC = sway * (1 + 0.8 * WFX.pineK), swR = sway * (1 + 1.5 * WFX.reedK);   // water v2: the gust reaches the pine and the reeds when it passes them
+  R.crowns.forEach((q) => { q.o.rotation.z = Math.sin(tAcc * 0.7 + q.ph) * q.amp * swC; q.o.rotation.x = Math.sin(tAcc * 0.5 + q.ph * 1.7) * q.amp * 0.6 * swC; });
+  R.reeds.forEach((q) => { q.o.rotation.x = Math.sin(tAcc * 1.1 + q.ph) * q.amp * swR; q.o.rotation.z = Math.sin(tAcc * 0.8 + q.ph * 1.7) * q.amp * 0.7 * swR; });
   lampsUpdate(dt, false);
   LIFE.update(tAcc, { WL, tide: tideShown, cur, trav: [TR.u, TR.v], route: TR.route ? TR.route.pts : null });
   if (!dragging && !window.__holdCam) { const q = Math.exp(-dt * 2.6); yawOff *= q; pitchOff *= q; }
   bridgeFxUpdate(dt);
   s4Update(dt);
   placeCamera();
+  waterFxUpdate();
 }
+
+// ---------- water detail v2 (Claude 2026-10-16): gusts, glitter colour, lamp shimmer positions ----------
+// Picture only: nothing here touches lamps, tide, events or rewards. Paused -> frozen (driven by tAcc). Reduced motion -> no gusts.
+// ?water=old shows the accepted 2026-10-03 water for comparison; the 水面 button in the test panel toggles it too.
+const WFX = { on: Q.get('water') !== 'old', t: -1, dur: 10, next: 9, u: 0, v: 0, du: 1, dv: 0, last: 0, reedK: 0, pineK: 0, force: false };
+const WIND_AZ = 0.35;   // the prevailing wind on the lake blows toward +u, a little toward +v (from the reed bed side), in lake (u, v)
+const wfxLamp = new T.Vector3();
+function gustAt(u, v) {
+  if (WFX.t < 0) return 0; const x = WFX.t / WFX.dur, s = Math.sin(Math.PI * Math.min(1, x));
+  const cu = WFX.u + WFX.du * WFX.t * 1.7, cv = WFX.v + WFX.dv * WFX.t * 1.7, a = ((u - cu) * WFX.du + (v - cv) * WFX.dv) / 3.4, b = (-(u - cu) * WFX.dv + (v - cv) * WFX.du) / 1.9;
+  return s * Math.exp(-(a * a + b * b));
+}
+function startGust(force) {
+  const az = WIND_AZ + (Math.random() - 0.5) * 0.7; WFX.du = Math.cos(az); WFX.dv = Math.sin(az);
+  // starts upwind of a random point of the open water near the middle, so it crosses the picture
+  const cu = -2 + Math.random() * 10, cv = -3 + Math.random() * 12; WFX.u = cu - WFX.du * 9; WFX.v = cv - WFX.dv * 9;
+  WFX.t = 0; WFX.dur = 9 + Math.random() * 4; WFX.force = !!force;
+}
+function waterFxUpdate() {
+  const dt = Math.max(0, tAcc - WFX.last); WFX.last = tAcc;
+  WU.uWaterFx.value = WFX.on ? 1 : 0;
+  // gusts: one every 25-50 s of moving time; none while a story hushes the lake, none with reduced motion
+  if (WFX.t >= 0) { WFX.t += dt; if (WFX.t > WFX.dur) { WFX.t = -1; WFX.next = 25 + Math.random() * 25; } }
+  else if (WFX.on && MOTION >= 1 && lakeHush < 0.01) { WFX.next -= dt; if (WFX.next <= 0) startGust(false); }
+  const str = WFX.on && WFX.t >= 0 ? (WFX.force ? 1 : (1 - 0.45 * tideShown)) * (1 - lakeHush) : 0;
+  const x = WFX.t >= 0 ? WFX.t / WFX.dur : 0;
+  WU.uGust.value.set(WFX.u + WFX.du * WFX.t * 1.7, WFX.v + WFX.dv * WFX.t * 1.7, Math.atan2(WFX.dv, WFX.du), str * Math.sin(Math.PI * Math.min(1, x)));
+  WFX.reedK = str * gustAt(-13, 0.1); WFX.pineK = str * gustAt(8.6, 1.3);
+  WU.uWind.value = MOTION * (1 - lakeHush);
+  WU.uSunCol.value.copy(cur.sun);
+  // night lamps: where each flame's mirror image lands on the screen
+  const lk = Math.max(0, Math.min(1, (cur.lamp - 0.45) / 0.9)); WU.uLampK.value = WFX.on ? lk * lk * (3 - 2 * lk) : 0;
+  camera.updateMatrixWorld();
+  { const e = camera.matrixWorld.elements, ru = (e[0] - e[2]) * Math.SQRT1_2, rv = (-e[0] - e[2]) * Math.SQRT1_2, h = Math.hypot(ru, rv) || 1; WU.uScrU.value.set(ru / h, rv / h); }   // screen-right in lake (u, v): glitter streaks lie along it
+  const ppu = uRes.y / ((camera.top - camera.bottom) / camera.zoom);
+  for (let i = 0; i < 5; i++) {
+    const S = WU.uLampS.value[i], lev = LAMPFX.lev[i] || 0;
+    if (lev < 0.01 || WU.uLampK.value < 0.01) { S.z = 0; continue; }
+    wfxLamp.set(LAMPFX.pos[i * 3], 2 * WL - LAMPFX.pos[i * 3 + 1], LAMPFX.pos[i * 3 + 2]).project(camera);
+    S.set((wfxLamp.x + 1) * 0.5 * uRes.x, (wfxLamp.y + 1) * 0.5 * uRes.y, Math.min(1.6, lev), ppu);
+  }
+}
+{ const wb = document.getElementById('waterBtn'); if (wb) { wb.textContent = WFX.on ? '水面：新版' : '水面：舊版'; wb.addEventListener('click', () => { WFX.on = !WFX.on; wb.textContent = WFX.on ? '水面：新版' : '水面：舊版'; if (!WFX.on) WFX.t = -1; }); }
+  const gb = document.getElementById('gustBtn'); if (gb) gb.addEventListener('click', () => { if (!WFX.on) return; startGust(true); setStatus('一陣風從蘆葦那邊吹過湖面。'); }); }
 
 
 // ---------- ?graph=1 : the road network drawn over the scene (no text) ----------
