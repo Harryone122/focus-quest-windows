@@ -8063,6 +8063,7 @@ const FRAG = [
 // drifting clouds (Claude 2026-10-16, user: calm water, no waves, no white dots; the clouds reflected in the lake drift on the wind):
 // uCloudA / uCloudB = how far the low and the high cloud layers have travelled (lake units, JS integrates speed x wind direction),
 // uCloudEvo = slow change of shape, uCloudMore = extra cover from the test panel, uSwell = the old wind swells (0 = still water)
+'uniform sampler2D uSim; uniform vec4 uDom; uniform vec2 uSimTx; uniform float uSimK;',
 'uniform vec2 uFwd; uniform vec2 uCloudA, uCloudB; uniform float uCloudEvo, uCloudMore, uSwell, uCSK, uCSAmt;',
 'varying vec3 vW;',
 'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
@@ -8086,18 +8087,16 @@ const FRAG = [
 '  rip *= amp;',
 // footstep ripples (SPEC 8.4): rings of (u, v, age, maxRadius); they shake the reflection and add a faint bright line, and die at the still ring
 '  vec2 ripF = vec2(0.0); float ripL = 0.0;',
-// ripple trains (Claude 2026-10-16, user: the occasional ripple was just a white circle spreading out, make it real): a drop or a step
-// sends out a short train of concentric wavelets. The leading front runs out and slows down; three or four smaller rings follow
-// behind it, their spacing grows as they spread and they die out from the inside. No white line: the rings bend the reflection
-// and shade the water by their slope (the side facing the camera mirrors deeper sky, the far side the pale horizon), like real water.
+// ripples from a real wave simulation (Claude 2026-10-16, user: "give the ripples a real physics engine that spreads them, I can hardly see them"):
+// uSim holds the water height on a grid over the lake (see SIM below). Its slope bends the reflection, shades each wave face by which way
+// it tilts (toward the camera: deeper sky; away: the pale horizon) and lights the far faces of the crests. Waves spread, reflect off the
+// stones and shores, cross each other and fade by themselves; a wading traveller leaves a real wake.
 '  float ripS = 0.0;',
-'  for (int i = 0; i < 6; i++) { vec4 rp = uRip[i]; if (rp.z >= 0.0) { vec2 dvv = uv - rp.xy; float dd = length(dvv); vec2 rn = dvv / max(dd, 0.001);',
-'    float R = rp.w * (1.0 - pow(1.0 - rp.z, 1.7)); float dbk = R - dd;',
-'    float lam = 0.055 + 0.07 * rp.z * min(rp.w, 1.8); float trainW = 0.10 + 0.32 * rp.z * min(rp.w, 1.8);',
-'    float env = smoothstep(-0.025, 0.02, dbk) * exp(-max(dbk, 0.0) / trainW) * pow(1.0 - rp.z, 1.4) / sqrt(1.0 + 2.5 * R) * ringMask;',
-'    env *= 1.0 - smoothstep(0.0, 0.35, dbk - R * 0.85);',   // nothing left near the centre once the train has passed
-'    float rph = 6.2832 * dbk / lam; float rs = cos(rph) * env;',
-'    ripF += rn * rs * 0.016; ripS += (dot(rn, uFwd) * 0.7 + 0.3) * rs * 4.0; ripL += max(0.0, -sin(rph)) * env * 0.6; } }',
+'  { vec2 su = (uv - uDom.xy) / (uDom.zw - uDom.xy); if (su.x > 0.0 && su.x < 1.0 && su.y > 0.0 && su.y < 1.0) {',
+'    float hx = texture2D(uSim, su + vec2(uSimTx.x, 0.0)).r - texture2D(uSim, su - vec2(uSimTx.x, 0.0)).r;',
+'    float hy = texture2D(uSim, su + vec2(0.0, uSimTx.y)).r - texture2D(uSim, su - vec2(0.0, uSimTx.y)).r;',
+'    vec2 sl = vec2(hx, hy) * uSimK * ringMask;',
+'    ripF += sl * 0.0035; float tw = dot(sl, uFwd); ripS += tw * 1.2; ripL += max(0.0, -tw - 0.15) * 1.2 + max(0.0, length(sl) - 0.5) * 0.4; } }',
 // procedural sky: base colour, drifting clouds, thin haze toward the top of the screen, stars at night
 '  float sy = gl_FragCoord.y / uRes.y;',
 '  float hazeK = uHazeLo > 0.99 ? 0.0 : pow(smoothstep(uHazeLo, 1.0, sy), 1.0 - (0.8 - uHazeLo) * 1.4);',
@@ -8151,9 +8150,9 @@ const FRAG = [
 // Now a soft, multiplicative brightness variation of a few percent that follows the water colour, so it never adds pale patches, and it fades
 // out on far water (px = lake units per pixel), where its noise cells would otherwise alias into a mosaic of little rectangles.
 '  col *= 1.0 + 0.045 * (smoothstep(0.25, 0.85, vn(uv * 3.1 + vec2(uTime * 0.25, -uTime * 0.17))) - 0.5) * uRipple * uSwell * rfade * ringMask * (1.0 - smoothstep(0.02, 0.06, px));',
-'  col = mix(col, col * 0.82 + uSkyTop * 0.06, clamp(ripS, 0.0, 1.0) * 0.7);',
-'  col = mix(col, mix(uHaze, vec3(1.0), 0.35), clamp(-ripS, 0.0, 1.0) * 0.32);',
-'  col += ripL * 0.10 * mix(uHaze, vec3(1.0), 0.5);',
+'  col = mix(col, col * 0.74 + uSkyTop * 0.08, clamp(ripS, 0.0, 1.0) * 0.8);',
+'  col = mix(col, mix(uHaze, vec3(1.0), 0.35), clamp(-ripS, 0.0, 1.0) * 0.45);',
+'  col += min(ripL, 1.5) * 0.12 * mix(uHaze, vec3(1.0), 0.6) * (0.4 + 0.6 * uBot);',
 '  col += vec3(0.50, 0.62, 0.92) * uWinGlow * 0.17 * exp(-max(wr - uWinR, 0.0) * 1.5) * (1.0 - winMask);',
 // depth from the baked height map: bottom shows through the shallows, wet line along the shore
 '  vec2 muv = (uv - uMap.xy) / (uMap.zw - uMap.xy);',
@@ -8191,10 +8190,68 @@ const WU = {
   uMap: { value: new T.Vector4(MAPB.u0, MAPB.v0, MAPB.u1, MAPB.v1) }, uRip: { value: Array.from({ length: 6 }, () => new T.Vector4(0, 0, -1, 0.5)) },
   uSkyTop: { value: new T.Color() }, uHaze: { value: new T.Color() }, uCloud: { value: new T.Color() }, uTint: { value: new T.Color() },
   uWinC: { value: new T.Vector2() }, uWinM: { value: new T.Vector4(1, 0, 0, 1) }, uBrip: { value: new T.Vector3(0, 0, -1) }, uWinK: { value: 0 }, uWinR: { value: 1.1 }, uWinGlow: { value: 0 }, uWinDay: { value: 0 },
-  uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }, uCSK: { value: 0 }, uCSAmt: { value: 0 }, uFwd: { value: new T.Vector2(0, 1) }
+  uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }, uCSK: { value: 0 }, uCSAmt: { value: 0 }, uFwd: { value: new T.Vector2(0, 1) },
+  uSim: { value: null }, uDom: { value: new T.Vector4(-21, -12, 19, 20) }, uSimTx: { value: new T.Vector2(1 / 640, 1 / 512) }, uSimK: { value: 110.0 }
 };
 const water = new T.Mesh(new T.PlaneGeometry(600, 600, 1, 1).rotateX(-Math.PI / 2), new T.ShaderMaterial({ uniforms: WU, vertexShader: VERT, fragmentShader: FRAG, extensions: { derivatives: true } }));
 water.frustumCulled = false; water.layers.set(2); water.userData.noMerge = true; scene.add(water);
+
+// ---------- SIM: the lake's wave simulation (Claude 2026-10-16) ----------
+// A 640 x 512 height field over u -21..19, v -12..20 (one cell = 0.0625 lake units), two float textures ping-ponged on the GPU.
+// Every step each cell is pulled toward the average of its four neighbours (the wave equation), keeps its momentum, loses a little energy.
+// Dry ground at the current water level and the still stone ring are walls, so waves bounce off stones and shores.
+// Drops (fish, steps, pebbles, a finger in the water) push the water down in a small bowl; everything after that is the simulation.
+// Steps run on the world motion clock (tAcc): paused = frozen, reduced motion = slower.
+const SIM = (() => {
+  const W0 = 640, H0 = 512;
+  const halfOk = renderer.capabilities.isWebGL2 || renderer.extensions.get('OES_texture_half_float');
+  const opt = { type: T.HalfFloatType, format: T.RGBAFormat, minFilter: T.LinearFilter, magFilter: T.LinearFilter, depthBuffer: false, stencilBuffer: false, wrapS: T.ClampToEdgeWrapping, wrapT: T.ClampToEdgeWrapping };
+  const A = new T.WebGLRenderTarget(W0, H0, opt), B = new T.WebGLRenderTarget(W0, H0, opt);
+  const cam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1), sc = new T.Scene();
+  const mat = new T.ShaderMaterial({
+    uniforms: { uPrev: { value: null }, uTx: { value: new T.Vector2(1 / W0, 1 / H0) }, uGround: { value: groundTex }, uMap: WU.uMap, uHR: WU.uHR, uDom: WU.uDom, uWL: { value: 0 }, uRingC: WU.uRingC, uRingR: { value: 0 },
+      uDrops: { value: Array.from({ length: 8 }, () => new T.Vector4(0, 0, 1, 0)) }, uClear: { value: 0 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: [
+      'precision highp float;',
+      'uniform sampler2D uPrev, uGround; uniform vec2 uTx, uHR, uRingC; uniform vec4 uMap, uDom; uniform float uWL, uRingR, uClear; uniform vec4 uDrops[8];',
+      'varying vec2 vUv;',
+      'void main(){',
+      '  vec4 s = texture2D(uPrev, vUv);',
+      '  float avg = 0.25 * (texture2D(uPrev, vUv + vec2(uTx.x, 0.0)).r + texture2D(uPrev, vUv - vec2(uTx.x, 0.0)).r + texture2D(uPrev, vUv + vec2(0.0, uTx.y)).r + texture2D(uPrev, vUv - vec2(0.0, uTx.y)).r);',
+      '  s.g += (avg - s.r) * 2.0; s.g *= 0.985; s.r += s.g; s.r *= 0.9995;',
+      '  vec2 uv = mix(uDom.xy, uDom.zw, vUv);',
+      '  for (int i = 0; i < 8; i++) { vec4 d = uDrops[i]; if (d.w != 0.0) { float q = length(uv - d.xy) / d.z; if (q < 1.0) s.r -= (0.5 + 0.5 * cos(3.14159 * q)) * d.w; } }',
+      '  vec2 muv = (uv - uMap.xy) / (uMap.zw - uMap.xy); float gh = mix(uHR.x, uHR.y, texture2D(uGround, muv).a);',
+      '  float wall = step(uWL - 0.01, gh); if (length(uv - uRingC) < uRingR) wall = 1.0;',
+      '  float e = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y)); float edge = smoothstep(0.0, 0.04, e);',   // soak the waves up at the edge of the grid
+      '  s.rg *= (1.0 - wall) * mix(0.85, 1.0, edge) * (1.0 - uClear);',
+      '  gl_FragColor = vec4(s.rg, 0.0, 1.0);',
+      '}'].join('\n') });
+  const quad = new T.Mesh(new T.PlaneGeometry(2, 2), mat); quad.frustumCulled = false; sc.add(quad);
+  const st = { cur: A, nxt: B, acc: 0, last: 0, drops: [], ok: !!halfOk, clear: 2, HZ: 24 };
+  function step() {
+    mat.uniforms.uPrev.value = st.cur.texture; mat.uniforms.uWL.value = WL; mat.uniforms.uRingR.value = WU.uRingR.value;
+    const D = mat.uniforms.uDrops.value; for (let i = 0; i < 8; i++) { const d = st.drops[i]; if (d) D[i].set(d[0], d[1], d[2], d[3]); else D[i].w = 0; }
+    st.drops = st.drops.slice(8); mat.uniforms.uClear.value = st.clear > 0 ? 1 : 0; if (st.clear > 0) st.clear--;
+    const prevRT = renderer.getRenderTarget(), prevClip = renderer.clippingPlanes; renderer.clippingPlanes = [];
+    renderer.setRenderTarget(st.nxt); renderer.render(sc, cam); renderer.setRenderTarget(prevRT); renderer.clippingPlanes = prevClip;
+    const t = st.cur; st.cur = st.nxt; st.nxt = t;
+  }
+  return {
+    // radius in lake units, depth = how hard (a fish 0.06, a footstep 0.02)
+    drop(u, v, radius, depth) { if (st.ok) st.drops.push([u, v, radius, depth]); },
+    update() {
+      if (!st.ok) return; let dt = Math.max(0, tAcc - st.last); st.last = tAcc; if (dt > 0.25) dt = 0.25;
+      st.acc += dt; let n = 0; const h = 1 / st.HZ;
+      if (st.clear > 0 && st.acc < h) st.acc = h;
+      while (st.acc >= h && n < 6) { step(); st.acc -= h; n++; }
+      WU.uSim.value = st.cur.texture;
+    },
+    reset() { st.clear = 2; st.drops = []; },
+    state: st
+  };
+})();
 
 // =====================================================================
 // runtime
@@ -8354,7 +8411,7 @@ const clamp01 = (x) => Math.max(0, Math.min(1, x));
 // ---------- wading: ripples live in the water shader (uniform array), splashes are a main-view-only Points object ----------
 const RIP = { n: 6, age: new Float32Array(6).fill(1), life: new Float32Array(6).fill(1.2), u: new Float32Array(6), v: new Float32Array(6), r: new Float32Array(6) };
 const RIPU = []; for (let i = 0; i < 6; i++) RIPU.push(new T.Vector4(0, 0, -1, 0.5));
-function addRipple(u, v, maxR, life) { let k = 0, best = -1; for (let i = 0; i < RIP.n; i++) { if (RIP.age[i] >= 1) { k = i; best = 2; break; } if (RIP.age[i] > best) { best = RIP.age[i]; k = i; } } RIP.age[k] = 0; RIP.life[k] = life || 1.2; RIP.u[k] = u; RIP.v[k] = v; RIP.r[k] = maxR || 0.5; }
+function addRipple(u, v, maxR, life) { const r = Math.max(0.12, Math.min(0.32, 0.1 + (maxR || 0.5) * 0.11)), k = Math.min(0.11, 0.012 + 0.016 * (life || 1.2) * (maxR || 0.5)); SIM.drop(u, v, r, k); }   // into the wave simulation
 function rippleUpdate(dt) { for (let i = 0; i < RIP.n; i++) { if (RIP.age[i] < 1) RIP.age[i] += dt / RIP.life[i]; RIPU[i].set(RIP.u[i], RIP.v[i], RIP.age[i] < 1 ? RIP.age[i] : -1, RIP.r[i]); } WU.uRip.value = RIPU; }
 const SPL = (() => {
   const N = 30, pos = new Float32Array(N * 3), st = []; for (let i = 0; i < N; i++) st.push({ on: false, x: 0, y: -50, z: 0, vx: 0, vy: 0, vz: 0, age: 0 });
@@ -8748,6 +8805,7 @@ function update(dt) {
   bridgeFxUpdate(dt);
   s4Update(dt);
   placeCamera();
+  SIM.update();   // the wave simulation steps on the motion clock (after s4Update has set the stone ring's state)
 }
 
 
@@ -9824,7 +9882,7 @@ window.__lake = {
   moonWindow(on) { BFX.force = (on === undefined || on === null) ? null : !!on; if (BFX.force !== null) { BFX.k = BFX.force ? 1 : 0; BFX.rip = -1; } update(0); },
   bridgeFx: () => ({ k: +BFX.k.toFixed(3), rip: BFX.rip, phase: +BFX.phase.toFixed(3), amp: +BFX.amp.toFixed(3), force: BFX.force, wl: +WL.toFixed(3), star: +cur.star.toFixed(2), maxA: (()=>{let m=0;const c=BR.ring.col;for(let i=3;i<c.length;i+=4)m=Math.max(m,c[i]);return +m.toFixed(3)})() }),
   tidalAreas: () => ({ arcs: TIDAL.arcs, leaves: TIDAL.pond.PADS.map(l=>({y:+(Math.max(WL,POND_FLOOR+.03)+.004).toFixed(3)})), bloom: sstep(.07,.29,WL), moonNight: sstep(.65,.97,cur.star) }),
-  W, camera, scene, renderer, water
+  W, camera, scene, renderer, water, sim: SIM
 };
 Object.assign(window.__lake, {
   // stage 4 test entries: p given -> frozen at that progress (for pictures), otherwise it plays
