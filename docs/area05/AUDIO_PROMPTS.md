@@ -147,3 +147,14 @@ Clean, warm, high-quality studio recording, natural room reverb, balanced low en
 - 流程同 `AUDIO_DESIGN_HANDOFF.md` §10：先出試聽（日、夜、山風、洞內各一段混音，附背景音樂），使用者確認後才整合；不自己合成或生成聲音；缺檔就不播。
 - 聲音只由既有狀態驅動（時段、山風、洞內／洞外、事件 cue）。暫停時凍結，快轉與跳時直接就位，不補播。
 - 不改其他地圖的聲音。
+
+## 7. 2026-10-16 輪播用第二、三首背景音樂（ElevenLabs Music，使用者生成）
+
+背景音樂已改為持續播放（`AUDIO_HANDOFF.md` §12）。為了不讓同一首播太久，再做兩首輪流播放。三首都用 **D 大調、68 BPM**，交叉淡入淡出時才不會打架。每次生成 4 版，依 §1 的挑檔標準挑選；原檔放 `game project/audio-incoming/`。
+
+- `a05_bgm_b`（晨／日，2:30）：
+  > Slow lofi instrumental for a calm focus game, autumn mountain valley with an old stone quarry and a waterfall. D major, 68 BPM, steady and unhurried. Warm felt piano and soft nylon guitar carry a simple, sparse melody with plenty of space between phrases; gentle brushed drums and a soft, rounded upright bass. Balanced low end, clear gentle highs, no harsh transients. Even dynamics with no build-ups, drops or sudden loud moments. No vocals, no bells, no chimes, no gongs, no wind chimes, no bird sounds, no nature sounds. Ends with a slow natural fade.
+- `a05_bgm_c`（暮／夜，2:30）：
+  > Very slow, quiet lofi instrumental for a calm focus game at night in an autumn mountain valley. D major, 68 BPM. Soft warm pads, low gentle cello and distant airy flute, with sparse, soft piano notes; very light or no percussion. Dreamy and still, like moonlight on mist. Balanced low end, soft clear highs, even dynamics, no build-ups or sudden loud moments. No vocals, no bells, no chimes, no gongs, no wind chimes, no bird sounds, no nature sounds. Ends with a slow natural fade.
+
+整合（使用者試聽確認後由 Codex 處理）：處理方式同 §4（高通 120 Hz、−24 LUFS −1.75 dB、找下拍），排程器在 `a05_bgm_day`／`_b` 之間輪替，暮夜多用 `_c`，不連續播同一首。
