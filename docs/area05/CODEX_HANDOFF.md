@@ -244,3 +244,9 @@ TypeScript、試玩與正式來源建置通過；Electron 18 步態及減少動�
 - 已移植（Claude）： `echoQuarryScene.js` 的 `fallBacking` fragment shader 換成原型版本，並加上那一組下段飛沫 `Spray`（放在 PLUNGE 兩組 Spray 之後）。`qa-echo-quarry.cjs` 的 `opaqueBacking` 仍應成立。請一併看夜晚色調（`uTint`）下白泡沫不過亮。
 - 已執行：`node --check`（原型與正式場景）、`vitest run` 226/226 通過。未執行：Electron QA、截圖、打包（雲端環境無視窗；依 2026-09-26 決定由 Codex 執行）。
 - 未決：白泡沫起始位置（目前約落差 1/3）若使用者覺得太早／太晚，調 `aer` 的 0.12／0.42 即可。
+
+## 2026-10-16 Claude 正式修正：夜晚瀑布白沫保持白色（使用者要求直接改正式 App）
+
+- 夜晚原本整條水幕、白沫與飛沫都乘上夜色（深藍），白沫變深藍。現在夜色只套在藍色水體上：水幕 shader 依白度 `w` 把 `uTint` 混回白色；`fallBacking` 的白泡沫段不吃夜色；飛沫／水霧的夜色混合由 0.8 降到 0.12。原型 `echo-valley.html` 同步。
+- 音效修正見 `AUDIO_HANDOFF.md` §12。
+- 未執行：Electron QA、截圖、打包（雲端環境無視窗）。

@@ -19,9 +19,9 @@ module.exports=async({app,win,profile,root})=>{
   await js('echoTrialScene.play()');await until(async()=>(await state()).audio.context==='running');
   report.checks.push('pause freezes actual AudioContext, playing segment, positions and focus clock; resume continues');
   await js(`document.getElementById('audio-muted').checked=true;document.getElementById('audio-muted').dispatchEvent(new Event('input'))`);await wait(200);s=await state();assert.equal(s.audio.context,'suspended');assert.equal(s.audio.foreground,0);assert.equal(s.audio.music,null);
-  await js(`document.getElementById('audio-muted').checked=false;document.getElementById('audio-muted').dispatchEvent(new Event('input'))`);await wait(200);s=await state();assert(s.audio.nextMusicAt>s.audio.clock+19);
-  report.checks.push('actual mute control stops old cues/music; restoration schedules silence rather than replay');
-  await js('echoTrialScene.automatic(false);echoTrialScene.speed(60);echoTrialScene.advance(30)');s=await state();assert.equal(s.audio.foreground,0);assert.equal(s.audio.music,null);assert(s.audio.nextMusicAt>=s.audio.clock+19);
+  await js(`document.getElementById('audio-muted').checked=false;document.getElementById('audio-muted').dispatchEvent(new Event('input'))`);await wait(200);s=await state();assert(s.audio.nextMusicAt>s.audio.clock+1.5);
+  report.checks.push('actual mute control stops old cues/music; restoration fades music back in rather than replaying');
+  await js('echoTrialScene.automatic(false);echoTrialScene.speed(60);echoTrialScene.advance(30)');s=await state();assert.equal(s.audio.foreground,0);assert.equal(s.audio.music,null);assert(s.audio.nextMusicAt>=s.audio.clock+1.5);
   report.checks.push('fast advance drops historical one-shots and repositions environment without catch-up');
   // Fast approach, then run the authored stone timeline live at its reference rate.
   await js(`echoTrialScene.event('core');echoTrialScene.automatic(false);echoTrialScene.speed(60);`);
@@ -32,8 +32,8 @@ module.exports=async({app,win,profile,root})=>{
   await until(async()=>{const s=await state();report.samples.push({clock:s.audio.clock,foreground:s.audio.foreground});return s.audio.history.some(e=>e.id==='core_motif_05'&&e.clock>=beforeClock)},25000);
   s=await state();const h=s.audio.history.filter(e=>e.clock>=beforeClock),swell=h.find(e=>e.id==='a05_core_swell'),wave=h.find(e=>e.coreWave),motif=h.find(e=>e.id==='core_motif_05'),hums=h.filter(e=>e.id==='hum_stone_g2');
   assert(swell&&wave&&motif);assert.equal(hums.length,3);assert(Math.abs(swell.start+2.6-swell.offset-wave.coreWave)<.25);
-  assert.equal(motif.music,true);assert(s.audio.nextMusicAt>=motif.end+29.9);assert(report.samples.every(s=>s.foreground<=3));
-  report.core={hums,swell,wave,motif,nextMusicAt:s.audio.nextMusicAt};report.checks.push('authored core timeline: three hums, swell peak matches blue wave, motif on music slider, >=30s quiet interval, maximum 3 foreground');await shot('core-collected');
+  assert.equal(motif.music,true);assert(s.audio.nextMusicAt>=motif.end+1.9);assert(report.samples.every(s=>s.foreground<=3));
+  report.core={hums,swell,wave,motif,nextMusicAt:s.audio.nextMusicAt};report.checks.push('authored core timeline: three hums, swell peak matches blue wave, motif on music slider, music returns ~2s after the motif, maximum 3 foreground');await shot('core-collected');
   await js('echoTrialScene.pause()');await wait(100);await shot('paused-cave');
   // The existing rule/geometry regression remains a separate complete run.
   report.final=(await state()).audio;assert.equal(report.errors.length,0,report.errors.join('\n'));

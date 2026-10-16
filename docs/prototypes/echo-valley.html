@@ -895,8 +895,9 @@ void main(){ float x = vUv.x, y = vUv.y; float fy = sqrt(y) * 2.6; float t = uTi
   float lace = smoothstep(0.3, 0.85, y);
   float a = (0.32 + 0.68 * streak) * edge; a *= mix(1., smoothstep(0.25, 0.75, n2 * 0.6 + n1 * 0.5), lace * 0.85); a *= 1. - smoothstep(0.62, 0.92, y);
   float crest = 1. - smoothstep(0., 0.07, y);
-  vec3 c = mix(vec3(0.56, 0.75, 0.81), vec3(0.97, 0.99, 1.), clamp(streak * 0.85 + crest * 0.8 + lace * 0.3, 0., 1.));
-  gl_FragColor = vec4(c * uTint, a * uAlpha); }`;
+  float w = clamp(streak * 0.85 + crest * 0.8 + lace * 0.3, 0., 1.);
+  vec3 c = mix(vec3(0.56, 0.75, 0.81), vec3(0.97, 0.99, 1.), w);
+  gl_FragColor = vec4(c * mix(uTint, vec3(1.), w), a * uAlpha); }`; // night tint only on the blue body; white foam stays white
 const curtains = [];
 function curtain(w, outOff, lat0, alpha, speed, seed, cols = 22, rows = 40) {
   const pos = [], uv = [], idx = [];
@@ -920,7 +921,7 @@ void main(){ float x = vUv.x, y = vUv.y, t = uTime;
   vec3 foam = mix(vec3(0.82, 0.88, 0.91), vec3(0.97, 0.99, 1.), smoothstep(0.3, 0.75, churn));
   float aer = smoothstep(0.12, 0.42, y + (churn - 0.5) * 0.12);   // blue core only in the top third, then white water
   if (churn < smoothstep(0.84, 0.97, y) * 1.05) discard;           // frays out inside the cloud sea, never above it
-  gl_FragColor = vec4(mix(blue, foam, aer) * uTint, 1.); }`;
+  gl_FragColor = vec4(mix(blue * uTint, foam, aer), 1.); }`; // foam keeps its white at night
 fallBacking.material.needsUpdate = true;
 
 /* particles: droplets, spray and foam share one soft-point shader (sizes in world units, so they scale with the camera) */
@@ -1000,7 +1001,7 @@ function updateWater(dt) {
   waterTint.copy(WHITE).lerp(NIGHTW, cur.lamp * 0.9).multiply(WHITE.clone().lerp(cur.sun, 0.22));
   curtains.forEach(m => { m.uniforms.uTime.value = tAcc; m.uniforms.uTint.value.copy(waterTint); });
   riverMat.uniforms.uTime.value = tAcc; riverMat.uniforms.uTint.value.copy(waterTint);
-  const px = renderer.domElement.height / ((cam.top - cam.bottom) / cam.zoom), spc = WHITE.clone().lerp(NIGHTW, cur.lamp * 0.8);
+  const px = renderer.domElement.height / ((cam.top - cam.bottom) / cam.zoom), spc = WHITE.clone().lerp(NIGHTW, cur.lamp * 0.12); // spray and mist stay white at night
   sprays.forEach(s => { s.update(dt); s.mat.uniforms.uPx.value = px; s.mat.uniforms.uColor.value.copy(s.base).multiply(spc); });
   billows.forEach(b => { const u = ((tAcc / b.T) + b.ph) % 1; b.sp.material.color.copy(spc);
     if (b.mid) { const s = 2.2 + Math.sin(tAcc * 0.4 + b.ph * 6) * 0.4; b.sp.scale.set(s * 1.4, s, 1); b.sp.material.opacity = 0.18 + 0.06 * Math.sin(tAcc * 0.5 + b.ph * 5); return; }

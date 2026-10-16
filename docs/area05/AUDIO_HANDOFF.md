@@ -254,3 +254,10 @@ G、D 都在 D 大調裡，和背景音樂相容。梵鐘、風鐸是非諧和�
 - 數據已另存 `audio-reports/initial-processing.json`、`initial-verification.json`、`murmur-acceptance.json` 及 `release-0.6.36.json`，可隨來源一起推送；大量試聽 WAV、安裝包、截圖與玩家資料仍保留本機。生成確切日期／使用方案仍未提供，CREDITS 如實保留未確認。
 
 §9／§10 是首次試聽及來源接線時的歷史驗證；最新包與實測以本節和 release JSON 為準。Area 05 仍由獨立入口試玩，未加入正式候選／獎勵／線索／恢復。
+
+## 12. 2026-10-16 使用者回饋修正（Claude，使用者要求直接改正式 App）
+
+- **背景音樂改為持續播放**（使用者決定）：取消抵達後 20–40 秒、段落間 30–120 秒的留白與山風避讓。抵達約 2 秒淡入；每段 60–120 秒（下拍起點不變），前一段最後 4 秒淡出時下一段同時淡入，不再出現無聲空檔。只在核心旋律 `core_motif_05` 時讓位（原本 4 秒淡出），旋律結束約 2 秒後淡回。梵鐘／動作 duck、洞內 60%、夜間低通都照舊。改 `quarryBgm.ts`、`quarryAudio.ts`（新增 `bgmTail` 讓跳時／靜音也能停掉正在淡出的前一段）、`tests/quarryBgm.test.ts`、`scripts/qa-area05-audio-scene.cjs` 斷言。
+- **撞木拉起聲** `a05_bell_log_pull`：−6 dB。
+- **鋸石聲** `a05_stone_saw` 循環：−6 dB。
+- 已執行：`vitest` 226/226、`tsc --noEmit` 通過。未執行：Electron 音訊 QA（`qa-area05-audio-scene.cjs`）、試聽與打包，雲端環境沒有視窗／音訊；請 Codex 在本機跑。

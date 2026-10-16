@@ -1,4 +1,4 @@
-import { QUARRY_AUDIO_DEFAULTS, QuarryBgmSchedule, type QuarryPeriod } from './quarryBgm'
+import { QUARRY_AUDIO_DEFAULTS, QUARRY_BGM_CROSSFADE, QuarryBgmSchedule, type QuarryPeriod } from './quarryBgm'
 import manifest from './audio/manifest.json'
 
 const urls = import.meta.glob('./audio/*.wav', {eager:true, query:'?url', import:'default'}) as Record<string,string>
@@ -25,7 +25,7 @@ export function createQuarryAudio() {
   let lastWind=false, leafRecovery=-99
   const gainTargets=new WeakMap<AudioParam,number>()
   let nextBell=35, nextBird=18, windCorner=0, clock:ReturnType<typeof setInterval>
-  let bgm:{source:AudioBufferSourceNode;gain:GainNode;end:number;offset:number}|null=null
+  let bgm:{source:AudioBufferSourceNode;gain:GainNode;end:number;offset:number}|null=null, bgmTail:AudioBufferSourceNode|null=null
   const ready=Promise.all(Object.entries(urls).map(async([path,url])=>{
     const name=path.split('/').pop()!.replace('.wav','')
     try {const response=await fetch(url,{signal:abort.signal});if(!response.ok)throw Error('missing');const b=await ctx.decodeAudioData(await response.arrayBuffer());if(!disposed)buffers.set(name,b)}
@@ -43,7 +43,7 @@ export function createQuarryAudio() {
   function enabled(){return !disposed&&!seeking&&state.playing&&!state.inactive&&!settings.audioMuted&&(settings.environmentVolume>0||(settings.musicVolume??25)>0)}
   function cleanup(v:Voice){voices.delete(v);v.source.disconnect();for(const node of v.nodes)node.disconnect()}
   function cancelShots(){for(const v of voices){try{v.source.stop()}catch{}cleanup(v)}}
-  function stopMusic(seconds=0){if(!bgm)return;const old=bgm;bgm=null;gain(old.gain.gain,0,seconds);try{old.source.stop(ctx.currentTime+seconds)}catch{}}
+  function stopMusic(seconds=0){if(bgmTail){try{bgmTail.stop(ctx.currentTime+seconds)}catch{}bgmTail=null}if(!bgm)return;const old=bgm;bgm=null;gain(old.gain.gain,0,seconds);try{old.source.stop(ctx.currentTime+seconds)}catch{}}
   function shot(id:string,options:{delay?:number;rate?:number;gain?:number;pan?:number;lowpass?:number;room?:boolean;priority?:number;music?:boolean;duration?:number;fade?:number;bed?:boolean;offset?:number}={}) {
     const b=buffers.get(id);if(!b||!enabled()||ctx.state!=='running')return false
     const now=ctx.currentTime,start=now+(options.delay??0),rate=options.rate??1,offset=options.offset??0,dryEnd=start+Math.min(options.duration??Infinity,(b.duration-offset)/rate),end=dryEnd+(options.room?2.5:0)
@@ -109,7 +109,7 @@ export function createQuarryAudio() {
     loop('a05_amb_night_crickets',insects*outside)
     loop('a05_water_wheel',outside,outdoor,-.45)
     loop('a05_cave_room',state.inCave?1:0,indoor)
-    loop('a05_stone_saw',state.saw&&!state.inCave?1:0,indoor)
+    loop('a05_stone_saw',state.saw&&!state.inCave?db(-6):0,indoor)
     loop('a05_ropeway',state.ropeway>0&&!state.inCave?1:0,indoor)
     // Winch is a one-shot at cageBoost onset, not a permanent mechanical bed.
   }
@@ -118,15 +118,15 @@ export function createQuarryAudio() {
     updateMix();if(!enabled()||ctx.state!=='running')return
     const now=ctx.currentTime
     if(bgm&&now>=bgm.end)bgm=null
-    if(!bgm&&buffers.has('a05_bgm_day')) {
-      const buffer=buffers.get('a05_bgm_day')!,cut=schedule.pick(now,state.period,state.wind>0||now<coreUntil,buffer.duration,manifest.musicBarAnalysis.energyPhaseSeconds)
+    if((!bgm||now>=bgm.end-QUARRY_BGM_CROSSFADE)&&buffers.has('a05_bgm_day')) {
+      const buffer=buffers.get('a05_bgm_day')!,cut=schedule.pick(now,state.period,now<coreUntil,buffer.duration,manifest.musicBarAnalysis.energyPhaseSeconds)
       if(cut){
         const source=ctx.createBufferSource(),g=ctx.createGain();source.buffer=buffer;source.connect(g);g.connect(bgmFilter)
         const level=(state.inCave?.6:1)*(state.period==='night'?db(-2):1)
         // Separate entrance/cave gain from four-second segment fades.
         const envelope=ctx.createGain();g.disconnect();g.connect(envelope);envelope.connect(bgmFilter)
         g.gain.value=level;envelope.gain.setValueAtTime(0,now);envelope.gain.linearRampToValueAtTime(1,now+4);envelope.gain.setValueAtTime(1,now+cut.seconds-4);envelope.gain.linearRampToValueAtTime(0,now+cut.seconds)
-        bgm={source,gain:g,end:now+cut.seconds,offset:cut.offset};source.onended=()=>{source.disconnect();g.disconnect();envelope.disconnect()};source.start(now,cut.offset,cut.seconds)
+        if(bgm)bgmTail=bgm.source;bgm={source,gain:g,end:now+cut.seconds,offset:cut.offset};source.onended=()=>{source.disconnect();g.disconnect();envelope.disconnect()};source.start(now,cut.offset,cut.seconds)
         note({bgmOffset:cut.offset,bgmSeconds:cut.seconds,period:state.period})
       }
     }
@@ -169,7 +169,7 @@ export function createQuarryAudio() {
     cue(kind:string,payload:{strength?:number;echo?:string;k?:number;timelineRate?:number}={}) {
       if(seeking||disposed)return
       switch(kind){
-        case 'pull':shot('a05_bell_log_pull');break
+        case 'pull':shot('a05_bell_log_pull',{gain:db(-6)});break
         case 'bell':if(shot('a05_bell_strike',{priority:3,rate:1+(Math.random()-.5)*(state.wind>0?.06:.04),gain:db(-3*(1-(payload.strength??1))-(state.wind>0?1+Math.random()*2:0))})){if(ctx.currentTime>=bellUntil)bellAt=ctx.currentTime;bellUntil=ctx.currentTime+8}break
         case 'chime':shot('a05_stone_chime_g6',{delay:.15,priority:3});shot('a05_stone_chime_d6',{delay:1.25,priority:3});actionDuck(.15);break
         case 'clap':shot('a05_boulder_call',{delay:.3});shot('a05_boulder_call',{delay:.9,gain:db(-9),lowpass:2500});shot('a05_boulder_call',{delay:1.5,gain:db(-15),lowpass:2500});actionDuck(.3);break
