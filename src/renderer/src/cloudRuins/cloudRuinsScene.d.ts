@@ -37,6 +37,8 @@ export type CloudRuinsLobbyView = { kind: 'close' } | { kind: 'look'; exit: 'exi
 
 export interface CloudRuinsSceneOptions {
   /** 'lobby' holds progressSeconds still (Today): lamps and daylight stay as saved, the traveller rests or waits. */
+  quietFocus?: boolean
+  replay?: boolean
   mode?: 'focus' | 'lobby'
   /** Lobby only: the first camera. Default close-up. */
   lobbyView?: CloudRuinsLobbyView | null
@@ -77,6 +79,7 @@ export interface CloudRuinsSceneOptions {
 }
 
 export interface CloudRuinsSceneHandle {
+  playRecordedEvent?(eventId:string):void
   /** One-way Focus/review -> lobby handoff. Reuses the renderer, geometry and
    * GPU programs; uses saved lobby progress and existing authored rest anchors. */
   enterLobby(host: HTMLElement, options: CloudRuinsSceneOptions): void
@@ -88,6 +91,16 @@ export interface CloudRuinsSceneHandle {
   /** Saved world state changed. coreTaken=true waits until a queued/playing core reveal has finished. */
   setWorldState(state: { coreTaken?: boolean; worldMarks?: string[] }): void
   /** Freeze or resume every animation on the scene clock; resuming continues from the same instant. */
+  setRecapRate?(rate:number):void
+  beginRecapEvent(record:import('../../../shared/focusPresentation').FocusEventRecord,actionId:number):void
+  warmRecapEvent(record:import('../../../shared/focusPresentation').FocusEventRecord):Promise<void>
+  showRecapOverview(close?:boolean):void
+  setRecapLamps(count:number):void
+  setRecapDormant(dormant:boolean):void
+  enableRecapTransitions():void
+  beginRecapTransition(duration:number):void
+  setQuietFocus(quiet:boolean):void
+  setStory(story: NonNullable<import('../../../shared/types').AppSnapshot['cloudStory']> | null):void
   setPaused(paused: boolean): void
   /** Immersive mode: opacity of the glass under the text, eased by the scene. */
   setUiFade(opacity: number): void

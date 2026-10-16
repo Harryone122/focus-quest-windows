@@ -16,7 +16,7 @@ module.exports=async({app,win,profile,root})=>{
   report.checks.push('shared water-strip joins; stable flow material visually checked at 0, 500 and 3000 seconds');
   report.waterLip=await js("echoTrialScene.qa('water-lip',true)");assert.equal(report.waterLip.exposed,0);assert.equal(report.waterLip.lipCenterGap,0);assert.equal(report.waterLip.lipWidth,2.3);assert(report.waterLip.opaqueBacking);
   await shot('water-lip-closeup');await js("echoTrialScene.qa('water-lip',false)");
-  report.checks.push('original 2.3m river width; opaque blue waterfall backing; close-up rendering and riverbed clearance checked');
+  report.checks.push('original 2.3m river width; opaque foam waterfall backing; close-up rendering and riverbed clearance checked');
   await js('echoTrialScene.automatic(true)');
   const reach=await js('echoTrialScene.state().reach');assert(Object.values(reach).every(Boolean));assert.equal(Object.keys(reach).length,17);report.checks.push('offline port; 17 reachable spots; prototype HUD and global interface removed');
   for(const file of ['occlusion-all.js','cave-mouth-tunnel.js','cave-route-clearance.js']){
@@ -47,6 +47,7 @@ module.exports=async({app,win,profile,root})=>{
   if(!saw)throw Error('Seeded echo trial did not enter cave');
   await js('echoTrialScene.advance(20)');assert.equal((await js('echoTrialScene.state()')).lamps,5);await shot('07-rest');report.checks.push('natural sound leads to budgeted echo visit, one visit maximum; five lamps follow effective seconds');
   await js('echoTrialScene.reset();echoTrialScene.time("night");echoTrialScene.advance(3);echoTrialScene.pause()');await shot('08-outdoor-night');
+  await js("echoTrialScene.qa('water-lip',true)");await shot('water-lip-night-closeup');await js("echoTrialScene.qa('water-lip',false)");
   await js('echoTrialScene.event("second");echoTrialScene.speed(60);echoTrialScene.advance(10);echoTrialScene.pause()');await shot('09-cave-night');
   assert.equal(report.errors.length,0,JSON.stringify(report.errors));report.checks.push('night outdoor/cave rendering');
   win.setSize(1024,680);await sleep(300);await shot('10-compact-window');

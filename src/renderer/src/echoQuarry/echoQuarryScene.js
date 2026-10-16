@@ -1,3 +1,4 @@
+import { buildRefinedTraveller, buildWorldPass } from '../styleRefine.js';
 import { advanceAnimation } from '../animationSteps';
 import { createQuarryAudio } from './quarryAudio';
 import { advanceBellPendulum } from './bellPendulum';
@@ -620,7 +621,9 @@ const head = new THREE.Group(); head.position.y = 0.6; upper.add(head);
 tmesh(new THREE.SphereGeometry(0.105, 12, 9), TMAT.skin, head); tmesh(new THREE.ConeGeometry(0.3, 0.13, 12), TMAT.hat, head, 0, 0.1, 0);
 const armGeo = new THREE.CylinderGeometry(0.034, 0.03, 0.3, 5); armGeo.translate(0, -0.15, 0);
 const armL = tmesh(armGeo, TMAT.cloak, upper, -0.13, 0.44, 0.02), armR = tmesh(armGeo, TMAT.cloak, upper, 0.13, 0.44, 0.02);
+tmesh(new THREE.SphereGeometry(0.03, 6, 4), TMAT.skin, armR, 0, -0.3, 0);
 const staff = new THREE.Group(); staff.position.set(0.2, 0.25, 0.08); upper.add(staff);
+const staffGripOffset = new THREE.Vector3();
 tmesh(new THREE.CylinderGeometry(0.017, 0.02, 1.08, 5), TMAT.wood, staff, 0, 0.02, 0); tmesh(new THREE.BoxGeometry(0.02, 0.02, 0.14), TMAT.woodDark, staff, 0, 0.55, 0.06);
 const travGlowMat = new THREE.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 1.2, roughness: 1 });
 const travLamp = tmesh(new THREE.BoxGeometry(0.075, 0.1, 0.075), travGlowMat, staff, 0, 0.46, 0.13); travLamp.castShadow = false;
@@ -628,6 +631,7 @@ const lantern = new THREE.PointLight(0xffb05a, 0.8, 3.2, 2); lantern.position.se
 const haloTex = canvasTex(64, (g, s) => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,220,160,1)'); r.addColorStop(0.35, 'rgba(255,180,100,0.35)'); r.addColorStop(1, 'rgba(255,160,80,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); });
 const lanternGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.3 })); lanternGlow.scale.set(0.8, 0.8, 1); lanternGlow.position.set(0, 0.46, 0.13); staff.add(lanternGlow);
 const book = tmesh(new THREE.BoxGeometry(0.2, 0.025, 0.14), TMAT.paper, upper, 0, 0.1, 0.24); book.rotation.x = -0.4; book.visible = false;
+const refinedTraveller=buildRefinedTraveller({THREE,trav,body,legL,legR,upper,cloak,head,armL,armR,staff,lantern,lanternGlow});refinedTraveller.set(true);
 const POSE = {
   idle: {}, walk: {}, inspect: { lean: 0.3, headX: 0.4, armL: -0.5 }, crouch: { hip: -0.2, legX: -0.9, lean: 0.45, headX: 0.35, armL: -0.8 },
   reach: { armL: -1.7, headX: -0.1 }, gaze: { headX: -0.32 }, look: { headX: 0.25 }, listen: { lean: 0.12, headX: 0.15, armL: -0.35 },
@@ -918,9 +922,33 @@ function updateGlow() { const day = 1 - cur.lamp; underLight.intensity = 1.2 + 0
 const LEAF_TREES = (window.__trees || []).filter(t => !t.gone && t.s > 0.6); const leafSpawn = () => { const t = LEAF_TREES[(Math.random() * LEAF_TREES.length) | 0]; const p = t.g.position; return { p: [p.x + R_(-0.6, 0.6) * t.s, p.y + R_(1.0, 1.9) * t.s, p.z + R_(-0.6, 0.6) * t.s], v: [R_(-0.15, 0.15) + wind * 0.9, -R_(0.25, 0.45), R_(-0.15, 0.15) + wind * 0.5], life: R_(3.5, 6), s0: R_(0.06, 0.09) }; };
 const R_ = (a, b) => a + Math.random() * (b - a);
 /* ---------- water: river flow, the great fall, droplets, spray, rainbow ---------- */
-const FW = window.__fall, FALL_L = 9.6, fo = [-Math.cos(FALL_TH), -Math.sin(FALL_TH)], ft = [-Math.sin(FALL_TH), Math.cos(FALL_TH)];
-function fallPt(u, drop, w, outOff, lat0 = 0, bow = 0.22) { const lat = lat0 + (u - 0.5) * w * (1 + 0.16 * drop / FALL_L), ou = outOff + 0.95 * Math.sqrt(Math.max(0, drop)) + bow * Math.sin(u * Math.PI) * (0.3 + drop / FALL_L);
-  return [FW.fx + ft[0] * lat + fo[0] * ou, FW.fy - drop, FW.fz + ft[1] * lat + fo[1] * ou]; }
+const FW = window.__fall, FALL_L = 9.6, FALL_SPREAD = 1.35, fo = [-Math.cos(FALL_TH), -Math.sin(FALL_TH)], ft = [-Math.sin(FALL_TH), Math.cos(FALL_TH)];
+const riverLipPositions = out.children.find(c => c.isMesh && c.geometry.attributes.aFlow).geometry.attributes.position;
+function fallPt(u, drop, w, outOff, lat0 = 0, bow = 0.22) {
+  // All water sheets share the narrow river lip, then fan out with a smooth tangent.
+  // The main sheet starts exactly at the river's lip width, curls over the edge, then opens as one even fan
+  // down the whole drop (FALL_SPREAD x the lip at the bottom) instead of flaring out right under the lip.
+  const d = Math.max(0, drop), f = Math.min(1, d / 1.8), fan = f * f * (3 - 2 * f);
+  const lipWidth = riverWidth(5) * 2, k = Math.min(1.2, d / FALL_L), a = 0.18;
+  const open = (k < a ? k * k / (2 * a) : k - a / 2) / (1 - a / 2);
+  const width = lipWidth * (w / 3.5) * (1 + (FALL_SPREAD - 1) * open);
+  const lat = lat0 * fan * 0.62 + (u - 0.5) * width;
+  const ou = outOff * fan + 0.95 * d / Math.sqrt(d + 0.15) + bow * Math.sin(u * Math.PI) * (0.3 + d / FALL_L) * fan;
+  const edge = riverLipPositions;
+  const left = edge.count - 4, right = edge.count - 2, blend = Math.min(1,d/0.6), join = blend*blend*(3-2*blend);
+  const lx = edge.getX(left)*(1-u)+edge.getX(right)*u, lz = edge.getZ(left)*(1-u)+edge.getZ(right)*u;
+  return [lx*(1-join)+(FW.fx + ft[0]*lat + fo[0]*ou)*join, FW.fy-drop, lz*(1-join)+(FW.fz + ft[1]*lat + fo[1]*ou)*join]; }
+const RIVER_COLOR_GLSL = `
+vec3 riverColor(float s, float sd, float t, float len){
+  float rap = smoothstep(len - 7., len, s);
+  // Fixed advection keeps spatial frequency stable even after a full exploration.
+  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - t * 0.9)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - t * 1.17) + 7.) * 0.4;
+  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - t * 1.62)));
+  float bank = smoothstep(0.6, 1., abs(sd));
+  vec3 c = mix(vec3(0.27, 0.46, 0.52), vec3(0.42, 0.62, 0.66), 0.25 + 0.5 * n + 0.25 * bank);
+  c = mix(c, vec3(0.90, 0.97, 0.97), clamp(st * 0.6 + bank * 0.35 * smoothstep(0.45, 0.8, n) + rap * 0.55 * smoothstep(0.35, 0.75, n), 0., 1.));
+  return c;
+}`;
 const CURTAIN_FS = NOISE_GLSL + `
 varying vec2 vUv; uniform float uTime, uSpeed, uAlpha, uSeed; uniform vec3 uTint;
 void main(){ float x = vUv.x, y = vUv.y; float fy = sqrt(y) * 2.6; float t = uTime * uSpeed;
@@ -928,9 +956,10 @@ void main(){ float x = vUv.x, y = vUv.y; float fy = sqrt(y) * 2.6; float t = uTi
   float streak = smoothstep(0.3, 0.85, 0.5 * n1 + 0.35 * n2 + 0.25 * n3);
   float ew = 0.05 + 0.1 * vn(vec2(y * 5. - t * 1.6, uSeed)) + 0.12 * y; float edge = smoothstep(0., ew, x) * smoothstep(0., ew, 1. - x);
   float lace = smoothstep(0.3, 0.85, y);
-  float a = (0.32 + 0.68 * streak) * edge; a *= mix(1., smoothstep(0.25, 0.75, n2 * 0.6 + n1 * 0.5), lace * 0.85); a *= 1. - smoothstep(0.62, 0.92, y);
+  float a = (0.32 + 0.68 * streak) * edge; a *= smoothstep(0., 0.055, y); a *= mix(1., smoothstep(0.25, 0.75, n2 * 0.6 + n1 * 0.5), lace * 0.85); a *= 1. - smoothstep(0.62, 0.92, y);
   float crest = 1. - smoothstep(0., 0.07, y);
-  vec3 c = mix(vec3(0.56, 0.75, 0.81), vec3(0.97, 0.99, 1.), clamp(streak * 0.85 + crest * 0.8 + lace * 0.3, 0., 1.));
+  vec3 c = mix(vec3(0.88, 0.9, 0.92), vec3(0.98, 0.99, 1.), clamp(streak * 0.85 + crest * 0.5 + lace * 0.3, 0., 1.));
+  c = mix(vec3(0.55, 0.72, 0.75), c, smoothstep(0.01, 0.12, y)); // river colour carries over the lip, gone within the curl
   gl_FragColor = vec4(c * uTint, a * uAlpha); }`;
 const curtains = [];
 function curtain(w, outOff, lat0, alpha, speed, seed, cols = 22, rows = 40) {
@@ -942,24 +971,26 @@ function curtain(w, outOff, lat0, alpha, speed, seed, cols = 22, rows = 40) {
   const mesh = new THREE.Mesh(g, m); mesh.renderOrder = 2; mesh.frustumCulled = false; out.add(mesh); curtains.push(m); return mesh; }
 curtain(3.5, -0.05, 0, 0.75, 0.95, 1.3); curtain(3.0, 0.14, 0.1, 0.95, 1.12, 4.7); curtain(1.7, 0.34, 0.55, 0.7, 1.3, 8.1); curtain(1.1, 0.42, -0.85, 0.6, 1.22, 2.9);
 // Opaque backing behind the white sheets so the cliff and riverbed never show through their gaps.
-// Blue only near the lip; as the water falls it aerates into white foam, so the lower fall reads as white spray.
+// User-approved correction: white foam starts at the cliff lip; no blue backing on the fall.
 // Stays opaque all the way down; only its last stretch, already inside the cloud sea, frays out.
 const fallBacking=curtain(3.5,-0.10,0,1,0.95,1.3);
 fallBacking.renderOrder=1;
 fallBacking.material.transparent=false;
 fallBacking.material.depthWrite=true;
-fallBacking.material.fragmentShader=NOISE_GLSL+`
-varying vec2 vUv; uniform float uTime; uniform vec3 uTint;
+fallBacking.material.fragmentShader=NOISE_GLSL+RIVER_COLOR_GLSL+`
+varying vec2 vUv; uniform float uTime, uRiverLen; uniform vec3 uTint;
 void main(){
   float x=vUv.x,y=vUv.y,t=uTime;
-  float flow=vn(vec2(x*10.,y*18.-t*1.8));
   float churn=vn(vec2(x*13.+3.,y*9.-t*2.4))*0.6+vn(vec2(x*29.,y*22.-t*3.3)+7.)*0.4;
-  vec3 blue=mix(vec3(0.27,0.46,0.52),vec3(0.42,0.62,0.66),0.3+0.35*flow);
-  vec3 foam=mix(vec3(0.82,0.88,0.91),vec3(0.97,0.99,1.),smoothstep(0.3,0.75,churn));
-  float aer=smoothstep(0.12,0.42,y+(churn-0.5)*0.12);
+  float streak=vn(vec2(x*26.+5.,sqrt(y)*8.-t*2.2));
+  vec3 foam=mix(vec3(0.8,0.83,0.86),vec3(1.),smoothstep(0.25,0.8,churn*0.55+streak*0.5));
+  // only the curl over the lip keeps the river's blue-green; below it the whole fall is white water
+  vec3 lip=riverColor(uRiverLen+y*9.6,1.-2.*x,t,uRiverLen);
+  float aer=smoothstep(0.015,0.13,y+(churn-0.5)*0.05);
   if(churn<smoothstep(0.84,0.97,y)*1.05)discard;
-  gl_FragColor=vec4(mix(blue,foam,aer)*uTint,1.);
+  gl_FragColor=vec4(mix(lip,foam,aer)*uTint,1.);
 }`;
+fallBacking.material.uniforms.uRiverLen={value:window.__riverLen || 20};
 fallBacking.material.needsUpdate=true;
 
 /* particles: droplets, spray and foam share one soft-point shader (sizes in world units, so they scale with the camera) */
@@ -1021,16 +1052,12 @@ const rainbow = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.ShaderMa
 rainbow.position.set(PLUNGE[0] + fo[0] * 1.8, PLUNGE[1] + 1.4, PLUNGE[2] + fo[1] * 1.8); rainbow.renderOrder = 6; out.add(rainbow);
 // river: flowing streaks, foam along the banks, rapids before the lip
 const RIV_VS = `attribute vec2 aFlow; varying vec2 vF; void main(){ vF = aFlow; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
-const RIV_FS = NOISE_GLSL + `
+const RIV_FS = NOISE_GLSL + RIVER_COLOR_GLSL + `
 varying vec2 vF; uniform float uTime, uLen; uniform vec3 uTint;
-void main(){ float s = vF.x, sd = vF.y; float rap = smoothstep(uLen - 7., uLen, s);
-  // Fixed advection keeps spatial frequency stable even after a full exploration.
-  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - uTime * 0.9)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - uTime * 1.17) + 7.) * 0.4;
-  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - uTime * 1.62)));
-  float bank = smoothstep(0.6, 1., abs(sd));
-  vec3 c = mix(vec3(0.27, 0.46, 0.52), vec3(0.42, 0.62, 0.66), 0.25 + 0.5 * n + 0.25 * bank);
-  c = mix(c, vec3(0.90, 0.97, 0.97), clamp(st * 0.6 + bank * 0.35 * smoothstep(0.45, 0.8, n) + rap * 0.55 * smoothstep(0.35, 0.75, n), 0., 1.));
-  gl_FragColor = vec4(c * uTint, 0.94); }`;
+void main(){ float s = vF.x, sd = vF.y;
+  vec3 c = riverColor(s, sd, uTime, uLen);
+  // Match the opaque falling water gradually before reaching its lip.
+  gl_FragColor = vec4(c * uTint, mix(0.94,1.,smoothstep(uLen-0.65,uLen,s))); }`;
 const riverMesh = out.children.find(c => c.isMesh && c.geometry.attributes.aFlow);
 const riverMat = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uLen: { value: window.__riverLen || 20 }, uTint: { value: new THREE.Color(1, 1, 1) } }, vertexShader: RIV_VS, fragmentShader: RIV_FS, transparent: true, side: THREE.DoubleSide });
 if (riverMesh) riverMesh.material = riverMat;
@@ -1119,6 +1146,9 @@ function poseTraveller(dt) {
   legL.rotation.x = pose.legX + swing; legR.rotation.x = pose.legX - swing;
   head.rotation.x = pose.headX; head.rotation.y = pose.headY; armL.rotation.x = pose.armL; armL.rotation.z = pose.armLz;
   armR.rotation.x = -0.35 + pose.staffX * 0.8; staff.rotation.x = pose.staffX; staff.rotation.z = pose.staffZ; cloak.rotation.z = swing * 0.07;
+  armR.rotation.z = 0.7;
+  staffGripOffset.set(0, -0.1, 0).applyQuaternion(staff.quaternion);
+  staff.position.set(0, -0.3, 0).applyQuaternion(armR.quaternion).add(armR.position).sub(staffGripOffset);
   book.visible = pose.book > 0.5;
 }
 
@@ -1558,7 +1588,8 @@ function update(dt,fadeDt=dt) {
   if(walking&&audioStep>=0&&step!==audioStep)sound((inCave?Math.abs(TR.y-.32)<.12:TR.y>H(TR.x,TR.z)+.12)?'woodStep':'stoneStep');
   audioStep=walking?step:-1;
   audio.update({playing,inactive:opts.inactive?.()??globalThis.document.hidden,inCave,period:timeMode==='auto'?(ph<.09||ph>=.95?'dawn':ph<.4?'day':ph<.6?'dusk':'night'):timeMode,saw:!inCave&&TR.mode==='act'&&TR.spot===7,ropeway:gondolaBoost,winch:cageBoost,wind:windSim});
-  camera_update(dt);
+  refinedTraveller.tick(dt); refinedTraveller.syncLight();
+  camera_update(dt); refinedWorld.tick(cam);
 }
 
 /* ---------- camera: fixed 45° / 31° orthographic; drag to peek, springs back ---------- */
@@ -1655,12 +1686,18 @@ return (()=>{ const C=__quarry.cave.M, G=C.G; G.updateMatrixWorld(true); const t
  return {samples:res.samples, hits:uniq(res.hits), float:uniq(res.float)}; })()
 
 };
+qaChecks['refinement']=function(action,dt=.2){
+ if(action==='step')update(dt);
+ if(action==='snapshot'||action==='step')return {rotation:refinedTraveller.lanternPivot.rotation.toArray().slice(0,3),position:trav.position.toArray(),stats:refinedWorld.stats,sim};
+ if(action==='portrait') {scene.updateMatrixWorld(true);const c=cam.clone(),p=trav.localToWorld(new THREE.Vector3(0,.63,0));c.position.copy(p).add(new THREE.Vector3(2,1,3).applyQuaternion(trav.quaternion));c.lookAt(p);c.left=-1.2;c.right=1.2;c.top=.75;c.bottom=-.75;c.zoom=1;c.updateProjectionMatrix();refinedWorld.tick(c);renderer.render(scene,c);const png=renderer.domElement.toDataURL('image/png').split(',')[1];refinedWorld.tick(cam);return png;}
+};
+const refinedWorld=buildWorldPass({THREE,scene,out,sun,win:window});refinedWorld.set(true);
 reset();applyLook(1);update(.001);draw();const warmAt=performance.now();await CAVE.warm();const caveWarmMs=performance.now()-warmAt;draw();lastFrameAt=performance.now();automatic=true;raf=requestAnimationFrame(frame);
 return {discoverySound(kind){if(kind==='fork'||kind==='mica')sound(kind);},audioSettings(value){audio.settings(value);},audioReady:audio.ready,state,reset,event,echoScenario,automatic(value){automatic=!!value;lastFrameAt=performance.now();},pause(){playing=false;},play:startPlay,speed(v){if([1,6,20,60].includes(v)&&v!==speed){audio.seek(true);speed=v;audio.seek(false);}},time(m){if(['auto','dawn','day','dusk','night'].includes(m)){timeMode=m;lookInit=false;}},go:goSpot,
 wind(){startWind(windFirst);},complete(){if(inCave||pendingEvent||remoteWhistle||TR.why==='cave')return false;sim=3000;TR.lit=5;TR.done=false;TR.mode='idle';decide();return true;},
 // Explicit test entry points, confined to the independent tester, never published as window.__quarry.
 qa(name,...args){return qaChecks[name](...args);},
 advance(sec){audio.seek(true);try{for(let i=0;i<Math.ceil(sec*30);i++)update(1/30);draw();}finally{audio.seek(false);}},setTime(sec){audio.seek(true);sim=sec;TR.lit=lampsDue();audio.seek(false);},
-destroy(){audio.dispose();dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();listeners.forEach(([t,f])=>globalThis.removeEventListener(t,f));scene.traverse(o=>{o.geometry?.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.filter(Boolean).forEach(m=>m.dispose());});renderer.dispose();host.replaceChildren();}};
+destroy(){refinedTraveller.dispose();refinedWorld.dispose();audio.dispose();dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();listeners.forEach(([t,f])=>globalThis.removeEventListener(t,f));scene.traverse(o=>{o.geometry?.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.filter(Boolean).forEach(m=>m.dispose());});renderer.dispose();host.replaceChildren();}};
 }
 }

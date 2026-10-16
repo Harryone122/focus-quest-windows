@@ -1,3 +1,7 @@
+import { buildRefinedTraveller } from '../styleRefine.js';
+import { recapAction } from '../../../shared/focusRecap';
+import { quietCanvas, quietRare, quietLampLevel } from '../quietPresentation.js';
+import { QUIET_FOCUS } from '../../../shared/focusPresentation';
 import { advanceAnimation } from '../animationSteps';
 // 雲上遺庭 — Focus Active scene (Area 01).
 //
@@ -1138,6 +1142,7 @@ export function createCloudRuinsScene(host, options) {
   }
   const easeIO = (x) => x * x * (3 - 2 * x);
   function rareUpdate(p, dt) {
+    if(opts.quietFocus&&!LOBBY){quietRare(rare,trav,TR.t,MOTION<1);return;}
     const ev = rare.ev;
     // source choreography
     if (ev.source === 'well') { well.bucket.position.y = p < 0.2 ? 0.72 - 0.5 * easeIO(p / 0.2) : p < 0.45 ? 0.22 + 0.5 * easeIO((p - 0.2) / 0.25) : 0.72; well.setRope(); }
@@ -1219,7 +1224,9 @@ export function createCloudRuinsScene(host, options) {
   const armGeo = new T.CylinderGeometry(0.034, 0.03, 0.3, 5); armGeo.translate(0, -0.15, 0);
   const armL = mesh(armGeo, M.cloak, upper, -0.13, 0.44, 0.02);
   const armR = mesh(armGeo, M.cloak, upper, 0.13, 0.44, 0.02);
+  mesh(new T.SphereGeometry(0.03, 6, 4), M.skin, armR, 0, -0.3, 0);
   const staff = new T.Group(); staff.position.set(0.2, 0.25, 0.08); upper.add(staff);
+  const staffGripOffset = new T.Vector3();
   mesh(new T.CylinderGeometry(0.017, 0.02, 1.08, 5), M.wood, staff, 0, 0.02, 0);
   mesh(new T.BoxGeometry(0.02, 0.02, 0.14), M.woodDark, staff, 0, 0.55, 0.06);
   const travGlowMat = new T.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 1.2, roughness: 1 });
@@ -1228,7 +1235,8 @@ export function createCloudRuinsScene(host, options) {
   const travHalo = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.3, fog: false }));
   travHalo.scale.set(0.8, 0.8, 1); travHalo.position.set(0, 0.46, 0.13); staff.add(travHalo);
   const book = mesh(new T.BoxGeometry(0.2, 0.025, 0.14), M.paper, upper, 0, 0.1, 0.24); book.rotation.x = -0.4;
-  shadowy(trav); travLamp.castShadow = false;
+  const refinedTraveller = buildRefinedTraveller({THREE:T,trav,body,legL,legR,upper,cloak,head,armL,armR,staff,lantern:travLight,lanternGlow:travHalo}); refinedTraveller.set(true);
+shadowy(trav); travLamp.castShadow = false;
   const travMats = [];
   trav.traverse((c) => { if (c.isMesh) { if (c.material !== travGlowMat) c.material = c.material.clone(); travMats.push(c.material); } });
   let travFade = 1, lastFade = 1;
@@ -1648,7 +1656,7 @@ export function createCloudRuinsScene(host, options) {
   TR.heading = headingTo(NODE[SPAWN_NODE].p, NODE.a_mid.p);
   const lampNode = (k) => AREA.lamps[k].node;
   const due = (k) => AREA.lamps[k].dueAt * planned;                       // equal fifths; the fifth at 100%
-  const lampsDueAt = (s) => litLampCount(s, planned);
+  const lampsDueAt = (s) => opts.recapLamps ?? litLampCount(s, planned);
   const LIGHT_SECONDS = 3.2;
   const allowed = (ev) => (!ev.once || !usedOnce.has(ev.id)) && (!ev.time || ev.time.indexOf(presetKey) >= 0) && ev.spot !== TR.node && TR.recent.indexOf(ev.spot) < 0;
   // 50-minute explorations: an event seen in the last ~15 minutes is rarely picked again, in the last
@@ -1688,7 +1696,7 @@ export function createCloudRuinsScene(host, options) {
   const hasRecord = (k) => (STORY.records || []).indexOf(k) >= 0;
   const storyQueue = [];
   let cinematic = false;
-  function setCinematic(on) { if (cinematic === on) return; cinematic = on; if (on) endDrag(); try { opts.reportCinematic(on); } catch (_) {} }
+  function setCinematic(on) { if(opts.quietFocus&&!LOBBY)on=false; if (cinematic === on) return; cinematic = on; if (on) endDrag(); try { opts.reportCinematic(on); } catch (_) {} }
   function storyRecord(id) { try { opts.reportStoryRecord(id); } catch (_) {} }
   const TREE_C = bigTree.position.clone();
   const FALL_FAR = LIP.p.clone().addScaledVector(LIP.out, 9); FALL_FAR.y = -4.5;
@@ -2008,6 +2016,7 @@ export function createCloudRuinsScene(host, options) {
     }
   }
   function storyFrame(dt) {
+    if(opts.quietFocus&&!LOBBY)return;
     const a = TR.state === 'act' && TR.act && TR.act.story ? TR.act : null;
     const k = a ? a.story : '', p = a ? Math.min(1, TR.t / TR.dur) : 0;
     // notebook sketch over the tree
@@ -2087,6 +2096,7 @@ export function createCloudRuinsScene(host, options) {
   function startRest(act, dur) { TR.state = 'rest'; TR.act = act; TR.t = 0; TR.dur = dur; TR.restLast = act.id; setStatus('旅人' + act.name); }
 
   function decide() {
+    if(opts.replay){if(storyQueue.length)storyTick();return;}
     const v = WALK;
     // Rewards are already saved. Their reveal must fit before the next lamp, just like an ambient event.
     const pendingFind = pendingSpecialFinds[0];
@@ -2099,6 +2109,7 @@ export function createCloudRuinsScene(host, options) {
       return;
     }
     // story events (opening / first & second visit / carried items), then the whale pause
+    if (opts.replay) return;
     if (storyTick()) return;
     if (lampsLit >= 5) {
       if (tracesPending && !LOBBY) {
@@ -2425,7 +2436,7 @@ export function createCloudRuinsScene(host, options) {
     // reported is the exact same progress value used by the HUD. Recover ALL due lamps after a gap.
     const dueNow = lampsDueAt(reported);
     if (TR.state !== 'depart' && dueNow > lampsLit) {
-      for (let i = lampsLit; i < dueNow; i++) lamps[i].level = 1;
+      for (let i = lampsLit; i < dueNow; i++) lamps[i].level = opts.quietFocus ? 0 : 1;
       lampsLit = dueNow;
       if (TR.state === 'light' && TR.lightK < lampsLit) {
         setStatus('旅人點亮第 ' + (TR.lightK + 1) + ' 盞燈');
@@ -2496,7 +2507,7 @@ export function createCloudRuinsScene(host, options) {
       animKey = playing ? 'walk' : 'idle';
     } else {
       p = NODE[TR.node].p.clone();
-      if (TR.state === 'act') { animKey = TR.act.anim; prog = Math.min(1, TR.t / TR.dur); want = TR.act.faceAt ? TR.act.faceAt(prog, p) : animKey === 'lie' ? Math.atan2(W(1, 0, 0).x, W(1, 0, 0).z) : faceFor(TR.node, TR.act); }
+      if (TR.state === 'act') { animKey = opts.quietFocus&&TR.act.rare&&tierOf(TR.act)==='core' ? (TR.t<QUIET_FOCUS.corePoseSeconds?'crouch':'idle') : TR.act.anim; prog = Math.min(1, TR.t / TR.dur); want = TR.act.faceAt ? TR.act.faceAt(prog, p) : animKey === 'lie' ? Math.atan2(W(1, 0, 0).x, W(1, 0, 0).z) : faceFor(TR.node, TR.act); }
       else if (TR.state === 'rest') { animKey = TR.act.anim; want = TR.act.anim === 'lie' ? Math.atan2(W(1, 0, 0).x, W(1, 0, 0).z) : TR.act.face ? faceFor(TR.node, TR.act) : VIEW_FACE; }
       else if (TR.state === 'wait') { animKey = TR.waitPose; want = headingTo(p, lamps[TR.waitK].g.position); }
       else if (TR.state === 'light') { animKey = 'light'; want = headingTo(p, lamps[TR.lightK].g.position); prog = Math.min(1, TR.t / TR.dur); }
@@ -2546,8 +2557,14 @@ export function createCloudRuinsScene(host, options) {
     head.rotation.x = pose.headX; head.rotation.y = pose.headY;
     armL.rotation.x = pose.armL; armL.rotation.z = pose.armLz;
     armR.rotation.x = -0.35 + pose.staffX * 0.8;
+    // Carry the pole outside the brim instead of through the hat above the shoulder.
+    armR.rotation.z = 0.7;
     staff.rotation.x = pose.staffX; staff.rotation.z = pose.staffZ;
+    // Preserve the authored staff tilt, but keep its grip attached to the right hand.
+    staffGripOffset.set(0, -0.1, 0).applyQuaternion(staff.quaternion);
+    staff.position.set(0, -0.3, 0).applyQuaternion(armR.quaternion).add(armR.position).sub(staffGripOffset);
     cloak.rotation.z = swing * 0.07;
+    refinedTraveller.tick(travellerDt); refinedTraveller.syncLight();
     book.visible = pose.book > 0.5;
     travFade = fade; trav.visible = fade > 0.01;
     if (Math.abs(fade - lastFade) > 0.001) { setTravOpacity(fade); lastFade = fade; }
@@ -2601,6 +2618,7 @@ export function createCloudRuinsScene(host, options) {
 
     // --- lamps ---
     lamps.forEach((L, i) => {
+      if(opts.quietFocus&&!LOBBY)L.level=quietLampLevel(sim,i,planned/5);
       const flick = 1 + (Math.sin(tAcc * 7.3 + i * 2) * 0.03 + Math.sin(tAcc * 13.1 + i) * 0.02) * MOTION;
       L.glowMat.emissiveIntensity = L.level * 1.3 * flick; L.light.intensity = L.level * cur.glow * 1.1 * flick; L.halo.material.opacity = L.level * Math.min(1, cur.glow) * 0.55;
     });
@@ -2626,6 +2644,7 @@ export function createCloudRuinsScene(host, options) {
     birds.forEach((g) => { const d = g.userData; g.visible = cur.bird > 0.02; g.position.copy(W(-30 + 60 * bt + d.off[0], 15.5 + d.off[1] + Math.sin(bt * 6) * 0.8, 6.5 + d.off[2] + Math.sin(tAcc * 0.5 + d.ph) * 0.2)); g.rotation.y = Math.atan2(W(1, 0, 0).x, W(1, 0, 0).z); const f = Math.sin(tAcc * 5 + d.ph) * 0.55; d.L.rotation.z = f; d.R.rotation.z = -f; });
 
     if (!dragging) { const q = Math.exp(-dt * 2.6); yawOff *= q; pitchOff *= q; }
+    quietCanvas(canvas,opts.quietFocus&&!LOBBY);
     placeCamera();
     if (LOBBY) lobbyCameraStep(dt, false);
   }
@@ -2637,6 +2656,7 @@ export function createCloudRuinsScene(host, options) {
   if (!programsReady) void renderer.compileAsync(scene, camera, () => disposed).then(() => disposed ? undefined : glass.prepare(() => disposed)).then(() => { if (!disposed) programsReady = true; }).catch(error => { console.error('雲上遺庭材質載入失敗', error); programsReady = true; });
   function frame(scheduleNext = true) {
     if (disposed || (opts.departureOnly && departureReported)) return;
+    if(opts.recapDormant&&scheduleNext!==false){clock.getDelta();lastFrameAt=performance.now();raf=requestAnimationFrame(frame);return;}
     if (!programsReady) { lastFrameAt = performance.now(); if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
     lastFrameAt = performance.now();
     // The lobby can stay open for a long time: while the camera is at rest it draws at ~30 fps.
@@ -2653,7 +2673,7 @@ export function createCloudRuinsScene(host, options) {
     // state, then stands still. Nothing advances while paused: no dt, no tAcc, no scene clock.
     // Keep smoothing bounded, but do not slow navigation/events below 20 fps. Very long rendering
     // gaps use milestone recovery above rather than simulating minutes of movement in one frame.
-    if (!frozen || !primed) { advanceAnimation(frozen ? 0 : activeDelta, step => update(step)); primed = true; }
+    if (!frozen || !primed) { advanceAnimation(frozen ? 0 : activeDelta * (opts.recapRate || 1), step => update(step)); primed = true; }
     // Cross-map playback ends here. Do not compile/draw a new pose in the old world while React swaps it.
     if (opts.departureOnly && TR.dep && TR.dep.done) return;
     if (LOBBY) reportAnchorsIfMoved();
@@ -2671,7 +2691,7 @@ export function createCloudRuinsScene(host, options) {
   // Keep one timer as a watchdog, not a second animation clock or a catch-up queue. While RAF is
   // active this does nothing; otherwise it executes the same pause-aware frame at roughly 30 fps.
   const backgroundFrameTimer = setInterval(() => {
-    if (!disposed && performance.now() - lastFrameAt >= 30) frame(false);
+    if (!disposed && !opts.recapDormant && performance.now() - lastFrameAt >= 30) frame(false);
   }, 33);
 
   return {
@@ -2715,10 +2735,17 @@ export function createCloudRuinsScene(host, options) {
       statusMsg = ''; settleAt(reported);
       runSeed = (Math.abs(Math.floor(opts.seed || 1)) % 2147483646) + 1;
       Object.assign(lobbyCam, { kind: opts.lobbyView?.kind === 'overview' ? 'overview' : 'close', exit: null, cur: null, t: 1 });
-      anchorsDirty = true; resize(); requestRedraw(1600);
+      anchorsDirty = true; if(opts.replay){if(lobbyCam.kind==='overview')frameLobby(host.clientWidth,host.clientHeight,0,0,0);else lobbyCameraStep(0,true);}else resize(); requestRedraw(1600);
     },
     setUiFade(opacity) { glass.setUiFade(opacity); requestRedraw(1800); },
     /** Prototype / QA: play a story event now ('opening_a', 'notebook_a', 'stele', 'well', 'rubbing', 'leafTag', 'whistle', 'traces') or a whale pass ('whale'). */
+    playRecordedEvent(key) {
+      const ev = SE[key] || AREA.events.find(e=>e.id===key) || (key==='traces'?TRACE_FIRST:null);
+      if(!ev)return;
+      if(rare)endRare();storyQueue.length=0;TR.route=null;TR.dep=null;TR.node=ev.spot;
+      if(key==='opening_a'||key==='notebook_a')storyQueue.push({...SE[key==='opening_a'?'opening_b':'notebook_b'],forced:true});
+      startAct(ev,ev.dur?.[0]??12);requestRedraw(200);
+    },
     playStory(key) {
       if (key === 'whale') { whaleForced = sim; return; }
       if (key === 'traces') { tracesPending = true; tracesShown = true; }
@@ -2755,6 +2782,24 @@ export function createCloudRuinsScene(host, options) {
       presentedSpecialFinds.add(eventId);
       pendingSpecialFinds.push(Object.assign({}, ev, { __specifiedByCore: !!specifiedByCore }));
     },
+    beginRecapEvent(record){
+      endRare();storyQueue.length=0;pendingSpecialFinds.length=0;TR.act=null;TR.route=null;TR.dep=null;LOBBY=false;opts.mode='focus';opts.replay=true;opts.quietFocus=false;
+      if(marks){marks.clear();for(const mark of record.scene.worldMarks||[])marks.add(mark);}setCoreTaken(!!record.scene.coreTaken,true);restoreWorldProps();
+      reported=sim=record.explorationSeconds;reportedAt=sceneNow();this.setPaused(false);this.playRecordedEvent(record.variant);
+    },
+    async warmRecapEvent(record){this.beginRecapEvent(record);this.setPaused(true);if(rare)rareUpdate(.5,0);await renderer.compileAsync(scene,camera,()=>disposed);this.showRecapOverview();},
+    showRecapOverview(close=false){endRare();storyQueue.length=0;pendingSpecialFinds.length=0;this.enterLobby(host,{...opts,mode:'lobby',lobbyView:{kind:close?'close':'overview'}});opts.recapRate=1;this.setPaused(false);},
+    setRecapLamps(count){opts.recapLamps=Math.max(0,Math.min(5,count));lampsLit=opts.recapLamps;lamps.forEach((L,i)=>L.level=i<lampsLit?1:0);requestRedraw(200);},
+    setRecapRate(rate){opts.recapRate=rate;},
+    setRecapDormant(value){opts.recapDormant=value;clock.getDelta();},
+    enableRecapTransitions(){glass.enableTransitions();},beginRecapTransition(duration){glass.crossfade(duration);},
+    setStory(value){
+      Object.assign(STORY,value||{});
+      const done=new Set(storySched.filter(e=>e.done).map(e=>e.at));
+      storySched.splice(0,storySched.length,...(value?.scheduledEvents||[]).map(e=>({...e,evs:e.evs.slice(),done:done.has(e.at)})));
+      for(let i=storyQueue.length-1;i>=0;i--)if(value?.records?.includes(storyQueue[i].record))storyQueue.splice(i,1);
+    },
+    setQuietFocus(value){opts.quietFocus=!!value;},
     setProgress(progressSeconds) {
       const v = Math.max(0, Number(progressSeconds) || 0);
       const t = sceneNow();
@@ -2782,6 +2827,7 @@ export function createCloudRuinsScene(host, options) {
     setReducedMotion(reduced) { MOTION = reduced ? 0.25 : 1; swayU.value = 0.55 * MOTION; },
     debugState() { return { story: { cinematic, queue: storyQueue.map((e) => e.id), whale: +whale.vis.toFixed(3) }, mode: opts.mode, lobbyCam: LOBBY ? { kind: lobbyCam.kind, exit: lobbyCam.exit, t: lobbyCam.t, cur: lobbyCam.cur } : null, items: lobbyItems.map((it) => it.key), trails: Object.fromEntries(Object.entries(trails).map(([k, t]) => [k, { level: t.level, dots: t.n, amt: +t.amt.toFixed(3), visible: t.mesh.visible }])), anchors: Object.assign({}, lastAnchors), sim, planned, lampsLit, lampLevels: lamps.map((lamp) => lamp.level), node: TR.node, state: TR.state, act: TR.act && TR.act.id, departure: TR.dep ? { exit: TR.dep.exit, t: TR.dep.t, done: TR.dep.done } : null, preset: presetKey, coreTaken: astro.taken, tracesPending, walkTo: TR.route ? TR.route.ids[TR.route.ids.length - 1] : null, pendingFinds: pendingSpecialFinds.length, revealP: rare ? Math.min(1, TR.t / TR.dur) : null, paused: isPaused(), sceneTime: tAcc, sceneNowMs: sceneNow(), glass: glass.enabled, chrome: glass.chrome, frustum: { left: camera.left, right: camera.right, top: camera.top, bottom: camera.bottom } }; },
     destroy() {
+      refinedTraveller.dispose();
       disposed = true;
       clearInterval(backgroundFrameTimer);
       cancelAnimationFrame(raf);

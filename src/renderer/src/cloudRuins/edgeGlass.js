@@ -28,7 +28,7 @@ const BLUR = 'uniform sampler2D tSrc; uniform vec2 uDir; varying vec2 vUv;\n' +
   ' gl_FragColor = vec4(c, 1.0); }';
 
 const COMPOSITE = 'uniform sampler2D tSharp, tBlur; uniform vec2 uSize; uniform vec4 uBand; uniform vec4 uCards[' + MAX_CARDS + '], uCardFx[' + MAX_CARDS + '];\n' +
-  'uniform float uCardCount, uUi, uPause; uniform vec3 uDeep; uniform vec3 uTone; varying vec2 vUv;\n' +
+  'uniform float uCardCount, uUi, uPause, uCrossFade; uniform sampler2D tPrevious; uniform vec3 uDeep; uniform vec3 uTone; varying vec2 vUv;\n' +
   'float sdBox(vec2 p, vec2 b, float r){ vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }\n' +
   'float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }\n' +
   'void main(){\n' +
@@ -63,6 +63,7 @@ const COMPOSITE = 'uniform sampler2D tSharp, tBlur; uniform vec2 uSize; uniform 
   ' vec3 col = mix(sharp, g, glass);\n' +
   ' col += rim * 0.075 * vec3(1.0, 0.98, 0.94);\n' +
   ' col += (hash(gl_FragCoord.xy) - 0.5) / 255.0;\n' +
+  ' if(uCrossFade < 0.999) col = mix(texture2D(tPrevious, vUv).rgb, col, uCrossFade);\n' +
   ' gl_FragColor = vec4(col, 1.0); }';
 
 export function createEdgeGlass(renderer) {
@@ -74,6 +75,7 @@ export function createEdgeGlass(renderer) {
   if (sharp.isWebGLMultisampleRenderTarget) sharp.samples = 4;
   let levels = [];
   let ping = null, pong = null;
+  let previous = null, history = false, fadeAt = -Infinity, fadeDuration = 220;
 
   const quadScene = new T.Scene();
   const quadCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -88,7 +90,7 @@ export function createEdgeGlass(renderer) {
   const cards = Array.from({ length: MAX_CARDS }, () => new T.Vector4());
   const cardFx = Array.from({ length: MAX_CARDS }, () => new T.Vector4());
   const compMat = mat(COMPOSITE, {
-    tSharp: { value: sharp.texture }, tBlur: { value: null }, uSize: { value: new T.Vector2(1, 1) },
+    tSharp: { value: sharp.texture }, tBlur: { value: null }, tPrevious: {value:null}, uCrossFade:{value:1}, uSize: { value: new T.Vector2(1, 1) },
     uBand: { value: new T.Vector4(0, 0, 44, 30) }, uCards: { value: cards }, uCardFx: { value: cardFx }, uCardCount: { value: 0 }, uUi: { value: 1 }, uPause: { value: 0 },
     uDeep: { value: new T.Color(0x0b1016) }, uTone: { value: new T.Vector3(0.3, 0.24, 0.12) }
   });
@@ -102,9 +104,11 @@ export function createEdgeGlass(renderer) {
   function run(material, target) { quad.material = material; renderer.setRenderTarget(target); renderer.render(quadScene, quadCam); }
 
   function setSize(w, h, pixelRatio) {
+    if(levels.length&&cssW===Math.max(1,w)&&cssH===Math.max(1,h)&&dpr===(pixelRatio||1))return;
     cssW = Math.max(1, w); cssH = Math.max(1, h); dpr = pixelRatio || 1;
     const bw = Math.max(1, Math.round(cssW * dpr)), bh = Math.max(1, Math.round(cssH * dpr));
     sharp.setSize(bw, bh);
+    if(previous)previous.setSize(bw,bh);history=false;fadeAt=-Infinity;
     // halve until about a quarter of the CSS size; the blur then runs on a few hundred pixels
     const want = Math.max(1, Math.round(Math.log2(4 * dpr)));
     levels.forEach((rt) => rt.dispose());
@@ -140,7 +144,7 @@ export function createEdgeGlass(renderer) {
     const ke = 1 - Math.exp(-(dt || 0.016) * 3.2);
     uiFade += (uiTarget - uiFade) * ke; if (Math.abs(uiTarget - uiFade) < 0.002) uiFade = uiTarget;
     pauseMix += ((paused ? 1 : 0) - pauseMix) * ke; if (Math.abs((paused ? 1 : 0) - pauseMix) < 0.002) pauseMix = paused ? 1 : 0;
-    if (!enabled) { renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
+    if (!enabled&&!previous) { renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
     const k = 1 - Math.exp(-(dt || 0.016) * 10);
     chrome.cards.forEach((c, i) => {
       const s = shown[i]; const kk = c.snap ? 1 : k;
@@ -171,10 +175,16 @@ export function createEdgeGlass(renderer) {
     if (deep) u.uDeep.value.copy(deep);
     if (tone) u.uTone.value.set(tone[0], tone[1], tone[2]);
     u.uUi.value = uiFade; u.uPause.value = pauseMix;
-    run(compMat, null);
+    u.uCrossFade.value=Math.min(1,Math.max(0,(performance.now()-fadeAt)/Math.max(1,fadeDuration)));
+    run(compMat, null);history=true;
   }
 
+  /** Replay only: retain the prior GPU texture, without canvas readback or another scene render. */
+  function enableTransitions(){if(previous)return;previous=new T.WebGLRenderTarget(sharp.width,sharp.height,rtOpts);compMat.uniforms.tPrevious.value=previous.texture;renderer.setRenderTarget(previous);renderer.clear();renderer.setRenderTarget(null);}
+  function crossfade(duration=220){if(!previous||!history||duration<=0){fadeAt=-Infinity;return;}downMat.uniforms.tSrc.value=sharp.texture;downMat.uniforms.uTexel.value.set(0,0);run(downMat,previous);renderer.setRenderTarget(null);fadeAt=performance.now();fadeDuration=duration;}
+
   function dispose() {
+    previous?.dispose();
     sharp.dispose(); levels.forEach((rt) => rt.dispose()); if (ping) { ping.dispose(); pong.dispose(); }
     [downMat, blurMat, compMat].forEach((m) => m.dispose()); quadGeo.dispose();
   }
@@ -188,5 +198,5 @@ export function createEdgeGlass(renderer) {
     }
   }
 
-  return { setSize, setChrome, setUiFade, jumpPaused, render, dispose, prepare, get enabled() { return enabled; }, get chrome() { return chrome; } };
+  return { setSize, setChrome, setUiFade, jumpPaused, render, dispose, prepare, enableTransitions, crossfade, get enabled() { return enabled; }, get chrome() { return chrome; } };
 }

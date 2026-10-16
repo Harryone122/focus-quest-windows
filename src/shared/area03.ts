@@ -78,7 +78,7 @@ function allowed(e:Event,s:LakeRuntime) {
   if(['sit','sitGaze','sitEdge','write','drinkSit'].includes(e.anim)) {const n=nodes.get(e.spot)!;if(tide.level*0.30>=n.y+(n.seat??0)-0.02)return false}
   return true
 }
-export function advanceLakeRuntime(saved:LakeRuntime,targetSeconds:number,savedMarks:LakeMarks,finds:readonly LakeFind[]) {
+export function advanceLakeRuntime(saved:LakeRuntime,targetSeconds:number,savedMarks:LakeMarks,finds:readonly LakeFind[],onEvent?:(state:LakeRuntime,marks:LakeMarks)=>void) {
   const s=structuredClone(saved),marks={...savedMarks},target=Math.max(s.seconds,Math.floor(targetSeconds))
   s.startedStories??=[];s.storySegments??=[]
   const segmentKey=`${s.seed}:${s.storyPlan?.visitEvent}:${s.storyPlan?.eligibleAfter??0}`
@@ -174,6 +174,7 @@ export function advanceLakeRuntime(saved:LakeRuntime,targetSeconds:number,savedM
         if(!s.notes.some(n=>n.eventId===e.id))s.notes.push({eventId:e.id,text:clue.text,tags:[],atSeconds:s.seconds})
       }
       start(i.kind,i.node,i.duration,i.eventId,i.lamp)
+      if(i.kind==='story'||i.findId)onEvent?.(s,marks)
     }
   }
   s.seconds=target

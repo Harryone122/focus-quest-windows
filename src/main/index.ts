@@ -197,6 +197,11 @@ function registerIpc(): void {
     broadcastSnapshot()
     return result
   })
+  ipcMain.handle('focus:before-event', (_event,sessionId:string,id:string) => { const result=database.beginBeforeFocusEvent(sessionId,id);broadcastSnapshot();return result })
+  ipcMain.handle('focus:before-finish', (_event,sessionId:string,ids:string[]) => { const result=database.finishBeforeFocus(sessionId,ids);broadcastSnapshot();return result })
+  ipcMain.handle('focus:recap', (_event,id:string) => database.getFocusRecap(id))
+  ipcMain.handle('focus:replays', (_event,runId?:string) => database.listReplayEvents(runId))
+  ipcMain.handle('focus:replay', (_event,id:string) => database.getReplayEvent(id))
   ipcMain.handle('snapshot:get', () => database.getSnapshot())
   ipcMain.handle('nursery:scene',(_event,nodeId:string)=>database.getNurseryScene(nodeId))
   ipcMain.handle('nursery:departure',(_event,sessionId:string)=>database.getNurseryDeparture(sessionId))

@@ -207,7 +207,7 @@ function startAction(state: MossRuntime, kind: MossAction['kind'], node: string,
 }
 
 /** Advances only on supplied effective time. Safe to serialize and resume at any action boundary. */
-export function advanceMossRuntime(saved: MossRuntime, seconds: number, savedMarks: MossWorldMarks, finds: readonly MossFind[]) {
+export function advanceMossRuntime(saved: MossRuntime, seconds: number, savedMarks: MossWorldMarks, finds: readonly MossFind[], onEvent?: (state:MossRuntime,marks:MossWorldMarks)=>void) {
   const state: MossRuntime = structuredClone(saved), marks = { ...savedMarks }
   state.lastEventSpot ??= state.lastEvent ? events.get(state.lastEvent)?.spot ?? null : null
   state.eventCompletedAt ??= Object.fromEntries(state.notes.map(note => [note.eventId, note.atSeconds]))
@@ -326,6 +326,7 @@ export function advanceMossRuntime(saved: MossRuntime, seconds: number, savedMar
     } else if (intent.kind === 'lamp' && state.seconds < intent.lamp! * 600) {
       startAction(state, 'wait', state.node, intent.lamp! * 600 - state.seconds)
     } else startAction(state, intent.kind === 'special' || intent.kind === 'story' ? 'event' : intent.kind, state.node, intent.duration, intent.eventId)
+    if ((state.action as MossAction|null)?.kind === 'event' && (intent.kind === 'special' || intent.kind === 'story')) onEvent?.(state,marks)
   }
   state.seconds = target
   return { state, marks }

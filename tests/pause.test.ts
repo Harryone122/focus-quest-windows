@@ -3,6 +3,13 @@ import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, relative, isAbsolute } from 'node:path'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { focusElapsedMs, focusElapsedSeconds } from '../src/shared/focusTime'
 import { effectiveSeconds } from '../src/shared/rewards'
 
@@ -31,7 +38,7 @@ function database(path?: string): { db: FocusQuestDatabase; path: string } {
     directories.push(dir)
     path = join(dir, 'test.db')
   }
-  const db = new FocusQuestDatabase(path)
+  const db = liveDatabase(path)
   databases.push(db)
   return { db, path }
 }

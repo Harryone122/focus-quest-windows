@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>藏聲秋谷結算回顧</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#f1eee6; --ink-soft:rgba(240,237,228,.84); --ink-faint:rgba(230,228,220,.62);
+  --amber:#e0b265; --amber-text:#f0cf8e; --teal:#a9d0c9; --teal-text:#bfe0da; --core:#9cc8e8; --core-text:#bfdcf2;
+  --glass:rgba(18,25,31,.46); --glass-strong:rgba(16,22,28,.62); --line:rgba(255,255,255,.14);
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 0 16px rgba(0,0,0,.32);
+  --bg:#050a10; --gap:16px; color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="light"]){ --bg:#050a10; } }
+:root[data-theme="dark"]{ --bg:#050a10; }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei","Segoe UI",sans-serif;text-shadow:var(--shadow)}
+button{font:inherit;color:inherit;cursor:pointer}
+#scene{position:fixed;inset:0;overflow:hidden}
+#scene canvas{display:block;transition:filter .8s ease}
+body.quiet #scene canvas{filter:brightness(var(--qb,.75)) saturate(var(--qs,.8))}
+body.memory #scene canvas{filter:sepia(.32) saturate(.82) brightness(.95) contrast(.96)}
+/* scene overlays the cave director appends into #scene */
+#caveSub{position:absolute;left:0;right:0;bottom:190px;text-align:center;font-family:"LXGW WenKai TC",serif;font-size:clamp(19px,2.2vw,26px);letter-spacing:.18em;color:#f2ede4;text-shadow:0 2px 14px rgba(0,0,0,.85);opacity:0;transition:opacity 1.2s;pointer-events:none;z-index:3}
+#caveToast{display:none}
+#caveFlash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(120,185,255,.95),rgba(50,120,235,.45) 42%,rgba(10,30,90,0) 78%);opacity:0;pointer-events:none;mix-blend-mode:screen;z-index:2}
+#caveVig{position:absolute;inset:0;pointer-events:none;display:none;background:radial-gradient(ellipse 75% 70% at 50% 46%,rgba(3,5,7,0) 55%,rgba(3,5,7,.78) 100%);z-index:2}
+#scene.inCave #caveVig,#scene.inCaveVisit #caveVig{display:block}
+
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1)}
+#dip{position:fixed;inset:0;background:#05080a;opacity:1;pointer-events:none;z-index:20;transition:opacity .35s ease}
+#memoryFrame{position:fixed;inset:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .9s;
+  background:radial-gradient(ellipse 80% 78% at 50% 48%,rgba(40,28,14,0) 52%,rgba(46,32,16,.45) 84%,rgba(30,20,10,.78) 100%);
+  box-shadow:inset 0 0 0 10px rgba(226,206,168,.06),inset 0 0 60px rgba(120,90,50,.25)}
+body.memory #memoryFrame{opacity:1}
+
+/* loading / start */
+#start{position:fixed;inset:0;display:grid;place-items:center;z-index:30;padding:var(--gap)}
+#start .glass{width:min(440px,100%);padding:22px 24px 20px;background:var(--glass-strong)}
+#start .lbl{font-size:11px;letter-spacing:.14em;color:var(--ink-faint)}
+#start h1{margin:6px 0 10px;font-size:20px;font-weight:600;letter-spacing:.04em}
+#start p{margin:0 0 16px;color:var(--ink-soft);font-size:13px;line-height:1.75}
+.pri{height:40px;padding:0 20px;border:1px solid rgba(240,204,138,.7);border-radius:999px;background:rgba(224,178,101,.16);color:var(--amber-text);font-size:14px;letter-spacing:.06em}
+.pri:hover{background:rgba(224,178,101,.26)}
+.pri[disabled]{opacity:.45;cursor:default}
+#loadNote{margin-left:12px;font-size:12px;color:var(--ink-faint)}
+
+/* top info */
+#topInfo{position:fixed;top:var(--gap);left:var(--gap);z-index:10;display:flex;align-items:center;gap:10px;padding:9px 15px;font-size:12.5px;opacity:0;transform:translateY(-6px);transition:opacity .6s,transform .6s}
+#topInfo.on{opacity:1;transform:none}
+#topInfo .lbl{font-size:11px;letter-spacing:.14em;color:var(--ink-faint)}
+#topInfo b{font-weight:500}
+
+/* the recap timeline */
+#bar{position:fixed;left:var(--gap);right:var(--gap);bottom:var(--gap);z-index:10;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:12px 16px 12px 18px;opacity:0;transform:translateY(14px);transition:opacity .55s,transform .55s;pointer-events:none}
+#bar.on{opacity:1;transform:none;pointer-events:auto}
+.bar-l{display:grid;gap:2px;min-width:74px}
+.bar-l .lbl{font-size:10.5px;letter-spacing:.14em;color:var(--ink-faint)}
+.bar-l b{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+#track{position:relative;height:46px;margin:0 6px;cursor:pointer;touch-action:none;user-select:none}
+body.scrubbing,body.scrubbing #track{cursor:grabbing}
+.rail{position:absolute;left:0;right:0;top:27px;height:2px;border-radius:2px;background:rgba(255,255,255,.14)}
+#fill{position:absolute;left:0;top:27px;height:2px;width:0;border-radius:2px;background:linear-gradient(90deg,rgba(224,178,101,.35),rgba(240,207,142,.85))}
+.tick{position:absolute;top:34px;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:var(--ink-faint);font-variant-numeric:tabular-nums;text-shadow:none}
+.tick::before{content:"";position:absolute;left:50%;top:-6px;width:1px;height:4px;background:rgba(255,255,255,.18)}
+.lampm{position:absolute;top:6px;width:9px;height:12px;margin-left:-4.5px;border:1px solid rgba(232,228,214,.45);border-radius:50% 50% 40% 40%;background:rgba(255,255,255,.05);transition:background .5s,border-color .5s,box-shadow .5s}
+.lampm::after{content:"";position:absolute;left:50%;top:12px;width:1px;height:6px;background:rgba(232,228,214,.25)}
+.lampm.lit{background:#f0c77d;border-color:#ffe0a6;box-shadow:0 0 10px rgba(240,190,110,.85)}
+.evm{position:absolute;top:28px;transform:translate(-50%,-50%);transition:transform .35s,opacity .35s,box-shadow .35s;opacity:.6}
+.evm.seen{opacity:1}
+.evm.item{width:10px;height:10px;transform:translate(-50%,-50%) rotate(45deg);background:var(--amber);border:1px solid #ffe2a8}
+.evm.clue{width:11px;height:11px;border-radius:50%;border:2px solid var(--teal);background:rgba(10,20,22,.5)}
+.evm.core{width:13px;height:13px;transform:translate(-50%,-50%) rotate(45deg);background:var(--core);border:1px solid #e1f0ff;box-shadow:0 0 8px rgba(140,200,240,.55)}
+.evm.active.item{transform:translate(-50%,-50%) rotate(45deg) scale(1.45);box-shadow:0 0 14px rgba(240,190,110,.9)}
+.evm.active.clue{transform:translate(-50%,-50%) scale(1.4);box-shadow:0 0 14px rgba(169,208,201,.8)}
+.evm.active.core{transform:translate(-50%,-50%) rotate(45deg) scale(1.6);box-shadow:0 0 22px rgba(140,200,240,1)}
+.evm.pass.core{animation:passPulse 1.2s ease}
+@keyframes passPulse{0%,100%{box-shadow:0 0 8px rgba(140,200,240,.55)}40%{box-shadow:0 0 18px rgba(140,200,240,.95)}}
+.evm.click{cursor:pointer;opacity:1}
+.evm.click:hover{filter:brightness(1.25)}
+#head{position:absolute;left:0;top:2px;width:2px;height:34px;margin-left:-1px;border-radius:2px;background:linear-gradient(180deg,rgba(255,240,210,0),rgba(255,240,210,.95) 45%,rgba(255,240,210,.2));box-shadow:0 0 10px rgba(255,225,170,.7);opacity:0;transition:opacity .4s}
+#head.on{opacity:1}
+#head::after{content:"";position:absolute;left:50%;top:21px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#fff3dc;box-shadow:0 0 8px rgba(255,225,170,.8);transform:scale(.8);transition:transform .2s}
+#track:hover #head::after,body.scrubbing #head::after{transform:scale(1.25)}
+#tip{position:absolute;bottom:44px;left:0;transform:translateX(-50%) translateY(4px);padding:4px 10px;border-radius:999px;background:var(--glass-strong);border:1px solid var(--line);font-size:11.5px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;font-variant-numeric:tabular-nums}
+#tip.on{opacity:1;transform:translateX(-50%)}
+#tip.item{color:var(--amber-text)} #tip.clue{color:var(--teal-text)} #tip.core{color:var(--core-text)}
+.evm.hover.item{transform:translate(-50%,-50%) rotate(45deg) scale(1.4)} .evm.hover.clue{transform:translate(-50%,-50%) scale(1.35)} .evm.hover.core{transform:translate(-50%,-50%) rotate(45deg) scale(1.45)}
+.bar-r{display:flex;gap:8px}
+.ghost{height:34px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);font-size:12.5px;color:var(--ink-soft)}
+.ghost:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.bar-r .hide{display:none}
+
+/* event card */
+#card{position:fixed;left:var(--gap);bottom:calc(var(--gap) + 86px);z-index:10;width:min(330px,calc(100% - 2*var(--gap)));padding:13px 16px 14px;opacity:0;transform:translateY(8px);transition:opacity .6s,transform .6s}
+#card.on{opacity:1;transform:none}
+#card .meta{font-size:11px;letter-spacing:.1em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+#card .row{display:flex;align-items:baseline;gap:9px;margin:5px 0 6px}
+#card h3{margin:0;font-size:19px;font-weight:600;letter-spacing:.06em}
+#card .chip{font-size:10.5px;letter-spacing:.1em;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+#card p{margin:0;font-size:12.5px;line-height:1.7;color:var(--ink-soft)}
+#card.item h3,#card.item .chip{color:var(--amber-text)}
+#card.clue h3,#card.clue .chip{color:var(--teal-text)}
+#card.core h3,#card.core .chip{color:var(--core-text)}
+#card.core{border-color:rgba(156,200,232,.35)}
+body.memory #card{font-family:"LXGW WenKai TC",serif;background:rgba(40,32,22,.42);border-color:rgba(226,206,168,.25)}
+body.memory #card h3{font-weight:400;font-size:21px}
+
+/* after the recap: the existing one question */
+#ask{position:fixed;top:var(--gap);right:var(--gap);max-height:calc(100% - 2*var(--gap) - 86px);overflow:auto;z-index:10;width:min(340px,calc(100% - 2*var(--gap)));padding:20px 20px 18px;display:flex;flex-direction:column;opacity:0;transform:translateX(16px);transition:opacity .6s,transform .6s;pointer-events:none}
+#ask.on{opacity:1;transform:none;pointer-events:auto}
+#ask .lbl{font-size:11px;letter-spacing:.14em;color:var(--ink-faint)}
+#ask h2{margin:6px 0 2px;font-size:20px;font-weight:600}
+#ask .q{margin:0 0 16px;color:var(--ink-soft);font-size:14px}
+#ask .btns{display:flex;gap:10px}
+#ask .got{margin-top:16px;border-top:1px solid var(--line);padding-top:14px;display:grid;gap:9px}
+#ask .got .lbl{margin-bottom:2px}
+.gotrow{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-soft)}
+.gotrow i{flex:none;width:9px;height:9px}
+.gotrow i.lamp{width:8px;height:11px;border-radius:50% 50% 40% 40%;background:#f0c77d;box-shadow:0 0 8px rgba(240,190,110,.8)}
+.gotrow i.item{transform:rotate(45deg);background:var(--amber)}
+.gotrow i.clue{border-radius:50%;border:2px solid var(--teal)}
+.gotrow i.core{transform:rotate(45deg);background:var(--core);box-shadow:0 0 8px rgba(140,200,240,.7)}
+.gotrow small{margin-left:auto;color:var(--ink-faint);font-size:11px;font-variant-numeric:tabular-nums}
+#endNote{margin:12px 0 0;font-size:12px;color:var(--ink-faint);min-height:1em}
+
+/* quiet-focus preview */
+#quietBadge{position:fixed;top:var(--gap);left:50%;transform:translateX(-50%);z-index:10;padding:7px 14px;font-size:12px;color:var(--ink-soft);opacity:0;transition:opacity .5s;pointer-events:none}
+body.quiet #quietBadge{opacity:1}
+
+/* prototype test panel (not part of the design) */
+#proto{position:fixed;top:70px;left:var(--gap);z-index:25;width:236px;padding:10px 12px 12px;font-size:12px;background:rgba(10,14,18,.66)}
+#proto summary{cursor:pointer;color:var(--ink-faint);letter-spacing:.08em;font-size:11px;list-style:none}
+#proto summary::-webkit-details-marker{display:none}
+#proto .grp{margin-top:10px;display:grid;gap:6px}
+#proto .grp > span{font-size:10.5px;letter-spacing:.1em;color:var(--ink-faint)}
+#proto button{height:28px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.04);font-size:12px;text-align:left;color:var(--ink-soft)}
+#proto button:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+#proto button.on{border-color:rgba(240,204,138,.6);color:var(--amber-text)}
+#proto label{display:grid;grid-template-columns:44px 1fr 32px;align-items:center;gap:6px;color:var(--ink-soft)}
+#proto input[type=range]{width:100%;accent-color:#d9b46e}
+body.recapping #proto{opacity:.35}
+body.recapping #proto:hover{opacity:1}
+body:not(.ready) #proto{display:none}
+
+/* ---------- notebook (in the collection room) ---------- */
+#nbWrap{position:fixed;inset:0;z-index:15;display:grid;place-items:center;padding:16px}
+#nbWrap[hidden]{display:none}
+#nbBack{position:absolute;inset:-12px;background:#2a1e14 center/cover no-repeat;filter:blur(3px) brightness(.5) saturate(.9)}
+#nbWrap::before{content:"";position:absolute;inset:0;background:rgba(8,6,4,.35)}
+.book{position:relative;width:min(840px,100%);display:grid;gap:12px;animation:bookIn .32s cubic-bezier(.2,.8,.2,1) both;transform-origin:50% 60%}
+#nbWrap.out .book{animation:bookOut .3s ease both}
+@keyframes bookIn{from{opacity:0;transform:scale(.965) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes bookOut{to{opacity:0;transform:scale(.97) translateY(10px)}}
+.spread{display:grid;grid-template-columns:1fr 1fr;aspect-ratio:1.55;max-height:72vh;filter:drop-shadow(0 12px 30px rgba(0,0,0,.55))}
+.page{position:relative;min-width:0;background:#e8dcc0;color:#3b3226;padding:clamp(14px,3.2vw,30px) clamp(14px,3.2vw,32px);font-family:"LXGW WenKai TC","Noto Serif TC","Kaiti TC",serif;font-size:clamp(12.5px,1.7vw,15px);line-height:1.75;overflow:hidden;text-shadow:none}
+.page:first-child{border-radius:6px 0 0 6px;box-shadow:inset -18px 0 24px -18px rgba(60,40,20,.45)}
+.page:last-child{border-radius:0 6px 6px 0;box-shadow:inset 18px 0 24px -18px rgba(60,40,20,.45)}
+.page p{margin:0 0 .6em}
+.page .meta{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:11px;letter-spacing:.1em;color:#8a7658;margin-bottom:8px}
+.page .route{color:#7a6a52;font-size:.9em;margin-bottom:12px;padding-bottom:9px;border-bottom:1px dashed rgba(122,106,82,.35)}
+.page .tree{width:64%;display:block;margin:18px auto 14px}
+.page.first p.line{text-align:center;font-size:1.25em}
+.page.blank{background:#e8dcc0}
+.page.stub{background:transparent;box-shadow:none}
+.page.stub::before{content:"";position:absolute;top:0;bottom:0;width:26px;background:#e2d5b8;clip-path:polygon(0 0,100% 0,60% 4%,90% 9%,55% 14%,85% 20%,50% 26%,80% 32%,58% 38%,88% 45%,52% 52%,84% 58%,55% 65%,90% 72%,50% 79%,82% 86%,56% 93%,86% 100%,0 100%)}
+.page.stub:first-child::before{right:0;transform:scaleX(-1)}
+.page.stub:last-child::before{left:0}
+.page .stub-note{position:absolute;left:0;right:0;bottom:18px;text-align:center;font-family:"Noto Sans TC",sans-serif;font-size:12px;letter-spacing:.08em;color:rgba(240,236,226,.6)}
+.nb-list{display:grid;gap:4px}
+.nb-e{display:grid;grid-template-columns:12px 1fr auto;align-items:start;gap:8px;width:100%;padding:3px 6px 3px 2px;margin:0 -6px 0 -2px;border:0;border-radius:4px;background:none;text-align:left;font:inherit;color:inherit;line-height:1.6;cursor:pointer;text-shadow:none;transition:background .2s}
+.nb-e:hover,.nb-e:focus-visible{background:rgba(120,90,50,.08);outline:none}
+.nb-e:hover .t,.nb-e:focus-visible .t{text-decoration:underline wavy rgba(138,118,88,.55) 1px;text-underline-offset:4px}
+.nb-e.just{animation:just 2.4s ease}
+@keyframes just{0%,35%{background:rgba(224,170,90,.28)}100%{background:none}}
+.nb-e .where{display:block;font-family:"Noto Sans TC",sans-serif;font-size:10.5px;letter-spacing:.08em;color:#9a876a;margin-top:1px}
+.g{width:9px;height:9px;margin-top:.55em;box-sizing:border-box}
+.g.clue{border:1.6px solid #2f6b66;border-radius:50%}
+.g.core{border:1.6px solid #2f4c6b;background:rgba(47,76,107,.22);transform:rotate(45deg) scale(.92)}
+.g.meet{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #a8652a;margin-top:.5em}
+.nb-e .play{width:18px;height:18px;margin-top:.25em;opacity:.45;transition:opacity .2s}
+.nb-e:hover .play,.nb-e:focus-visible .play{opacity:.9}
+.page .items{position:absolute;left:clamp(14px,3.2vw,32px);right:clamp(14px,3.2vw,32px);bottom:clamp(12px,2.6vw,24px);font-size:.85em;color:#8a7658;border-top:1px dashed rgba(122,106,82,.3);padding-top:6px}
+.book-nav{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.book-nav .label{font-size:12px;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.book-nav .ghost[disabled]{opacity:.35;cursor:default}
+#nbToast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:16;padding:8px 14px;font-size:12.5px;opacity:0;transition:opacity .3s;pointer-events:none}
+#nbToast.on{opacity:1}
+#nbExit{position:fixed;top:var(--gap);right:var(--gap);z-index:12;opacity:0;pointer-events:none;transition:opacity .5s}
+#nbExit.on{opacity:1;pointer-events:auto}
+#card.note .row{display:none}
+#card.note p{font-family:"LXGW WenKai TC",serif;font-size:16px;line-height:1.8;color:#f3ead8}
+@media (max-width:720px){
+  #bar{grid-template-columns:1fr;gap:6px;padding:10px 12px}
+  .bar-l{display:flex;gap:8px;align-items:baseline}
+  .bar-r{justify-content:flex-end}
+  #card{bottom:calc(var(--gap) + 150px)}
+  #ask{top:auto;bottom:calc(var(--gap) + 150px);height:auto}
+  #proto{width:200px}
+}
+@media (prefers-reduced-motion:reduce){ .glass,#bar,#card,#ask{transition:none} }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="memoryFrame"></div>
+<div id="dip"></div>
+
+<div id="topInfo" class="glass"><span class="lbl" id="topLbl">專注結束</span><b id="topTxt">藏聲秋谷</b></div>
+<div id="quietBadge" class="glass">專注中（安靜模式預覽）：畫面變暗、事件只留小動作、沒有單次音效</div>
+
+<div id="card" class="glass"><div class="meta" id="cMeta"></div><div class="row"><h3 id="cName"></h3><span class="chip" id="cChip"></span></div><p id="cText"></p></div>
+
+<div id="bar" class="glass">
+  <div class="bar-l"><span class="lbl">這次專注</span><b id="barMin">50 分鐘</b></div>
+  <div id="track"><div class="rail"></div><div id="fill"></div><div id="head"></div><div id="tip"></div></div>
+  <div class="bar-r"><button class="ghost" id="skip">跳過</button><button class="ghost" id="skipAll">全部跳過</button></div>
+</div>
+
+<div id="ask" class="glass">
+  <span class="lbl">剛才的專注</span>
+  <h2 id="askTask">整理物理筆記</h2>
+  <p class="q">完成了嗎？</p>
+  <div class="btns"><button class="pri" data-a="done">完成了</button><button class="ghost" data-a="not">還沒</button></div>
+  <p id="endNote"></p>
+  <div class="got" id="got"></div>
+</div>
+
+
+<div id="nbWrap" hidden><div id="nbBack"></div><div class="book" role="dialog" aria-label="筆記"><div class="spread" id="spread"></div>
+  <div class="book-nav"><button type="button" class="ghost" id="bPrev">上一頁</button><span class="label" id="bLabel"></span><button type="button" class="ghost" id="bNext">下一頁</button><button type="button" class="ghost" id="bClose">闔上</button></div></div></div>
+<div id="nbToast" class="glass"></div>
+<button type="button" class="ghost glass" id="nbExit">回到筆記（Esc）</button>
+<div id="start">
+  <div class="glass">
+    <span class="lbl">結算回顧原型 · 藏聲秋谷</span>
+    <h1>專注結束，回到大廳</h1>
+    <p>這是 50 分鐘專注的樣本：第 13 分鐘取得信物調音叉，第 26 分鐘帶著銅製風哨發現一條線索，第 38 分鐘拿到地圖核心藏聲石。回顧依時間播放，核心留到最後。</p>
+    <button class="pri" id="go" disabled>播放（有聲音）</button><span id="loadNote">場景載入中…</span>
+  </div>
+</div>
+
+<details id="proto" class="glass" open>
+  <summary>原型測試面板（不移植）</summary>
+  <div class="grp"><span>結算回顧</span>
+    <button data-p="full">重播：50 分鐘樣本</button>
+    <button data-p="empty">樣本：沒有紀錄事件（25 分鐘）</button>
+    <button data-p="live">現場模式：只顯示時間軸</button>
+  </div>
+  <div class="grp"><span>筆記裡的重播（回想）</span>
+    <button data-p="book">打開筆記（收藏室的線索桌）</button>
+  </div>
+  <div class="grp"><span>專注中（安靜模式）</span>
+    <button data-p="quiet">預覽變暗：開／關</button>
+    <label>亮度<input type="range" id="qb" min="50" max="100" value="75"><em id="qbv">75%</em></label>
+    <label>飽和<input type="range" id="qs" min="40" max="100" value="80"><em id="qsv">80%</em></label>
+    <button data-p="small">試看小動作：取得調音叉</button>
+  </div>
+  <div class="grp"><span>聲音</span><button data-p="snd" class="on">聲音：開</button></div>
+</details>
+
+<script>
+/* ---------- audio (WebAudio, the game's own recordings) ---------- */
+const AUD = (() => {
+  let ctx = null, master, music, amb, fx, on = true, buffers = {}, ambSrc = null, caveSrc = null, bgmSrc = null, ambG, caveG, quietK = 1;
+  const db = (x) => Math.pow(10, x / 20);
+  async function init() {
+    if (ctx) { if (ctx.state !== 'running') await ctx.resume(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.connect(ctx.destination);
+    music = ctx.createGain(); music.gain.value = 0; music.connect(master);
+    amb = ctx.createGain(); amb.gain.value = 0.35; amb.connect(master);
+    fx = ctx.createGain(); fx.gain.value = 0.9; fx.connect(master);
+    ambG = ctx.createGain(); ambG.gain.value = 1; ambG.connect(amb);
+    caveG = ctx.createGain(); caveG.gain.value = 0; caveG.connect(amb);
+    const names = Object.keys(window.__AUD || {});
+    await Promise.all(names.map(async (n) => { try { const b64 = window.__AUD[n].split(',')[1], bin = atob(b64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); buffers[n] = await ctx.decodeAudioData(u8.buffer); } catch (e) { console.warn('audio', n, e); } }));
+    if (buffers.amb) { ambSrc = loop('amb', ambG); }
+    if (buffers.a05_cave_room) { caveSrc = loop('a05_cave_room', caveG); }
+  }
+  function loop(n, dest, offset = 0) { const s = ctx.createBufferSource(); s.buffer = buffers[n]; s.loop = true; s.connect(dest); s.start(0, offset); return s; }
+  function shot(n, o = {}) {
+    if (!ctx || !on || !buffers[n] || quietK < 1) return;
+    const s = ctx.createBufferSource(); s.buffer = buffers[n]; s.playbackRate.value = o.rate || 1;
+    const g = ctx.createGain(); g.gain.value = (o.gain ?? 1); s.connect(g); g.connect(fx);
+    const t = ctx.currentTime + (o.delay || 0); s.start(t, o.offset || 0);
+    if (o.duration) { g.gain.setValueAtTime(g.gain.value, t + o.duration - 0.3); g.gain.linearRampToValueAtTime(0, t + o.duration); s.stop(t + o.duration + 0.05); }
+  }
+  function ramp(node, v, sec) { if (!ctx) return; const t = ctx.currentTime; node.gain.cancelScheduledValues(t); node.gain.setValueAtTime(node.gain.value, t); node.gain.linearRampToValueAtTime(v, t + sec); }
+  function bgm(onOff, sec = 3) {
+    if (!ctx || !buffers.bgm) return;
+    if (onOff && !bgmSrc) { bgmSrc = loop('bgm', music, 0.01); }
+    ramp(music, onOff && on ? 0.25 * quietK : 0, sec);
+  }
+  function cave(inside) { if (!ctx) return; ramp(ambG, inside ? 0 : 1, 0.6); ramp(caveG, inside ? 0.9 : 0, 0.6); }
+  function cue(kind, p) {
+    switch (kind) {
+      case 'chime': shot('a05_stone_chime_g6', { delay: 0.15 }); shot('a05_stone_chime_d6', { delay: 1.25 }); break;
+      case 'fork': shot('a05_tuning_fork', { gain: 0.95 }); break;
+      case 'windRock': shot('a05_wind_rock', { rate: 1.5, gain: 0.9 }); break;
+      case 'wallWarm': shot('a05_wall_hum', { duration: 1.2 }); break;
+      case 'murmur': shot('a05_wall_murmur', { gain: 1.8 }); break;
+      case 'whistle': [1, .98, 1.01, .97].forEach((r, i) => shot('a05_wall_hum', { delay: i * 0.9, gain: db(4), rate: r })); break;
+      case 'hum': shot('hum_stone_g2', { gain: 0.7 }); break;
+      case 'coreHum': { const k = p.k ?? 1; shot('hum_stone_g2', { gain: db(k >= 1.25 ? 5 : k > 1 ? 3 : 1), rate: k >= 1.25 ? 1.06 : k > 1 ? 1.03 : 1 }); break; }
+      case 'coreStart': bgm(false, 4); shot('a05_core_swell', { delay: 1.0, gain: 1.1 }); break;
+      case 'coreMotif': shot('core_motif_05', { gain: 1.0 }); break;
+    }
+  }
+  return {
+    init, cue, bgm, cave,
+    set(v) { on = v; if (master) ramp(master, v ? 1 : 0, 0.3); },
+    quiet(k) { quietK = k; if (amb) ramp(amb, 0.35 * (k < 1 ? 0.5 : 1), 0.8); if (music) ramp(music, music.gain.value > 0.001 ? 0.25 * (k < 1 ? 0.5 : 1) : 0, 0.8); },
+    get ready() { return !!ctx; }
+  };
+})();
+</script>
+<script src="audio.js"></script>
+<script src="room.js"></script>
+<script src="valley.bundle.js"></script>
+<script type="text/plain" id="directorSrc">/*DIRECTOR*/</script>
+<script>
+/* ---------- data: one sample Focus on 藏聲秋谷 ---------- */
+const SAMPLES = {
+  full: { minutes: 50, task: '整理物理筆記', lamps: [10, 20, 30, 40, 50], events: [
+    { id: 'fork', min: 13, kind: 'item', place: '石磬架', name: '調音叉', chip: '信物', text: '敲石磬的時候，掛在架旁的調音叉跟著共振，嗡了好久。旅人把它收進了腰包。' },
+    { id: 'whistle', min: 26, kind: 'clue', place: '風孔岩', name: '封住的牆', chip: '線索', text: '帶著銅製風哨吹了一聲，共鳴洞裡有一面牆跟著嗡起來。那後面是空的。' },
+    { id: 'core', min: 38, kind: 'core', place: '共鳴洞', name: '藏聲石', chip: '地圖核心', text: '會留住聲音的石頭。它一聲比一聲急，最後縮成一顆小石子，收進了行李。' } ] },
+  empty: { minutes: 25, task: '回覆信件', lamps: [10, 20], events: [] }
+};
+const $ = (id) => document.getElementById(id);
+const sleep = (ms, sig) => new Promise((res, rej) => { const t = setTimeout(res, ms); sig && sig.addEventListener('abort', () => { clearTimeout(t); rej(new DOMException('skip', 'AbortError')); }, { once: true }); });
+let R = null, S = SAMPLES.full, runCtl = null, segCtl = null, mode = 'idle', coreDone = false;
+
+/* ---------- boot: wait for the scene, then hand it our director ---------- */
+(function waitScene() {
+  if (window.__scene && window.__in && document.title === 'ready') {
+    document.title = '藏聲秋谷結算回顧';
+    try { window.__in(document.getElementById('directorSrc').textContent); } catch (e) { console.error(e); $('loadNote').textContent = '場景啟動失敗'; return; }
+    R = window.__R; R.onSound = (k, p) => AUD.cue(k, p);
+    $('go').disabled = false; $('loadNote').textContent = '';
+    document.body.classList.add('ready');
+    $('dip').style.opacity = 0;
+    return;
+  }
+  if (document.title === 'error') { $('loadNote').textContent = '場景載入失敗'; return; }
+  setTimeout(waitScene, 120);
+})();
+
+/* ---------- small UI helpers ---------- */
+const dip = (on, ms = 350, sig) => { if (sig && sig.aborted) return Promise.reject(new DOMException('skip', 'AbortError')); $('dip').style.transitionDuration = ms + 'ms'; $('dip').style.opacity = on ? 1 : 0; return sleep(ms, sig); };
+function buildTrack(sample) {
+  const tr = $('track'); tr.querySelectorAll('.tick,.lampm,.evm').forEach((n) => n.remove());
+  const pct = (m) => (m / sample.minutes) * 100 + '%';
+  for (let m = 0; m <= sample.minutes; m += (sample.minutes > 30 ? 10 : 5)) { const t = document.createElement('span'); t.className = 'tick'; t.style.left = pct(m); t.textContent = m === sample.minutes ? m + ' 分' : m; tr.appendChild(t); }
+  sample.lamps.forEach((m, i) => { const l = document.createElement('i'); l.className = 'lampm'; l.style.left = pct(m); l.dataset.i = i; tr.appendChild(l); });
+  sample.events.forEach((e) => { const d = document.createElement('i'); d.className = 'evm ' + e.kind; d.style.left = pct(e.min); d.dataset.id = e.id; d.title = `第 ${e.min} 分鐘 · ${e.name}`; tr.appendChild(d); });
+  $('barMin').textContent = sample.minutes + ' 分鐘';
+}
+let headMin = 0;
+function setHead(m) { headMin = m; const p = (m / S.minutes) * 100; $('head').style.left = p + '%'; $('fill').style.width = p + '%';
+  const lit = S.lamps.filter((x) => x <= m + 1e-6).length;
+  document.querySelectorAll('.lampm').forEach((n, i) => n.classList.toggle('lit', i < lit));
+  if (R && R.lit !== lit) R.setLit(lit);
+  document.querySelectorAll('.evm').forEach((n) => { const e = S.events.find((x) => x.id === n.dataset.id); if (e && e.min <= m + 1e-6 && !n.classList.contains('seen')) { n.classList.add('seen'); if (e.kind === 'core') { n.classList.add('pass'); } } }); }
+function moveHead(to, sec, sig) {
+  const from = headMin, t0 = performance.now();
+  return new Promise((res, rej) => {
+    const f = () => { if (sig && sig.aborted) return rej(new DOMException('skip', 'AbortError'));
+      const u = Math.min(1, (performance.now() - t0) / (sec * 1000)), k = u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      setHead(from + (to - from) * k); if (u < 1) requestAnimationFrame(f); else res(); };
+    requestAnimationFrame(f); });
+}
+function showCard(e, memory) { if (!e) { $('card').classList.remove('on'); return; }
+  $('card').className = 'glass ' + e.kind + (e.name ? '' : ' note'); $('cMeta').textContent = memory ? `${memory} · ${e.place}` : `第 ${e.min} 分鐘 · ${e.place}`;
+  $('cName').textContent = e.name; $('cChip').textContent = e.chip; $('cText').textContent = e.text;
+  requestAnimationFrame(() => $('card').classList.add('on')); }
+const activeMark = (id) => document.querySelectorAll('.evm').forEach((n) => n.classList.toggle('active', n.dataset.id === id));
+
+/* ---------- one event, full version. Each returns when its picture is over; skip aborts it. ---------- */
+async function playEvent(e, sig, memory) {
+  const wait = (s) => sleep(s * 1000, sig);
+  if (e.id === 'fork') {
+    await dip(true, 350, sig); R.cancel(); R.forkFull(); await dip(false, 450, sig);
+    await wait(2.2); showCard(e, memory); await wait(3.7);
+  } else if (e.id === 'whistle') {
+    await dip(true, 350, sig); R.cancel(); R.whistleOut(); await dip(false, 450, sig);
+    await wait(2.3); await dip(true, 380, sig); R.whistleCave(); AUD.cave(true); await dip(false, 420, sig);
+    await wait(0.9); showCard(e, memory); await wait(3.0);
+    await dip(true, 380, sig); while (!R.whistleDone && !sig.aborted) await wait(0.05);
+  } else if (e.id === 'core') {
+    await dip(true, 650, sig); R.cancel(); R.coreEnter(); AUD.cave(true); await dip(false, 650, sig);
+    await wait(3.9); showCard(e, memory); await wait(6.1);
+  }
+}
+async function backHome(shot = 'home', sig) { await dip(true, 380, sig); R.cancel(); AUD.cave(false); R.camSet(shot); showCard(null); await dip(false, 450, sig); }
+
+/* ---------- the recap (安靜模式). The scene stays the lobby: the map's rest point. ---------- */
+async function recap(sampleKey) {
+  stopAll(); $('proto').open = false; S = SAMPLES[sampleKey]; mode = 'recap'; coreDone = false; document.body.classList.add('recapping'); document.body.classList.remove('memory', 'quiet');
+  runCtl = new AbortController(); const run = runCtl.signal;
+  await dip(true, 300);
+  if (run.aborted) return;
+  R.cancel(); R.setLit(0, true); buildTrack(S); setHead(0); showCard(null); activeMark(null);
+  $('ask').classList.remove('on'); $('endNote').textContent = S.events.length ? '拖時間軸上的白點，或點事件記號，可以回去重看。' : ''; $('askTask').textContent = S.task;
+  $('topLbl').textContent = '專注結束'; $('topTxt').textContent = `藏聲秋谷 · ${S.task}`;
+  setButtons(true);
+  R.camSet(S.events.length ? 'bench' : 'home');
+  try {
+    AUD.bgm(true, 4);
+    await dip(false, 900, run);
+    $('topInfo').classList.add('on'); await sleep(350, run); $('bar').classList.add('on'); $('head').classList.add('on');
+    if (!S.events.length) { await sleep(400, run); await moveHead(S.minutes, 2.0, run); await sleep(500, run); return finish(); }
+    await sleep(500, run); R.camTo('home', 2.6);
+    await sleep(400, run);
+    await runFrom(null, run);
+  } catch (err) { if (err.name !== 'AbortError') console.error(err); }
+}
+/* play on from the playhead: the next events in time, then the core last. `target` = an event the viewer dragged onto. */
+const headDur = (dm) => Math.max(1.1, Math.min(3.0, (dm / S.minutes) * 7));
+async function runFrom(target, run) {
+  const order = S.events.filter((e) => e.kind !== 'core').sort((a, b) => a.min - b.min);
+  const core = S.events.find((e) => e.kind === 'core');
+  if (target) { await playSeg(target, run, target.kind === 'core' ? 'bench' : 'home'); if (target.kind === 'core') { coreDone = true; AUD.bgm(true, 5); return finish(); } }
+  for (const e of order) {
+    if (e.min <= headMin + 1e-6) continue;
+    await moveHead(e.min, headDur(e.min - headMin), run);
+    activeMark(e.id); await sleep(250, run);
+    await playSeg(e, run, 'home');
+    await sleep(250, run);
+  }
+  if (headMin < S.minutes) await moveHead(S.minutes, headDur(S.minutes - headMin), run);
+  if (core && !coreDone) {
+    await sleep(700, run); activeMark(core.id); await sleep(900, run);
+    await playSeg(core, run, 'bench'); coreDone = true; AUD.bgm(true, 5);
+  }
+  finish();
+}
+async function playSeg(e, run, home) {
+  segCtl = new AbortController(); const seg = segCtl.signal; const ctl = segCtl;
+  run.addEventListener('abort', () => ctl.abort(), { once: true });
+  activeMark(e.id);
+  try { await playEvent(e, seg); } catch (err) { if (run.aborted) throw err; if (err.name !== 'AbortError') console.error(err); if (e.kind === 'core') coreDone = true; }
+  activeMark(null); await backHome(home, run);
+}
+function setButtons(playing) { $('skip').classList.toggle('hide', !playing || !S.events.length); $('skipAll').classList.toggle('hide', !playing); }
+function gotList() {
+  return '<span class="lbl">這次得到</span>' + `<div class="gotrow"><i class="lamp"></i>${S.lamps.length} 盞燈<small>${S.minutes} 分鐘</small></div>` +
+    S.events.map((e) => `<div class="gotrow"><i class="${e.kind}"></i>${e.name}<small>${e.chip} · 第 ${e.min} 分</small></div>`).join('');
+}
+function finish() {
+  if (mode !== 'recap') return;
+  segCtl && segCtl.abort(); runCtl && runCtl.abort();
+  R.cancel(); AUD.cave(false); R.setLit(S.lamps.length, false); setHead(S.minutes); activeMark(null); showCard(null);
+  document.querySelectorAll('.evm').forEach((n) => n.classList.add('seen', 'click'));
+  if (S.events.length) R.camTo('bench', 1.6);
+  $('dip').style.opacity = 0; setButtons(false);
+  $('got').innerHTML = gotList();
+  $('ask').classList.add('on'); mode = 'ask'; document.body.classList.remove('recapping');
+}
+function skipAll() { if (mode === 'recap') { runCtl && runCtl.abort(); finish(); } else if (['liveplay', 'askplay', 'memory'].includes(mode)) { segCtl && segCtl.abort(); } }
+function skipOne() { if (segCtl && !segCtl.signal.aborted) segCtl.abort(); }
+
+/* ---------- 現場模式: events were watched live, so the recap is only the timeline; drag or click to replay ---------- */
+async function liveMode() {
+  stopAll(); S = SAMPLES.full; mode = 'live'; document.body.classList.remove('memory', 'quiet');
+  await dip(true, 300); R.cancel(); R.setLit(5, true); buildTrack(S); setHead(S.minutes); R.camSet('bench'); showCard(null);
+  $('askTask').textContent = S.task; $('endNote').textContent = '現場模式：事件在專注中已經播過，這裡不自動播放。拖時間軸或點記號可以重播。';
+  $('topLbl').textContent = '專注結束（現場模式）'; $('topTxt').textContent = `藏聲秋谷 · ${S.task}`;
+  setButtons(false); $('got').innerHTML = gotList();
+  document.querySelectorAll('.evm').forEach((n) => n.classList.add('seen', 'click'));
+  AUD.bgm(true, 3);
+  await dip(false, 600); $('topInfo').classList.add('on'); $('bar').classList.add('on'); $('head').classList.add('on'); $('ask').classList.add('on');
+}
+
+/* ---------- scrubbing: drag the playhead (or click the track) to go back to an event ----------
+   During the recap: dragging pauses it; let go on/near a marker → that event plays, then the recap carries on from there
+   (the core still comes last). Let go between markers → it carries on to the next event.
+   After the recap (and in 現場模式): let go on a marker → just that event replays, then back to the question. */
+const tip = $('tip');
+function minAt(x) { const r = $('track').getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)) * S.minutes; }
+function nearEvent(m) { const r = $('track').getBoundingClientRect(), ppm = r.width / S.minutes; let best = null, bd = 1e9;
+  S.events.forEach((e) => { const d = Math.abs(e.min - m) * ppm; if (d < bd) { bd = d; best = e; } }); return bd <= 18 ? best : null; }
+function showTip(m, e) {
+  tip.textContent = e ? `第 ${e.min} 分鐘 · ${e.name}` : `第 ${Math.round(m)} 分鐘`; tip.className = 'on' + (e ? ' ' + e.kind : '');
+  tip.style.left = (m / S.minutes) * 100 + '%';
+  document.querySelectorAll('.evm').forEach((n) => n.classList.toggle('hover', !!e && n.dataset.id === e.id));
+}
+function hideTip() { tip.className = ''; document.querySelectorAll('.evm.hover').forEach((n) => n.classList.remove('hover')); }
+let scrub = null;
+$('track').addEventListener('pointerdown', (ev) => {
+  if (!R || !['recap', 'ask', 'live', 'askplay', 'liveplay'].includes(mode) || !S.events.length) return;
+  ev.preventDefault(); $('track').setPointerCapture(ev.pointerId);
+  const back = mode === 'askplay' ? 'ask' : mode === 'liveplay' ? 'live' : mode;
+  runCtl && runCtl.abort(); segCtl && segCtl.abort();
+  showCard(null); activeMark(null); $('ask').classList.remove('on'); setButtons(false);
+  mode = 'scrub'; document.body.classList.add('scrubbing');
+  // get out of whatever picture was playing, back to the wide view where the lamps are
+  const ready = (async () => { const st = R.state(), dark = parseFloat($('dip').style.opacity || 0) > 0.01; if (dark || st.inCave || st.spot !== 4 || st.mode !== 'rest') { await dip(true, 160); R.cancel(); AUD.cave(false); R.camSet('home'); await dip(false, 260); } else R.camTo('home', 0.9); })();
+  scrub = { back, ready };
+  const m = minAt(ev.clientX); setHead(m); showTip(m, nearEvent(m));
+});
+$('track').addEventListener('pointermove', (ev) => {
+  if (!scrub) { if (['ask', 'live', 'recap'].includes(mode) && S && S.events.length) { const m = minAt(ev.clientX), e = nearEvent(m); if (e) showTip(e.min, e); else hideTip(); } return; }
+  const m = minAt(ev.clientX); setHead(m); showTip(m, nearEvent(m));
+});
+$('track').addEventListener('pointerleave', () => { if (!scrub) hideTip(); });
+const endScrub = async (ev) => {
+  if (!scrub) return; const { back, ready } = scrub; scrub = null; document.body.classList.remove('scrubbing');
+  let m = minAt(ev.clientX); const e = nearEvent(m); if (e) m = e.min; setHead(m); hideTip();
+  await ready;
+  if (back === 'recap') {
+    mode = 'recap'; setButtons(true); runCtl = new AbortController(); const run = runCtl.signal;
+    runFrom(e, run).catch((err) => { if (err.name !== 'AbortError') console.error(err); });
+    return;
+  }
+  // finished recap / 現場模式: replay one event, then return to the question
+  if (e) {
+    mode = back === 'ask' ? 'askplay' : 'liveplay'; setButtons(true); $('skip').classList.add('hide');
+    segCtl = new AbortController(); activeMark(e.id);
+    try { await playEvent(e, segCtl.signal); } catch (err) { if (err.name !== 'AbortError') console.error(err); }
+    if (mode === 'scrub') return;                       // the viewer grabbed the timeline again mid-replay
+    activeMark(null); await backHome('bench'); AUD.bgm(true, 3);
+    if (mode === 'scrub') return;
+  } else { R.camTo('bench', 1.2); }
+  await moveHead(S.minutes, 0.6).catch(() => {});
+  setButtons(false); $('ask').classList.add('on'); mode = back;
+};
+$('track').addEventListener('pointerup', endScrub);
+$('track').addEventListener('pointercancel', endScrub);
+
+/* ---------- 筆記裡的重播: same event, read as a memory ---------- */
+async function memory(id) {
+  stopAll(); mode = 'memory'; document.body.classList.remove('quiet'); document.body.classList.add('memory');
+  $('bar').classList.remove('on'); $('topInfo').classList.remove('on'); $('ask').classList.remove('on');
+  R.setLit(5, true);
+  const e = SAMPLES.full.events.find((x) => x.id === id);
+  segCtl = new AbortController();
+  try { await playEvent(e, segCtl.signal, '旅程筆記 · 第 3 趟'); } catch (err) { if (err.name !== 'AbortError') console.error(err); }
+  await dip(true, 500); R.cancel(); AUD.cave(false); R.camSet('bench'); showCard(null); document.body.classList.remove('memory'); await dip(false, 600); mode = 'idle';
+}
+
+/* ---------- 安靜模式・專注中 preview ---------- */
+function setQuiet(on) { document.body.classList.toggle('quiet', on); AUD.quiet(on ? 0.5 : 1); document.querySelector('[data-p=quiet]').classList.toggle('on', on); }
+async function smallAction() {
+  stopAll(); mode = 'small'; setQuiet(true); $('bar').classList.remove('on'); $('ask').classList.remove('on'); $('topInfo').classList.remove('on');
+  await dip(true, 300); R.cancel(); R.setLit(1, true); R.camSet('home'); await dip(false, 500);
+  await sleep(600); R.forkSmall(); await sleep(6200); mode = 'idle';
+}
+
+function stopAll() {
+  runCtl && runCtl.abort(); segCtl && segCtl.abort(); mode = 'idle';
+  $('nbWrap').hidden = true; $('nbExit').classList.remove('on'); if (R) R.frozen = false;
+  ['bar', 'ask', 'topInfo'].forEach((i) => $(i).classList.remove('on')); $('head').classList.remove('on'); showCard(null); activeMark(null);
+  document.body.classList.remove('recapping');
+}
+
+/* ---------- wiring ---------- */
+$('go').onclick = async () => { await AUD.init(); $('start').style.display = 'none'; recap('full'); };
+$('skip').onclick = skipOne; $('skipAll').onclick = skipAll;
+addEventListener('keydown', (ev) => { if (ev.key !== 'Escape') return; if (mode === 'nbplay') { segCtl && segCtl.abort(); } else if (mode === 'nb') closeBook(); else skipAll(); });
+document.querySelectorAll('#ask [data-a]').forEach((b) => b.onclick = () => { $('endNote').textContent = b.dataset.a === 'done' ? '已完成。清單會換到下一件事（原型到這裡結束）。' : '留在清單上，下次專注繼續（原型到這裡結束）。'; });
+document.querySelector('#proto').addEventListener('click', async (ev) => {
+  const b = ev.target.closest('button[data-p]'); if (!b || !R) return; await AUD.init(); $('start').style.display = 'none';
+  const p = b.dataset.p;
+  if (p === 'full') { setQuiet(false); recap('full'); }
+  else if (p === 'empty') { setQuiet(false); recap('empty'); }
+  else if (p === 'live') { setQuiet(false); liveMode(); }
+  else if (p === 'book') { setQuiet(false); openBook(); }
+  else if (p === 'quiet') setQuiet(!document.body.classList.contains('quiet'));
+  else if (p === 'small') smallAction();
+  else if (p === 'snd') { const on = !b.classList.contains('on'); b.classList.toggle('on', on); b.textContent = on ? '聲音：開' : '聲音：關'; AUD.set(on); }
+});
+const syncQ = () => { document.body.style.setProperty('--qb', $('qb').value / 100); document.body.style.setProperty('--qs', $('qs').value / 100); $('qbv').textContent = $('qb').value + '%'; $('qsv').textContent = $('qs').value + '%'; };
+$('qb').oninput = syncQ; $('qs').oninput = syncQ; syncQ();
+
+/* ---------- 筆記：每一趟一頁，看過的事件可以重播（企畫書 §50.9、§55.6） ---------- */
+if (window.__ROOM_BG) $('nbBack').style.backgroundImage = `url(${window.__ROOM_BG})`;
+const TREE_SVG = '<svg class="tree" viewBox="0 0 120 90" aria-hidden="true"><g fill="none" stroke="#3a2f24" stroke-width="1.4" stroke-linecap="round"><path d="M58 88 C57 70 59 60 56 50 M62 88 C63 72 61 60 65 50"/><path d="M56 50 C40 52 26 44 24 32 C20 18 36 8 50 12 C56 2 76 2 82 12 C98 10 106 26 98 36 C94 48 78 52 65 50"/><path d="M40 30 C48 34 54 30 58 36 M70 24 C74 32 84 30 88 34"/><path d="M8 88 L112 88"/></g></svg>';
+const PLAY_SVG = '<svg class="play" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="#5a4a36" stroke-width="1.2" stroke-dasharray="40 3 9 2"/><path d="M8.2 6.6 L13.6 10.1 L8.3 13.5 Z" fill="none" stroke="#5a4a36" stroke-width="1.3" stroke-linejoin="round"/></svg>';
+const JOURNEYS = [
+  { n: 1, when: '9/28 – 10/3', route: '雲上遺庭 → 苔痕驛站 → 倒影湖畔 → 玻璃苗圃 → 風切斷橋', items: '帶過：壓葉標本、舊荷札', entries: [
+    { kind: 'clue', where: '雲上遺庭 · 第一次專注', text: '在橋頭翻開筆記。草圖上的那棵樹，就是眼前這一棵。' },
+    { kind: 'clue', where: '雲上遺庭', text: '樹皮上刻著一個日期，比這棵樹還老。' },
+    { kind: 'clue', where: '苔痕驛站', text: '一盞熄掉的提燈漂過棧橋，落進霧瀑。' },
+    { kind: 'meet', where: '霧的邊緣', text: '見到了他。火還沒熄。' } ] },
+  { n: 2, when: '10/4 – 10/9', route: '苔痕驛站 → 藏聲秋谷 → 玻璃苗圃 → 雲上遺庭 → 倒影湖畔', items: '帶過：炭印紙、銅製風哨、風化鏡片', entries: [
+    { kind: 'core', where: '苔痕驛站', text: '售票窗口下的抽屜裡，有一只裂了的羅盤。' },
+    { kind: 'clue', where: '藏聲秋谷', text: '敲了一下石磬，回來兩個音。', play: 'first' },
+    { kind: 'clue', where: '玻璃苗圃', text: '灑水臂每一圈，都在澆一盤什麼也沒種的土。' },
+    { kind: 'meet', where: '霧的邊緣', text: '又見到他。他看著火，沒有說話。' } ] },
+  { n: 3, when: '10/12 起 · 還在路上', route: '倒影湖畔 → 藏聲秋谷 → ……', items: '帶著：調音叉、銅製風哨', entries: [
+    { kind: 'clue', where: '藏聲秋谷', text: '第二次來。走進洞裡，岩壁後面有人低低說了一句話。', play: 'second' },
+    { kind: 'clue', where: '藏聲秋谷', text: '吹了一聲風哨，洞裡有一面牆跟著嗡。那後面是空的。', play: 'whistle' },
+    { kind: 'core', where: '藏聲秋谷', text: '石壇上的石頭一聲比一聲急，最後縮成一顆小石子，進了我的行李。', play: 'core' } ] },
+];
+const escH = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function bookPages() { const p = [{ k: 'first' }, ...JOURNEYS.map((j) => ({ k: 'j', j }))]; if (p.length % 2 === 0) p.push({ k: 'blank' }); p.push({ k: 'stub' }, { k: 'stub' }, { k: 'stub' }); if (p.length % 2) p.splice(p.length - 3, 0, { k: 'blank' }); return p; }
+function pageHtml(pg) {
+  if (!pg || pg.k === 'blank') return '<div class="page blank"></div>';
+  if (pg.k === 'first') return `<div class="page first"><p class="meta">第一頁（本來就寫好的）</p>${TREE_SVG}<p class="line">從這裡開始。</p></div>`;
+  if (pg.k === 'stub') return '<div class="page stub"><p class="stub-note">這裡少了一頁。</p></div>';
+  const j = pg.j;
+  return `<div class="page"><p class="meta">第 ${j.n} 趟 · ${j.when}</p><p class="route">${escH(j.route)}</p><div class="nb-list">` +
+    j.entries.map((e, i) => `<button type="button" class="nb-e" data-j="${j.n}" data-i="${i}"><i class="g ${e.kind}"></i><span><span class="t">${escH(e.text)}</span><span class="where">${escH(e.where)}</span></span>${PLAY_SVG}</button>`).join('') +
+    `</div><p class="items">${escH(j.items)}</p></div>`;
+}
+let nbSpread = 1;
+function drawBook(flash) {
+  const pages = bookPages(), spreads = Math.ceil(pages.length / 2); nbSpread = Math.max(0, Math.min(spreads - 1, nbSpread));
+  $('spread').innerHTML = pageHtml(pages[nbSpread * 2]) + pageHtml(pages[nbSpread * 2 + 1]);
+  $('bLabel').textContent = `${nbSpread + 1} / ${spreads}`; $('bPrev').disabled = nbSpread === 0; $('bNext').disabled = nbSpread >= spreads - 1;
+  $('spread').querySelectorAll('.nb-e').forEach((b) => b.addEventListener('click', () => nbPlay(+b.dataset.j, +b.dataset.i)));
+  if (flash) { const b = $('spread').querySelector(`.nb-e[data-j="${flash[0]}"][data-i="${flash[1]}"]`); if (b) { b.classList.add('just'); b.focus({ preventScroll: true }); } }
+}
+function openBook() {
+  stopAll(); $('proto').open = false; mode = 'nb'; document.body.classList.remove('memory', 'quiet'); $('start').style.display = 'none';
+  const pages = bookPages(); nbSpread = Math.floor(pages.findIndex((p) => p.k === 'j' && p.j.n === JOURNEYS.length) / 2);
+  drawBook(); $('nbWrap').classList.remove('out'); $('nbWrap').hidden = false; R && (R.frozen = true); $('bClose').focus();
+}
+function closeBook() { $('nbWrap').hidden = true; mode = 'idle'; R && (R.frozen = false); }
+$('bPrev').onclick = () => { nbSpread--; drawBook(); }; $('bNext').onclick = () => { nbSpread++; drawBook(); }; $('bClose').onclick = closeBook;
+let toastT = 0; function nbToast(t) { $('nbToast').textContent = t; $('nbToast').classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $('nbToast').classList.remove('on'), 2600); }
+async function nbPlay(jn, i) {
+  if (mode !== 'nb') return;
+  const en = JOURNEYS[jn - 1].entries[i];
+  if (!en.play) { nbToast(en.kind === 'meet' ? '（原型）相遇的演出還沒設計。正式版這一行也能重播。' : '（原型）這段在別的地圖，原型只做了藏聲秋谷。正式版每一行都能重播。'); return; }
+  await AUD.init();
+  mode = 'nbplay'; const e = { id: en.play, kind: en.kind === 'core' ? 'core' : 'clue', place: en.where, name: '', chip: '', text: en.text }, memo = `第 ${jn} 趟`;
+  $('nbWrap').classList.add('out'); await dip(true, 380); $('nbWrap').hidden = true;
+  R.frozen = false; document.body.classList.add('memory'); R.setLit(5, true); AUD.bgm(false, 1);
+  segCtl = new AbortController(); const sig = segCtl.signal, wait = (s) => sleep(s * 1000, sig);
+  $('nbExit').classList.add('on');
+  try {
+    if (en.play === 'first') { R.cancel(); R.firstFull(); await dip(false, 650, sig); await wait(2.0); showCard(e, memo); await wait(4.0); }
+    else if (en.play === 'second') {
+      R.cancel(); R.secondEnter(); AUD.cave(true); await dip(false, 650, sig); await wait(1.2); showCard(e, memo);
+      const sub = () => document.getElementById('caveSub'); let t = 0; while (!(sub() && sub().style.opacity === '1') && t < 40) { await wait(0.1); t += 0.1; }
+      await wait(5.2);
+    } else await playEvent(e, sig, memo);
+  } catch (err) { if (err.name !== 'AbortError') console.error(err); }
+  $('nbExit').classList.remove('on');
+  await dip(true, 500); R.cancel(); AUD.cave(false); R.camSet('bench'); showCard(null); document.body.classList.remove('memory');
+  $('nbWrap').classList.remove('out'); $('nbWrap').hidden = false; drawBook([jn, i]); R.frozen = true; mode = 'nb';
+  await dip(false, 450);
+}
+$('nbExit').onclick = () => { if (mode === 'nbplay') segCtl && segCtl.abort(); };
+
+window.__ui = { recap, liveMode, memory, smallAction, openBook, closeBook, nbPlay, skipAll, skipOne, setQuiet, get mode() { return mode; } };
+</script>
+</body>
+</html>

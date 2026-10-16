@@ -2,6 +2,11 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { AppSnapshot, FocusQuestApi, OverlayState } from '../shared/types'
 
 const api: FocusQuestApi = {
+  beginBeforeFocusEvent: (sessionId,id) => ipcRenderer.invoke('focus:before-event',sessionId,id),
+  finishBeforeFocus: (sessionId,ids) => ipcRenderer.invoke('focus:before-finish',sessionId,ids),
+  getFocusRecap: id => ipcRenderer.invoke('focus:recap',id),
+  listReplayEvents: runId => ipcRenderer.invoke('focus:replays',runId),
+  getReplayEvent: id => ipcRenderer.invoke('focus:replay',id),
   pinCollectionClue: (id) => ipcRenderer.invoke('collection:pin-clue', id),
   pinCollectionClues: (ids) => ipcRenderer.invoke('collection:pin-clues', ids),
   setTrackingClue: (placeId) => ipcRenderer.invoke('collection:set-tracking', placeId),

@@ -1,10 +1,17 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { advanceLakeRuntime, createLakeRuntime, emptyLakeMarks, lakeTideAt, lakeRoute, lakeEvents, lakeStoryEvents, type LakeRuntime, type LakeStoryPlan } from '../src/shared/area03'
 import { LAKE_MAP_ID } from '../src/shared/specialFinds'
 import { chooseRouteAreas } from '../src/shared/expedition'
 let db:FocusQuestDatabase
-beforeEach(()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date(2026,9,3,9));db=new FocusQuestDatabase(':memory:')})
+beforeEach(()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date(2026,9,3,9));db=liveDatabase(':memory:')})
 afterEach(()=>{db.close();vi.restoreAllMocks();vi.useRealTimers()})
 const rows=(table:string)=>db.exportBackup().data[table] as Record<string,any>[]
 function start(){const t=db.addListTask({title:'湖畔測試'}).taskList.nextTaskId!,s=db.startDailyRun(t),n=s.expeditionNodes[0],b=db.exportBackup();(b.data.expedition_nodes as Record<string,any>[]).find(r=>r.id===n.id)!.area_id=LAKE_MAP_ID;db.importBackup(b);db.selectExpeditionNode(s.todayRun!.id,n.id);return db.startListFocus({minimumMinutes:5,blockedProcessNames:[],runId:s.todayRun!.id,nodeId:n.id,plannedMinutes:50})}

@@ -1,3 +1,5 @@
+import { useRecapPrewarm } from './useRecapPrewarm'
+import { BeforeFocusPlayback } from './BeforeFocusPlayback'
 import { TravelLoading } from './loading/TravelLoading'
 import { FOREST_MAP_ID } from '../../shared/specialFinds'
 import { litLampCount } from '../../shared/lampTiming'
@@ -444,6 +446,7 @@ function FocusActive({ snapshot, onEnded, onDebriefStarted, onSnapshot, onSceneR
   const [activity, setActivity] = useState('旅人在雲上遺庭')
   const [cinematic, setCinematic] = useState(false)
   const [cinematicControls, setCinematicControls] = useState(false)
+  const [preSceneReady,setPreSceneReady] = useState(false)
   const [focusSettingsOpen, setFocusSettingsOpen] = useState(false)
   const [settingsNotice, setSettingsNotice] = useState('')
   const focusSettingsPanel = useRef<HTMLElement>(null)
@@ -464,7 +467,7 @@ function FocusActive({ snapshot, onEnded, onDebriefStarted, onSnapshot, onSceneR
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(timer)
   }, [reviewing])
-  const savedPaused = session.suspendedAt !== null
+  const savedPaused = !session.beforeFocus && session.suspendedAt !== null
   const paused = optimisticPaused ?? savedPaused
   const liveElapsed = sessionSeconds(session, now)
   // Hold the clock at the pressed second until the saved pause (which fixes the time) arrives.
@@ -485,7 +488,7 @@ function FocusActive({ snapshot, onEnded, onDebriefStarted, onSnapshot, onSceneR
   }, [cinematic])
   // The departure (from the previous route's exit) plays at the start of this Focus. The scene reads how far
   // into the Focus we are when it mounts, so a reopen after the 5 seconds goes straight to the new route.
-  const departureElapsedMs = focusElapsedMs(session)
+  const departureElapsedMs = session.beforeFocusCompleted ? 30000 : session.beforeFocus ? Math.max(0,now-Date.parse(session.beforeFocus.startedAt)) : focusElapsedMs(session)
   const minimum = session.minimumMinutes * 60
   const reached = elapsed >= minimum
   const commitmentProgress = Math.min(1, elapsed / Math.max(1, minimum))
@@ -586,8 +589,8 @@ function FocusActive({ snapshot, onEnded, onDebriefStarted, onSnapshot, onSceneR
 
     <section inert={focusSettingsOpen} className="focus-world-shell">
       <AreaFocusScene
-        audioActive={audioActive}
-        onReady={onSceneReady}
+        audioActive={audioActive && !(session.beforeFocus&&preSceneReady&&departureElapsedMs>=15000)}
+        onReady={()=>{setPreSceneReady(true);onSceneReady?.()}}
         skipCampfire={skipCampfire}
         snapshot={snapshot}
         session={session}
@@ -634,6 +637,7 @@ function FocusActive({ snapshot, onEnded, onDebriefStarted, onSnapshot, onSceneR
       </div>}
       {error && <p className="focus-adventure-error form-error">{error}</p>}
     </section>
+    {session.beforeFocus&&<BeforeFocusPlayback snapshot={snapshot} onChanged={onSnapshot} ready={preSceneReady&&departureElapsedMs>=15000}/>}
     {focusSettingsOpen && <div className="shell-sheet-layer focus-settings-layer" onPointerDown={event => { if (event.target === event.currentTarget) setFocusSettingsOpen(false) }} onKeyDown={event => {
       if (event.key === 'Escape') { event.stopPropagation(); setFocusSettingsOpen(false) }
       if (event.key === 'Tab') {
@@ -794,6 +798,8 @@ function SettingsView({ snapshot, onChanged, onError, onNotice }: {
 
 export function App(): React.JSX.Element {
   const [snapshot, setSnapshot, loadError, setError] = useSnapshot(true)
+  useEffect(() => { document.documentElement.dataset.coatColor = snapshot?.settings.coatColor ?? 'navy'; window.dispatchEvent(new Event('focusquest:coat-color')) }, [snapshot?.settings.coatColor])
+  useRecapPrewarm(snapshot)
   // Keep only the current session's last presentation. This is never a saved
   // session or timer authority, and is released as soon as review is dismissed.
   const lastFocus = useRef<AppSnapshot | null>(null)
@@ -818,7 +824,7 @@ export function App(): React.JSX.Element {
   const [, tickDeparture] = useState(0)
   const activeNode = snapshot?.activeSession?.nodeId ? snapshot.expeditionNodes.find((entry) => entry.id === snapshot.activeSession?.nodeId) : null
   const rootCampfireFocus = Boolean(snapshot?.activeSession && lastIdleSnapshot.current && activeNode?.depth === 0 && !activeNode.parentNodeId && activeNode.progressSeconds === 0)
-  const departureMs = snapshot?.activeSession ? focusElapsedMs(snapshot.activeSession) : 0
+  const departureMs = snapshot?.activeSession ? snapshot.activeSession.beforeFocusCompleted ? 30000 : snapshot.activeSession.beforeFocus ? Math.max(0,Date.now()-Date.parse(snapshot.activeSession.beforeFocus.startedAt)) : focusElapsedMs(snapshot.activeSession) : 0
   const keepCampfire = rootCampfireFocus && departureMs < 30000 && (completedCampfireSession !== snapshot?.activeSession?.id || readyFocusSession !== snapshot?.activeSession?.id)
   useEffect(() => {
     if (!rootCampfireFocus || !keepCampfire) return

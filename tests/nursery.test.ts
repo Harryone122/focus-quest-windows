@@ -1,10 +1,17 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {FocusQuestDatabase} from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import {advanceNurseryRuntime,createNurseryRuntime,emptyNurseryMarks,NURSERY_AREA_ID,nurseryFog,nurseryRoute} from '../src/shared/area07'
 import {generateRoutes} from '../src/shared/expedition'
 import {specialFindsForMap} from '../src/shared/specialFinds'
 let db:FocusQuestDatabase
-beforeEach(()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date(2026,9,5,9));db=new FocusQuestDatabase(':memory:')})
+beforeEach(()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date(2026,9,5,9));db=liveDatabase(':memory:')})
 afterEach(()=>{db.close();vi.useRealTimers()})
 const sql=()=> (db as any).db
 it('retires saved staircase sitting without changing time and never schedules it again',()=>{

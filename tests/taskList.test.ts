@@ -4,6 +4,13 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { DELETE_YESTERDAY_CONFIRMATION } from '../src/shared/taskList'
 import { generateRoutes } from '../src/shared/expedition'
 import type { AppSnapshot, BackupPayload } from '../src/shared/types'
@@ -31,7 +38,7 @@ function fixture(): { db: FocusQuestDatabase; path: string } {
   const directory = mkdtempSync(join(tmpdir(), 'focus-quest-task-list-'))
   directories.push(directory)
   const path = join(directory, 'test.db')
-  const db = new FocusQuestDatabase(path)
+  const db = liveDatabase(path)
   opened.push(db)
   return { db, path }
 }
@@ -39,7 +46,7 @@ function fixture(): { db: FocusQuestDatabase; path: string } {
 function reopen(db: FocusQuestDatabase, path: string): FocusQuestDatabase {
   opened.splice(opened.indexOf(db), 1)
   db.close()
-  const next = new FocusQuestDatabase(path)
+  const next = liveDatabase(path)
   opened.push(next)
   return next
 }
@@ -307,7 +314,7 @@ describe('route and save compatibility', () => {
     db.deleteListTask(first)
     const before = db.getSnapshot()
     const backup = db.exportBackup()
-    expect(backup.version).toBe(13)
+    expect(backup.version).toBe(14)
     const target = fixture().db
     target.importBackup(backup)
     expect(target.getSnapshot().taskList).toEqual(before.taskList)
@@ -346,7 +353,7 @@ describe('route and save compatibility', () => {
       INSERT INTO tasks VALUES ('old', '保留事項', 'main', 'other', '原本目標', NULL, 'unclear', NULL,
         'manual', '', '2026-09-25', 'active', '2026-09-25T00:00:00Z', '2026-09-25T00:00:00Z');`)
     raw.close()
-    const db = new FocusQuestDatabase(path)
+    const db = liveDatabase(path)
     opened.push(db)
     const snapshot = db.getSnapshot()
     expect(snapshot.taskList.yesterday[0].id).toBe('old')

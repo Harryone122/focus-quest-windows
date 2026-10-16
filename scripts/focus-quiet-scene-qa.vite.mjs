@@ -1,0 +1,1 @@
+import {defineConfig} from 'vite';import {fileURLToPath} from 'node:url';const root=fileURLToPath(new URL('../',import.meta.url));export default defineConfig({root,base:'./',build:{outDir:root+'previews/focus-quiet-qa/scenes/dist',emptyOutDir:false,rollupOptions:{input:root+'scripts/focus-quiet-scene-qa.html'}}})

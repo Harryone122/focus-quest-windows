@@ -20,6 +20,9 @@ Claude 的設計範圍包含前端外觀、動效和網頁原型；正式 App �
 
 | 工作 | 文件記載狀態 | 下一個負責人／動作 | 來源 |
 | --- | --- | --- | --- |
+| 模型品質與使用者成長提案 | 2026-10-15 後續已授權工程修錯：五圖握杖／帽沿接觸及苗圃燈架修正，工具恢復；250 測試、建置、四圖低幀率與秋谷 QA 通過，未重發安裝包 | 使用者驗收；Claude 依 §56.8 做局部美術提案，Codex 後續接整合；推廣尚未啟動 | 核心企畫書 §56.8、`CORE_PLAN_AGENT_BRIEF.md` |
+| 美術補強第一輪（§56.8 第 1 項：苔痕人物辨識度、苗圃光影密度） | 2026-10-15 Claude 設計完成，使用者看對照圖後確認方向（苗圃 0.14 鐵框架影子保留）；附可直接套用的 patch，正式檔未改 | Codex：套用 patch、跑既有 QA 後交使用者在遊戲中驗收 | `docs/handoff/art-pass-2026-10-15/README.md` |
+| 精緻 low poly（§57：旅人重做＋光影材質，05 先行） | 2026-10-15 Codex 完成五圖／營火旅人與秋谷戶外材質整合；250 測試、5 fps／淨空／實機 QA 通過，本機試玩待驗收 | 使用者：開啟 `scripts/try-style-refine.cmd` 驗收；未重發安裝包 | `docs/handoff/style-refine-2026-10-15/README.md` §8、企畫書 §57 |
 | 精簡交接 skill 與分工提醒 | 2026-10-11 已建立共用 skill、Claude 入口及按主題讀取器；兩邊指引已接入 | Claude／Codex：下次接續先讀 skill；既有 Claude 對話需明確重讀 CLAUDE.md | `.agents/skills/focus-quest-handoff/SKILL.md`、`CLAUDE.md` |
 | Area 07 霧跳動修正 | 2026-10-10 Codex 已完成正式場景兩處淡出／淡入；199 測試、TypeScript、建置、夜霧／晨光逐步檢查與隱藏正式遊戲六項整合檢查通過；離線測試頁已更新，安裝包未重發 | 使用者先透過 `scripts/try-nursery.cmd` 試看正式遊戲夜霧／晨光，或用動畫音效測試頁切換「夜晚 · 濃霧」與「濃霧散開 · 75 秒」；再交 Codex 依回饋修正 | `area07/FOG_STUTTER_FIX.md` Codex 接手結果、`previews/nursery-fog-qa/report.json` |
 | 大廳吊橋穿模／旅人外型動作 | 2026-10-04 使用者指定修正：吊橋路線繞過長木頭，大廳旅人對齊倒影湖畔比例、短腿、披風、手杖／燈及步幅。0.6.28 建置／186 測試、來源與包內真 Electron 路線及動作檢查通過；8 秒出發與音效接線正常 | 2026-10-05 左手拿杖已修正：先握住再起身；190 測試與真 Electron 通過，獨立試看已備，待合併發布 | `RELEASE_0.6.28_QA.md`、`CAMPFIRE_AUDIO_HANDOFF.md` 最新回報、`previews/campfire-traveller-qa/` |
@@ -35,7 +38,8 @@ Claude 的設計範圍包含前端外觀、動效和網頁原型；正式 App �
 | Area 01 雲上遺庭故事運鏡 | 2026-10-03 已依確認的簡化方向完成網頁原型運鏡、開關及鏡頭讀數；兩尺寸播放／暫停／拖曳／跳時／倍速／優先權檢查通過，181 項既有測試通過；未移植 App | 使用者先用九個立即播放與 1／4／12 倍速試播；確認後 Codex 才移植遊戲 | `AREA_01_STORY_EVENTS.md` 最新 Codex 回報、`AREA_01_CAMERA_PROTOTYPE_QA.md`、`prototypes/cloud-ruins.html` |
 | Area 07 玻璃苗圃 | 2026-10-13 0.6.34 已取消樓梯坐姿、修正苗圃及苔痕互動瞬移；214 測試、四圖低幀率全程與包內完整流程通過；音效沿用 0.6.33 | 使用者試玩本輪交付版本；Codex 接續具體回饋 | `area07/CODEX_HANDOFF.md`、`RELEASE_0.6.34_QA.md`；前版音效歷史見 `RELEASE_0.6.33_QA.md` |
 | Area 07 螺旋梯建模修正 | 2026-10-10 Codex 保留 Claude 修整後模型，修正入口植栽／支柱及平台欄杆碰撞，補正式保存路線逐邊展開。全圖碰撞／樓梯支撐、`stairSit`／`lean` 畫面、來源與包內 G2↔CT 保存動作檢查通過；199 測試／TypeScript／建置通過，0.6.31 已打包。隱藏視窗與獨立存檔驗證，沒有新增後端空中走道事件 | 0.6.31 已安裝並啟動，更新前後存檔完整保留；使用者試玩 | `RELEASE_0.6.31_QA.md`、`area07/CODEX_HANDOFF.md`、`previews/stair-fix-qa/` |
-| Area 05 藏聲秋谷 | 2026-10-14 音效接受設定：背景 25%、環境 35%、風孔岩 1.5 倍、低喃 +9 dB；43 录音接線，36 原始來源未變。等瀑布材質／接縫與正常動作／低幀率修正完成後，最終 0.6.36 正式安裝包與獨立 portable 已封裝、安裝核對；226 測試、包內配樂／核心／營火／收藏室播放通過，原存檔保留 | 使用者試玩最新版本，Codex 依具體回饋修正；正式候選／獎勵／線索／恢復仍待後續整合 | `area05/AUDIO_HANDOFF.md` §11、`area05/audio-reports/release-0.6.36.json`、`area05/TRIAL_README.md`、`RELEASE_0.6.36_QA.md` |
+| Area 05 藏聲秋谷 | 2026-10-14 最新畫面、撞木卡頓／低幀率與瀑布流暢／接縫共同重封 0.6.36 portable；226 測試、日夜場景 QA、包內檔案／動作／音效通過，桌面入口更新 | 使用者試玩驗收；正式候選／獎勵／線索／恢復待整合 | `area05/CODEX_HANDOFF.md` 最後一節、`area05/TRIAL_README.md`、`../previews/area05-final-package-qa/release.json` |
+| 專注中安靜／結束後回顧／事件重播 | 2026-10-14：A 已實作（設定／v14 備份、四圖安靜模式、計時前故事、事件紀錄與純重播介面）；239 測試／建置及實機 QA，尚未打包；B 結算回顧原型 v2（可拖曳時間軸）使用者已看過、方向認可 | Codex：依原型 v2 接上結算回顧與拖曳，場景切換不能卡；使用者：看筆記重播頁原型 v3（同一份原型「打開筆記」） | `handoff/focus-quiet-recap/README.md`、企畫書 §55 |
 | 最終相遇／真結局、行囊入口鏡頭、雲上樹皮日期及線索地理 | 尚待設計決定 | Claude 提案；使用者定案；Codex 依授權實作 | `HANDOFF_AUDIT_2026-10-02.md`、相關企畫章節 |
 
 ## 2026-10-11 邏輯與故事一致性盤點

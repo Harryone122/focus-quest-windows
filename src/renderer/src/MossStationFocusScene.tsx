@@ -27,6 +27,7 @@ function measureGlassChrome(host: HTMLElement): CloudRuinsChrome {
 }
 
 interface MossStationFocusSceneProps {
+  quietFocus?: boolean
   audioActive?: boolean
   audioSettings?: MossAudioSettings
   /** Saved presentation state of this node (snapshot.mossStation / getMossScene). May arrive after mount. */
@@ -54,7 +55,7 @@ interface MossStationFocusSceneProps {
 
 // Presentation only: the main process owns time, the traveller's saved schedule, weather and results.
 export function MossStationFocusScene({
-  moss, progressSeconds, targetSeconds, sessionId, nodeId, departure, departureState, departureElapsedMs,
+  quietFocus = false, moss, progressSeconds, targetSeconds, sessionId, nodeId, departure, departureState, departureElapsedMs,
   arriveFromMist = false, departureOnly = false, paused, retainForLobby = false, audioActive = true, uiFade = 1, onActivityChange, onCinematicChange, onDepartureComplete, onReady, audioSettings = { environmentVolume: 35, musicVolume: 12 }
 }: MossStationFocusSceneProps): React.JSX.Element {
   const host = useRef<HTMLDivElement>(null)
@@ -88,6 +89,7 @@ export function MossStationFocusScene({
     let handle: MossStationSceneHandle
     try {
       handle = createMossStationScene(host.current, {
+        quietFocus,
         progressSeconds: initial.progressSeconds,
         targetSeconds,
         moss: initial.moss,
@@ -154,6 +156,7 @@ export function MossStationFocusScene({
     return () => query.removeEventListener('change', onChange)
   }, [])
 
+  useEffect(()=>{scene.current?.setQuietFocus(!!quietFocus)},[quietFocus])
   return <div className="focus-exploration-game biome-cloud-ruins biome-moss-station" ref={host} aria-label="苔痕驛站自動探索畫面">
     {failed && <p className="cloud-ruins-fallback">探索畫面暫時無法顯示，專注時間照常累積。</p>}
   </div>

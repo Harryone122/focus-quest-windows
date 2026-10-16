@@ -1,3 +1,8 @@
+import { BEFORE_CLUES, CLOUD_RECORD_EVENTS, focusEventDefinition } from '../shared/focusEventCatalog'
+import type { BeforeFocus, FocusEventRecord, FocusRecap } from '../shared/focusPresentation'
+import { recapOrder, validFocusEvent } from '../shared/focusPresentation'
+import { timeOfDayAt } from '../shared/timeOfDay'
+import { weatherAt } from '../shared/weather'
 import Database from 'better-sqlite3'
 import { randomUUID } from 'node:crypto'
 import { TaskListStore } from './task-list'
@@ -336,6 +341,12 @@ export class FocusQuestDatabase {
     if (!sessionColumns.some((column) => String(column.name) === 'node_id')) this.db.exec('ALTER TABLE sessions ADD COLUMN node_id TEXT')
     if (!sessionColumns.some((column) => String(column.name) === 'planned_minutes')) this.db.exec('ALTER TABLE sessions ADD COLUMN planned_minutes INTEGER')
     if (!sessionColumns.some((column) => String(column.name) === 'resolution_applied')) this.db.exec('ALTER TABLE sessions ADD COLUMN resolution_applied INTEGER NOT NULL DEFAULT 0')
+    for (const [column, definition] of [['focus_presentation', "TEXT NOT NULL DEFAULT 'quiet'"], ['before_focus', 'TEXT'], ['before_focus_completed', 'INTEGER NOT NULL DEFAULT 0']] as const) {
+      if (!sessionColumns.some(c => c.name === column)) this.db.exec(`ALTER TABLE sessions ADD COLUMN ${column} ${definition}`)
+    }
+    const presentationColumns = this.db.prepare('PRAGMA table_info(settings)').all() as Row[]
+    if (!presentationColumns.some(c => c.name === 'focus_presentation')) this.db.exec("ALTER TABLE settings ADD COLUMN focus_presentation TEXT NOT NULL DEFAULT 'quiet'")
+    this.db.exec(`CREATE TABLE IF NOT EXISTS focus_event_records (id TEXT PRIMARY KEY, session_id TEXT NOT NULL, run_id TEXT NOT NULL, node_id TEXT NOT NULL, event_id TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(node_id, event_id))`)
     const nodeColumns = this.db.prepare('PRAGMA table_info(expedition_nodes)').all() as Row[]
     if (!nodeColumns.some((column) => String(column.name) === 'area_id')) {
       this.db.exec("ALTER TABLE expedition_nodes ADD COLUMN area_id TEXT NOT NULL DEFAULT 'area-01-cloud-ruins'")
@@ -449,12 +460,12 @@ export class FocusQuestDatabase {
   private advanceNurseryScene(session:Row,seconds:number):boolean {
     const id=String(session.node_id)
     if(this.mapIdForNode(id)!==NURSERY_AREA_ID)return false
-    if(seconds<300)return false
+    if(seconds<300){advanceNurseryRuntime(this.ensureNurseryState(id),Number(session.progress_seconds)+seconds,this.nurseryMarks(),[],(s,m)=>this.captureRuntimeEvent(session,s.seconds,s.action!.eventId!,{nursery:{areaId:NURSERY_AREA_ID,nodeId:id,seed:s.seed,effectiveSeconds:s.seconds,action:s.action,worldMarks:m,coreTaken:false}}));return false}
     const saved=this.ensureNurseryState(id),progress=Number(session.progress_seconds)+seconds
     if(progress<=saved.seconds)return false
     const finds=(this.db.prepare('SELECT id,item_key,lamp_index FROM forest_reward_rolls WHERE node_id = ? AND item_key IS NOT NULL ORDER BY lamp_index').all(id) as Row[])
       .map(r=>({id:String(r.id),lampIndex:Number(r.lamp_index),eventId:ALL_SPECIAL_FINDS.find(f=>f.itemKey===r.item_key)!.eventId}))
-    const {state,marks}=advanceNurseryRuntime(saved,progress,this.nurseryMarks(),finds)
+    const {state,marks}=advanceNurseryRuntime(saved,progress,this.nurseryMarks(),finds,(s,m)=>this.captureRuntimeEvent(session,s.seconds,s.action!.eventId!,{nursery:{areaId:NURSERY_AREA_ID,nodeId:id,seed:s.seed,effectiveSeconds:s.seconds,action:s.action,worldMarks:m,coreTaken:false}}))
     this.db.prepare('UPDATE area_scene_states SET state_json = ? WHERE node_id = ?').run(JSON.stringify(state),id)
     this.saveNurseryMarks(marks)
     const clueByStory:Record<string,string>={story_first_tray:'m07_tray',story_second_chart:'m07_chart',carry_silvered_shard:'m07_glass',carry_sapling:'m07_planted'}
@@ -467,7 +478,7 @@ export class FocusQuestDatabase {
     if(!row)return null // Merely offering a route must not advance sapling growth.
     let state=JSON.parse(String(row.state_json)) as NurseryRuntime,marks=this.nurseryMarks()
     const active=this.db.prepare('SELECT sessions.*, expedition_nodes.progress_seconds FROM sessions JOIN expedition_nodes ON expedition_nodes.id=sessions.node_id WHERE sessions.node_id=? AND ended_at IS NULL').get(nodeId) as Row|undefined
-    if(active){const seconds=effectiveSeconds(String(active.started_at),active.suspended_at?String(active.suspended_at):nowIso(),Number(active.paused_seconds))
+    if(active&&!active.before_focus){const seconds=effectiveSeconds(String(active.started_at),active.suspended_at?String(active.suspended_at):nowIso(),Number(active.paused_seconds))
       if(seconds<300){const preview=advanceNurseryRuntime(state,Number(active.progress_seconds)+seconds,marks,[]);state=preview.state;marks=preview.marks}}
     return {areaId:NURSERY_AREA_ID,nodeId,seed:state.seed,effectiveSeconds:state.seconds,action:state.action,worldMarks:marks,
       coreTaken:!!this.db.prepare('SELECT 1 FROM map_cores WHERE map_id = ?').get(NURSERY_AREA_ID)}
@@ -533,12 +544,12 @@ export class FocusQuestDatabase {
   private advanceLakeScene(session: Row, seconds: number): boolean {
     const id = String(session.node_id)
     if (this.mapIdForNode(id) !== LAKE_AREA_ID) return false
-    if (seconds < 300) return true
+    if(seconds<300){advanceLakeRuntime(this.ensureLakeState(id),Number(session.progress_seconds)+seconds,this.lakeMarks(),[],(s,m)=>this.captureRuntimeEvent(session,s.seconds,s.action!.eventId!,{lake:lakeSnapshot(id,s,m,false)}));return true}
     const saved = this.ensureLakeState(id), progress = Number(session.progress_seconds) + seconds
     if (progress <= saved.seconds) return false
     const rewards = this.db.prepare('SELECT id, item_key, lamp_index FROM forest_reward_rolls WHERE node_id = ? AND item_key IS NOT NULL ORDER BY lamp_index, reward_kind DESC').all(id) as Row[]
     const finds = rewards.map(r => ({ id: String(r.id), lampIndex: Number(r.lamp_index), eventId: ALL_SPECIAL_FINDS.find(f => f.itemKey === r.item_key)!.eventId }))
-    const { state, marks } = advanceLakeRuntime(saved, progress, this.lakeMarks(), finds)
+    const { state, marks } = advanceLakeRuntime(saved, progress, this.lakeMarks(), finds,(s,m)=>this.captureRuntimeEvent(session,s.seconds,s.action!.eventId!,{lake:lakeSnapshot(id,s,m,false)}))
     if (this.db.prepare('SELECT 1 FROM map_cores WHERE map_id = ?').get(LAKE_AREA_ID)) marks.ringStill = false
     this.db.prepare('UPDATE area_scene_states SET state_json = ? WHERE node_id = ?').run(JSON.stringify(state), id)
     this.db.prepare('INSERT INTO map_world_state (map_id, state_json) VALUES (?, ?) ON CONFLICT(map_id) DO UPDATE SET state_json = excluded.state_json').run(LAKE_AREA_ID, JSON.stringify(marks))
@@ -548,7 +559,7 @@ export class FocusQuestDatabase {
     if (this.mapIdForNode(nodeId) !== LAKE_AREA_ID) return null
     let state = this.ensureLakeState(nodeId), marks = this.lakeMarks()
     const active = this.db.prepare('SELECT sessions.*, expedition_nodes.progress_seconds FROM sessions JOIN expedition_nodes ON expedition_nodes.id = sessions.node_id WHERE sessions.node_id = ? AND ended_at IS NULL').get(nodeId) as Row | undefined
-    if (active) {
+    if (active && !active.before_focus) {
       const end = active.suspended_at ? String(active.suspended_at) : nowIso()
       const seconds = effectiveSeconds(String(active.started_at), end, Number(active.paused_seconds))
       if (seconds < 300) { const preview = advanceLakeRuntime(state, Number(active.progress_seconds) + seconds, marks, []); state = preview.state; marks = preview.marks }
@@ -617,7 +628,7 @@ export class FocusQuestDatabase {
     if (this.mapIdForNode(nodeId) !== MOSS_MAP_ID) return false
     // Preserve the existing five-minute acceptance gate. Before it, snapshots preview
     // the deterministic traveller without committing notes, world marks or elapsed time.
-    if (seconds < 300) return true
+    if(seconds<300){advanceMossRuntime(this.ensureMossState(nodeId),Number(session.progress_seconds)+seconds,this.mossMarks(),[],(s,m)=>this.captureRuntimeEvent(session,s.seconds,s.action!.eventId!,{moss:mossSceneSnapshot(nodeId,s,m,false)}));return true}
     const saved = this.ensureMossState(nodeId)
     const progress = Number(session.progress_seconds) + seconds
     if (progress <= saved.seconds) return false
@@ -625,7 +636,7 @@ export class FocusQuestDatabase {
       .all(nodeId) as Row[]
     const finds = rewards.map(row => ({ id: String(row.id), lampIndex: Number(row.lamp_index), itemKey: String(row.item_key),
       eventId: ALL_SPECIAL_FINDS.find(find => find.itemKey === row.item_key)!.eventId }))
-    const { state, marks } = advanceMossRuntime(saved, progress, this.mossMarks(), finds)
+    const { state, marks } = advanceMossRuntime(saved, progress, this.mossMarks(), finds,(s,m)=>this.captureRuntimeEvent(session,s.seconds,s.action!.eventId!,{moss:mossSceneSnapshot(nodeId,s,m,false)}))
     this.db.prepare('UPDATE area_scene_states SET state_json = ? WHERE node_id = ?').run(JSON.stringify(state), nodeId)
     this.db.prepare('INSERT INTO map_world_state (map_id, state_json) VALUES (?, ?) ON CONFLICT(map_id) DO UPDATE SET state_json = excluded.state_json')
       .run(MOSS_MAP_ID, JSON.stringify(marks))
@@ -701,7 +712,7 @@ export class FocusQuestDatabase {
     const marks = this.mossMarks()
     const active = this.db.prepare(`SELECT sessions.*, expedition_nodes.progress_seconds FROM sessions
       JOIN expedition_nodes ON expedition_nodes.id = sessions.node_id WHERE node_id = ? AND ended_at IS NULL`).get(nodeId) as Row | undefined
-    if (active) {
+    if (active && !active.before_focus) {
       const seconds = effectiveSeconds(String(active.started_at), String(active.suspended_at ?? nowIso()), Number(active.paused_seconds))
       if (seconds < 300) {
         const preview = advanceMossRuntime(state, Number(active.progress_seconds) + seconds, marks, [])
@@ -858,6 +869,9 @@ export class FocusQuestDatabase {
       startedAt: String(row.started_at),
       endedAt: row.ended_at ? String(row.ended_at) : null,
       minimumMinutes: Number(row.minimum_minutes) as FocusSession['minimumMinutes'],
+      presentation: row.focus_presentation === 'live' ? 'live' : 'quiet',
+      beforeFocusCompleted: Boolean(row.before_focus_completed),
+      beforeFocus: row.before_focus ? JSON.parse(String(row.before_focus)) : null,
       pausedSeconds: Number(row.paused_seconds),
       suspendedAt: row.suspended_at ? String(row.suspended_at) : null,
       manuallyPaused: Boolean(row.manual_paused),
@@ -1163,6 +1177,7 @@ export class FocusQuestDatabase {
     const progress = Number(session.progress_seconds) + seconds
     let changed = false
     for (const [id, time] of Object.entries(cloudStoryEventTimes(story, plannedSeconds))) {
+      if(progress>=time.earliest)this.saveFocusEvent(session,id==='c01_first_tree'?(story.opening?'opening_a':'notebook_a'):CLOUD_RECORD_EVENTS[id]??id,'story',time.earliest)
       if (progress < time.fallback && !(ending && id === 'c01_first_tree' && (story.opening || progress >= time.earliest))) continue
       changed = this.saveCloudStoryRecord(story.nodeId, id) || changed
     }
@@ -1190,6 +1205,7 @@ export class FocusQuestDatabase {
     const end = session.ended_at ?? session.suspended_at ?? nowIso()
     const seconds = effectiveSeconds(String(session.started_at), String(end), Number(session.paused_seconds))
     if (Number(session.progress_seconds) + seconds < allowed[clueId].earliest) throw new Error('尚未抵達這個故事事件。')
+    this.saveFocusEvent(session,clueId==='c01_first_tree'?(story.opening?'opening_a':'notebook_a'):CLOUD_RECORD_EVENTS[clueId]??clueId,'story',Number(session.progress_seconds)+seconds)
     this.saveCloudStoryRecord(story.nodeId, clueId)
     return this.getSnapshot()
   }
@@ -1386,6 +1402,7 @@ export class FocusQuestDatabase {
         lastLoot: rpgRow.last_loot ? String(rpgRow.last_loot) : null
       },
       settings: {
+        focusPresentation: settingsRow.focus_presentation === 'live' ? 'live' : 'quiet',
         audioMuted: bool(settingsRow.audio_muted),
         environmentVolume: Number(settingsRow.environment_volume),
         musicVolume: Number(settingsRow.music_volume),
@@ -1663,6 +1680,126 @@ export class FocusQuestDatabase {
     return this.getSnapshot()
   }
 
+  private eventScene(session: Row, at: number): FocusEventRecord['scene'] {
+    const id = String(session.node_id), map = this.mapIdForNode(id)
+    const row = this.db.prepare('SELECT state_json FROM area_scene_states WHERE node_id = ?').get(id) as Row | undefined
+    const state = row ? JSON.parse(String(row.state_json)) : null
+    const core = !!this.db.prepare('SELECT 1 FROM map_cores WHERE map_id = ?').get(map)
+    if (map === MOSS_MAP_ID && state) return {moss:mossSceneSnapshot(id, {...state,seconds:at}, this.mossMarks(), core)}
+    if (map === LAKE_AREA_ID && state) return {lake:lakeSnapshot(id,{...state,seconds:at},this.lakeMarks(),core)}
+    if (map === NURSERY_AREA_ID && state) return {nursery:{areaId:NURSERY_AREA_ID,nodeId:id,seed:state.seed,effectiveSeconds:at,action:state.action,worldMarks:this.nurseryMarks(),coreTaken:core}}
+    return {cloud:this.cloudStoryForSession(session),coreTaken:core,worldMarks:(this.db.prepare('SELECT mark FROM world_marks WHERE map_id = ?').all(map) as Row[]).map(r=>String(r.mark))}
+  }
+
+  private makeFocusEvent(session: Row, eventId: string, kind: FocusEventRecord['kind'], at: number, phase: FocusEventRecord['phase'] = 'focus', scene = this.eventScene(session,at)): FocusEventRecord {
+    const node = this.db.prepare('SELECT * FROM expedition_nodes WHERE id = ?').get(session.node_id) as Row
+    const mapId = String(node.area_id), seed = scene.moss?.weatherSeed ?? scene.lake?.seed ?? scene.nursery?.seed ?? weatherSeedFrom(String(node.id))
+    const carried = (this.db.prepare(`SELECT item_key FROM forest_reward_rolls WHERE run_id = ? AND item_key IS NOT NULL AND rolled_at <= ?
+      UNION SELECT item_key FROM special_find_rolls WHERE run_id = ? AND item_key IS NOT NULL
+      UNION SELECT relic_key AS item_key FROM run_relics WHERE run_id = ?`).all(node.run_id,nowIso(),node.run_id,node.run_id) as Row[]).map(r=>String(r.item_key))
+    return {id:randomUUID(),eventId,kind,phase,sessionId:String(session.id),runId:String(node.run_id),nodeId:String(node.id),mapId,segment:Number(node.depth)+1,
+      explorationSeconds:at,effectiveSeconds:phase==='before'?0:Math.max(0,at-Number(session.progress_seconds??node.progress_seconds)),timeOfDay:timeOfDayAt(at),
+      weather:mapId===MOSS_MAP_ID?weatherAt(seed,at).phase:'clear',seed,carriedItems:carried,variant:eventId,skipped:false,recordedAt:nowIso(),scene:structuredClone(scene)}
+  }
+
+  private insertFocusEvent(record: FocusEventRecord): void {
+    this.db.prepare('INSERT OR IGNORE INTO focus_event_records (id,session_id,run_id,node_id,event_id,payload) VALUES (?,?,?,?,?,?)')
+      .run(record.id,record.sessionId,record.runId,record.nodeId,record.eventId,JSON.stringify(record))
+  }
+  private saveFocusEvent(session:Row,id:string,kind:FocusEventRecord['kind'],at:number,scene?:FocusEventRecord['scene']):void {
+    if(this.db.prepare('SELECT 1 FROM focus_event_records WHERE node_id=? AND event_id=?').get(session.node_id,id))return
+    this.insertFocusEvent(this.makeFocusEvent(session,id,kind,at,'focus',scene))
+  }
+  private captureRuntimeEvent(session:Row,at:number,id:string,scene:FocusEventRecord['scene']):void {
+    const find=ALL_SPECIAL_FINDS.find(f=>f.eventId===id || (id==='rare_boat_plate'&&f.eventId==='rare_gauge_plate') || (id==='rare_ledger_rubbing'&&f.eventId==='rare_tablet_rubbing'))
+    const map=this.mapIdForNode(String(session.node_id))
+    const coreRecord=this.db.prepare("SELECT payload FROM focus_event_records WHERE node_id=? AND json_extract(payload,'$.kind')='core'").get(session.node_id) as Row|undefined
+    const coreTaken=find?.kind!=='token'&&!!this.db.prepare('SELECT 1 FROM map_cores WHERE map_id=?').get(map)&&(!coreRecord||(JSON.parse(String(coreRecord.payload)) as FocusEventRecord).explorationSeconds<=at)
+    if(scene.moss)scene.moss.coreTaken=coreTaken
+    if(scene.lake){scene.lake.coreTaken=coreTaken;scene.lake.worldMarks.ringStill=!coreTaken}
+    if(scene.nursery)scene.nursery.coreTaken=coreTaken
+    const canonical=find?.eventId??id
+    const old=this.db.prepare('SELECT payload,id FROM focus_event_records WHERE node_id=? AND event_id=?').get(session.node_id,canonical) as Row|undefined
+    if(old){const record=JSON.parse(String(old.payload)) as FocusEventRecord;record.variant=id;record.scene=structuredClone(scene);this.db.prepare('UPDATE focus_event_records SET payload=? WHERE id=?').run(JSON.stringify(record),old.id)}
+    else this.saveFocusEvent(session,id,find?(find.kind==='token'?'core':'item'):'story',at,scene)
+  }
+  private recordFocusLamps(session:Row,seconds:number):void {
+    if (!session.node_id || seconds<300) return
+    const base=Number(session.progress_seconds??0),step=Number(session.planned_minutes)*60/5
+    for(let lamp=1;lamp<=5;lamp++)if(lamp*step>base&&lamp*step<=base+seconds)this.saveFocusEvent(session,`lamp:${lamp}`,'lamp',lamp*step)
+  }
+
+  private prepareBeforeFocus(session:Row):void {
+    const node=this.db.prepare('SELECT * FROM expedition_nodes WHERE id = ?').get(session.node_id) as Row
+    // Only the exploration's first Focus gets this queue. Partial resumes never consume another visit.
+    if(this.db.prepare('SELECT 1 FROM sessions WHERE node_id = ? AND id <> ?').get(node.id,session.id))return
+    const map=String(node.area_id),scene=this.eventScene(session,0),ids:string[]=[]
+    if(map===FOREST_MAP_ID) {
+      const plan=scene.cloud!
+      if(!plan.knownClues?.includes('c01_first_tree'))ids.push(plan.opening?'opening_a':'notebook_a')
+      if(plan.visit>=2){if(!plan.knownClues?.includes('c01_stele_scale'))ids.push('stele');if(!plan.knownClues?.includes('h1a'))ids.push('well')}
+    } else if(map===MOSS_MAP_ID){const st=this.ensureMossState(String(node.id));if(st.storyPlan?.opening&&!this.db.prepare("SELECT 1 FROM collection_clues WHERE id='m02_open'").get())ids.push('story_open_carving');if(st.storyPlan?.visitEvent)ids.push(st.storyPlan.visitEvent==='story_first_lantern'&&weatherAt(st.weatherSeed,0).phase==='rain'?'story_first_lantern_rain':st.storyPlan.visitEvent)}
+    else if(map===LAKE_AREA_ID){const st=this.ensureLakeState(String(node.id));if(st.storyPlan?.opening)ids.push('story_open_gauge');if(st.storyPlan?.visitEvent)ids.push(st.storyPlan.visitEvent)}
+    else if(map===NURSERY_AREA_ID)ids.push(...this.ensureNurseryState(String(node.id)).stories.filter(id=>id.startsWith('story_first')||id.startsWith('story_second')))
+    if(!ids.length)return
+    const before:BeforeFocus={startedAt:String(session.started_at),queue:ids.map(id=>this.makeFocusEvent({...session,progress_seconds:0},id,'story',0,'before',scene)),startedIds:[]}
+    this.db.prepare('UPDATE sessions SET before_focus = ?, suspended_at = started_at WHERE id = ?').run(JSON.stringify(before),session.id)
+  }
+
+  beginBeforeFocusEvent(sessionId:string,recordId:string):AppSnapshot {
+    this.db.transaction(()=>{
+      const session=this.db.prepare('SELECT * FROM sessions WHERE id=? AND ended_at IS NULL').get(sessionId) as Row|undefined
+      if(!session?.before_focus)throw new Error('沒有待播的故事。')
+      const before=JSON.parse(String(session.before_focus)) as BeforeFocus,record=before.queue.find(e=>e.id===recordId)
+      if(!record)throw new Error('未知的故事。')
+      if(before.startedIds.includes(recordId))return
+      const next=before.queue.find(e=>!before.startedIds.includes(e.id))
+      if(next?.id!==recordId)throw new Error('請依故事順序播放。')
+      this.insertFocusEvent(record);before.startedIds.push(recordId)
+      for(const clue of BEFORE_CLUES[record.eventId]??[]) {
+        if(record.mapId===FOREST_MAP_ID)this.saveCloudStoryRecord(record.nodeId,clue)
+        else this.acquireCollectionClue(clue)
+      }
+      const row=this.db.prepare('SELECT state_json FROM area_scene_states WHERE node_id=?').get(record.nodeId) as Row|undefined
+      if(row){const state=JSON.parse(String(row.state_json))
+        if(record.mapId===MOSS_MAP_ID){state.usedEvents.push(record.eventId);if(record.eventId.startsWith('story_first'))state.storyPlan.visitEvent=null;if(record.eventId==='story_open_carving'){state.storyPlan.opening=false;const marks=this.mossMarks();marks.carvingSeen=true;this.db.prepare('INSERT INTO map_world_state (map_id,state_json) VALUES (?,?) ON CONFLICT(map_id) DO UPDATE SET state_json=excluded.state_json').run(record.mapId,JSON.stringify(marks))}}
+        if(record.mapId===LAKE_AREA_ID){state.startedStories.push(record.eventId);if(record.eventId===state.storyPlan.visitEvent)state.storyPlan.visitEvent=null;if(record.eventId==='story_open_gauge'){state.storyPlan.opening=false;const marks=this.lakeMarks();marks.gaugeCarving=true;this.db.prepare('INSERT INTO map_world_state (map_id,state_json) VALUES (?,?) ON CONFLICT(map_id) DO UPDATE SET state_json=excluded.state_json').run(record.mapId,JSON.stringify(marks))}}
+        if(record.mapId===NURSERY_AREA_ID)state.startedStories.push(record.eventId)
+        this.db.prepare('UPDATE area_scene_states SET state_json=? WHERE node_id=?').run(JSON.stringify(state),record.nodeId)
+      }
+      this.db.prepare('UPDATE sessions SET before_focus=? WHERE id=?').run(JSON.stringify(before),sessionId)
+    })()
+    return this.getSnapshot()
+  }
+  finishBeforeFocus(sessionId:string,skippedIds:string[]=[]):AppSnapshot {
+    this.db.transaction(()=>{
+      const session=this.db.prepare('SELECT * FROM sessions WHERE id=? AND ended_at IS NULL').get(sessionId) as Row|undefined
+      if(!session)throw new Error('找不到進行中的專注。')
+      if(!session.before_focus)return
+      const before=JSON.parse(String(session.before_focus)) as BeforeFocus
+      if(before.startedIds.length!==before.queue.length)throw new Error('請先播放或跳過待播故事。')
+      for(const id of skippedIds){if(!before.startedIds.includes(id))throw new Error('無效的跳過紀錄。');this.db.prepare("UPDATE focus_event_records SET payload=json_set(payload,'$.skipped',json('true')) WHERE id=? AND session_id=?").run(id,sessionId)}
+      this.db.prepare('UPDATE sessions SET before_focus=NULL,before_focus_completed=1,started_at=?,local_day=?,suspended_at=NULL,paused_seconds=0 WHERE id=?').run(nowIso(),localDay(),sessionId)
+    })()
+    return this.getSnapshot()
+  }
+  listReplayEvents(runId?:string):FocusEventRecord[] {
+    const rows=(runId?this.db.prepare('SELECT payload FROM focus_event_records WHERE run_id=? ORDER BY rowid').all(runId):this.db.prepare('SELECT payload FROM focus_event_records ORDER BY rowid').all()) as Row[]
+    return rows.map(r=>JSON.parse(String(r.payload)) as FocusEventRecord).filter(e=>e.kind!=='lamp'&&e.kind!=='item')
+  }
+  getReplayEvent(id:string):FocusEventRecord {
+    const row=this.db.prepare('SELECT payload FROM focus_event_records WHERE id=?').get(id) as Row|undefined
+    if(!row)throw new Error('找不到這段回想。')
+    return JSON.parse(String(row.payload))
+  }
+  getFocusRecap(sessionId:string):FocusRecap {
+    const row=this.db.prepare('SELECT * FROM sessions WHERE id=?').get(sessionId) as Row|undefined
+    if(!row)throw new Error('找不到這次專注。')
+    const records=(this.db.prepare('SELECT payload FROM focus_event_records WHERE session_id=?').all(sessionId) as Row[]).map(r=>JSON.parse(String(r.payload)) as FocusEventRecord)
+    const seconds=effectiveSeconds(String(row.started_at),String(row.ended_at??row.suspended_at??nowIso()),Number(row.paused_seconds))
+    return {sessionId,effectiveSeconds:seconds,presentation:row.focus_presentation==='live'?'live':'quiet',lamps:records.filter(e=>e.kind==='lamp').sort((a,b)=>a.effectiveSeconds-b.effectiveSeconds),events:recapOrder(records)}
+  }
+
   startFocus(input: StartFocusInput): AppSnapshot {
     this.taskList.prepareDay()
     const existing = this.db.prepare('SELECT id FROM sessions WHERE ended_at IS NULL').get()
@@ -1713,6 +1850,10 @@ export class FocusQuestDatabase {
         randomUUID(), input.taskId, input.stepId, timestamp, input.minimumMinutes, localDay(),
         input.runId ?? null, input.nodeId ?? null, input.plannedMinutes ?? null
       )
+      const created = this.db.prepare('SELECT * FROM sessions WHERE ended_at IS NULL').get() as Row
+      const mode = (this.db.prepare('SELECT focus_presentation FROM settings WHERE id = 1').get() as Row).focus_presentation
+      this.db.prepare('UPDATE sessions SET focus_presentation = ? WHERE id = ?').run(mode, created.id)
+      if (mode !== 'live' && created.node_id) this.prepareBeforeFocus({ ...created, focus_presentation: 'quiet' })
       this.enableOnlyBlockRules(input.blockedProcessNames)
       this.taskList.promote(input.taskId)
       this.recordEvent('focus_started', {
@@ -1734,6 +1875,7 @@ export class FocusQuestDatabase {
     this.db.transaction(() => {
       const row = this.db.prepare('SELECT * FROM sessions WHERE id = ? AND ended_at IS NULL').get(sessionId) as Row | undefined
       if (!row) throw new Error('找不到進行中的專注。')
+      if (row.before_focus) return // The presentation clock is not the focus clock.
       const manual = source === 'manual' ? paused : Boolean(row.manual_paused)
       const system = source === 'system' ? paused : Boolean(row.system_paused)
       const at = nowIso()
@@ -1783,6 +1925,7 @@ export class FocusQuestDatabase {
       const sceneChanged = this.advanceMossScene(session, seconds) || this.advanceLakeScene(session, seconds)
       const storyChanged = this.syncCloudStoryClues(session, seconds) || this.syncMossStoryClues(session)
       const lakeStoryChanged = this.syncLakeStoryClues(session)
+      this.recordFocusLamps(session, seconds)
       return rewardsChanged || sceneChanged || storyChanged || lakeStoryChanged || nurseryChanged
     })()
   }
@@ -1811,6 +1954,7 @@ export class FocusQuestDatabase {
           if (this.db.prepare('SELECT 1 FROM map_cores WHERE map_id = ?').get(mapId)) continue
           if (lamp === plan.guaranteed_lamp || Math.random() < SPECIAL_FIND_CHANCE_PER_LAMP) item = coreKey
         }
+        if(item){const find=ALL_SPECIAL_FINDS.find(f=>f.itemKey===item)!;this.saveFocusEvent(session,find.eventId,kind==='core'?'core':'item',lamp*plannedMinutes*60/5)}
         const at = nowIso()
         this.db.prepare(`INSERT INTO forest_reward_rolls
           (id, run_id, node_id, session_id, location_title, lamp_index, item_key, rolled_at, reward_kind)
@@ -1869,6 +2013,7 @@ export class FocusQuestDatabase {
       this.syncCloudStoryClues({ ...row, progress_seconds: node.progress_seconds }, seconds, true)
       this.syncMossStoryClues({ ...row, progress_seconds: node.progress_seconds }, true)
       this.syncLakeStoryClues({ ...row, progress_seconds: node.progress_seconds }, true)
+      this.recordFocusLamps({ ...row, progress_seconds: node.progress_seconds }, seconds)
       const daily = this.db.prepare(`SELECT COALESCE(SUM(earned_light), 0) AS total FROM sessions WHERE local_day = ?`).get(row.local_day) as Row
       const earnedLight = calculateLight(seconds, Number(row.minimum_minutes), Number(daily.total))
       const resolution = resolveExpeditionProgress(
@@ -2147,13 +2292,14 @@ export class FocusQuestDatabase {
   updateSettings(patch: Partial<AppSettings>): AppSnapshot {
     const current = this.getSnapshot().settings
     const next = { ...current, ...patch }
+    if (next.focusPresentation !== undefined && !['quiet', 'live'].includes(next.focusPresentation)) throw new Error('無效的專注演出模式。')
     for (const volume of [next.environmentVolume, next.musicVolume]) {
       if (!Number.isFinite(volume) || volume < 0 || volume > 100) throw new Error('音量請設定在 0 到 100 之間。')
     }
     this.db.prepare(`
       UPDATE settings SET reminder_policy = @reminderPolicy, evening_reminder = @eveningReminder,
       mini_timer = @miniTimer, phone_ritual = @phoneRitual, coat_color = @coatColor, lantern_color = @lanternColor,
-      environment_volume = @environmentVolume, music_volume = @musicVolume, audio_muted = @audioMuted
+      environment_volume = @environmentVolume, music_volume = @musicVolume, audio_muted = @audioMuted, focus_presentation = @focusPresentation
       WHERE id = 1
     `).run({ ...next, miniTimer: Number(next.miniTimer), phoneRitual: Number(next.phoneRitual), audioMuted: Number(next.audioMuted) })
     return this.getSnapshot()
@@ -2185,23 +2331,24 @@ export class FocusQuestDatabase {
 
   exportBackup(): BackupPayload {
     const tables = [
-      'tasks', 'steps', 'daily_runs', 'expedition_nodes', 'run_relics', 'sessions', 'special_find_rolls',
+      'focus_event_records', 'tasks', 'steps', 'daily_runs', 'expedition_nodes', 'run_relics', 'sessions', 'special_find_rolls',
       'pending_debriefs', 'block_rules', 'rpg_state', 'settings', 'events', 'restoration_projects',
       'forest_explorations', 'forest_reward_rolls', 'map_cores', 'world_marks', 'task_routines', 'lobby_find_reads', 'area_scene_states', 'map_world_state',
       'collection_clues', 'collection_state', 'collection_core_presentations', 'collection_pages'
     ]
     const data: Record<string, unknown[]> = {}
     for (const table of tables) data[table] = this.db.prepare(`SELECT * FROM ${table}`).all()
-    return { format: 'focusquest-backup', version: 13, exportedAt: nowIso(), data }
+    return { format: 'focusquest-backup', version: 14, exportedAt: nowIso(), data }
   }
 
   importBackup(payload: BackupPayload): void {
-    if (payload.format !== 'focusquest-backup' || ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(payload.version) || !payload.data) {
+    if (payload.format !== 'focusquest-backup' || ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].includes(payload.version) || !payload.data) {
       throw new Error('這不是有效的 Focus Quest 備份。')
     }
     // SQLite accepts arbitrary TEXT, including invalid scene JSON. Validate it
     // before the replacing transaction, so a bad import cannot brick the save.
     const jsonFields: Record<string, Record<string, 'object' | 'strings' | 'history'>> = {
+      focus_event_records: { payload: 'object' }, sessions: { before_focus: 'object' },
       area_scene_states: { state_json: 'object' }, map_world_state: { state_json: 'object' },
       forest_explorations: { story_records: 'strings', ambient_history: 'history' },
       expedition_nodes: { reward_options: 'strings' }
@@ -2221,7 +2368,19 @@ export class FocusQuestDatabase {
         } catch { throw new Error(`備份中的 ${table}.${field} 無法讀取，原有存檔未變更。`) }
       }
     }
+    for(const row of payload.data.focus_event_records??[]) {
+      const r=row as Row,e=JSON.parse(String(r.payload))
+      if(!validFocusEvent(e)||e.id!==r.id||e.sessionId!==r.session_id||e.nodeId!==r.node_id||e.eventId!==r.event_id||e.runId!==r.run_id)throw new Error('備份中的事件紀錄無效，原有存檔未變更。')
+    }
+    for(const row of payload.data.sessions??[]) {
+      const r=row as Row
+      if(r.focus_presentation!==undefined&&!['quiet','live'].includes(String(r.focus_presentation)))throw new Error('備份中的專注模式無效。')
+      if(r.before_focus){const before=JSON.parse(String(r.before_focus)) as BeforeFocus
+        if(!Number.isFinite(Date.parse(before.startedAt))||!Array.isArray(before.queue)||!before.queue.every(e=>validFocusEvent(e)&&e.sessionId===r.id&&e.phase==='before')||!Array.isArray(before.startedIds)||!before.startedIds.every(id=>before.queue.some(e=>e.id===id)))throw new Error('備份中的計時前故事無效。')}
+    }
+    for(const row of payload.data.settings??[])if((row as Row).focus_presentation!==undefined&&!['quiet','live'].includes(String((row as Row).focus_presentation)))throw new Error('備份中的專注模式無效。')
     const tableColumns: Record<string, string[]> = {
+      focus_event_records: ['id', 'session_id', 'run_id', 'node_id', 'event_id', 'payload'],
       area_scene_states: ['node_id', 'state_json'],
       map_world_state: ['map_id', 'state_json'],
       lobby_find_reads: ['acquisition_id', 'seen_at'],
@@ -2239,18 +2398,18 @@ export class FocusQuestDatabase {
       daily_runs: ['id', 'local_day', 'main_task_id', 'seed', 'status', 'depth', 'selected_node_id', 'started_at', 'ended_at'],
       expedition_nodes: ['id', 'area_id', 'run_id', 'parent_node_id', 'departure_exit_id', 'depth', 'distance', 'type', 'title', 'description', 'environment_hint', 'planned_minutes', 'state', 'progress_seconds', 'event_key', 'reward_options', 'selected_relic_key', 'created_at'],
       run_relics: ['id', 'run_id', 'node_id', 'relic_key', 'acquired_at'],
-      sessions: ['id', 'task_id', 'step_id', 'started_at', 'ended_at', 'minimum_minutes', 'paused_seconds', 'suspended_at', 'manual_paused', 'system_paused', 'outcome', 'blocked_attempts', 'earned_light', 'local_day', 'run_id', 'node_id', 'planned_minutes', 'resolution_applied'],
+      sessions: ['id', 'task_id', 'step_id', 'started_at', 'ended_at', 'minimum_minutes', 'paused_seconds', 'suspended_at', 'manual_paused', 'system_paused', 'outcome', 'blocked_attempts', 'earned_light', 'local_day', 'run_id', 'node_id', 'planned_minutes', 'resolution_applied', 'focus_presentation', 'before_focus', 'before_focus_completed'],
       special_find_rolls: ['id', 'run_id', 'node_id', 'session_id', 'location_title', 'lamp_index', 'item_key', 'rolled_at'],
       pending_debriefs: ['session_id', 'run_id', 'node_id', 'resolution', 'effective_seconds', 'progress_seconds', 'threshold_seconds', 'outcome', 'complete_task', 'created_at'],
       block_rules: ['id', 'process_name', 'display_name', 'enabled', 'created_at'],
       rpg_state: ['id', 'chapter', 'node', 'focus_seconds', 'light', 'star_pages', 'materials', 'ability', 'last_loot'],
-      settings: ['id', 'reminder_policy', 'evening_reminder', 'mini_timer', 'phone_ritual', 'coat_color', 'lantern_color', 'environment_volume', 'music_volume', 'audio_muted'],
+      settings: ['id', 'reminder_policy', 'evening_reminder', 'mini_timer', 'phone_ritual', 'coat_color', 'lantern_color', 'environment_volume', 'music_volume', 'audio_muted', 'focus_presentation'],
       events: ['id', 'name', 'created_at', 'numeric_payload'],
       restoration_projects: ['project_key', 'completed_at']
     }
     const transaction = this.db.transaction(() => {
       for (const table of [
-        'collection_core_presentations', 'collection_pages', 'collection_clues', 'collection_state',
+        'focus_event_records', 'collection_core_presentations', 'collection_pages', 'collection_clues', 'collection_state',
         'area_scene_states', 'map_world_state', 'lobby_find_reads',
         'forest_explorations', 'forest_reward_rolls', 'map_cores', 'world_marks', 'task_routines',
         'pending_debriefs', 'special_find_rolls', 'run_relics', 'expedition_nodes', 'daily_runs', 'events', 'restoration_projects',
@@ -2264,7 +2423,7 @@ export class FocusQuestDatabase {
         const optionalLegacyTable = table === 'restoration_projects' && payload.version < 3
         const optionalSpecialFindTable = table === 'special_find_rolls' && payload.version < 4
         const optionalExpeditionTable = payload.version === 1 && ['daily_runs', 'expedition_nodes', 'run_relics', 'pending_debriefs'].includes(table)
-        const rows = payload.data[table] ?? (optionalCollectionTable || optionalMossTable || optionalTaskListTable || optionalForestTable || optionalLegacyTable || optionalSpecialFindTable || optionalExpeditionTable ? [] : undefined)
+        const rows = payload.data[table] ?? ((table === 'focus_event_records' && payload.version < 14) || optionalCollectionTable || optionalMossTable || optionalTaskListTable || optionalForestTable || optionalLegacyTable || optionalSpecialFindTable || optionalExpeditionTable ? [] : undefined)
         if (!Array.isArray(rows)) throw new Error(`備份缺少 ${table} 資料。`)
         const placeholders = columns.map((column) => `@${column}`).join(', ')
         const insert = this.db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`)
@@ -2272,7 +2431,7 @@ export class FocusQuestDatabase {
           const values = table === 'tasks'
             ? { starter_action: null, list_position: null, routine_id: null, routine_day: null, deleted_at: null, parked_at: null, ...(row as Row) }
             : table === 'settings'
-              ? { environment_volume: 35, music_volume: 12, audio_muted: 0, ...(row as Row) }
+              ? { focus_presentation: 'quiet', environment_volume: 35, music_volume: 12, audio_muted: 0, ...(row as Row) }
             : table === 'rpg_state'
               ? { focus_seconds: 0, ...(row as Row) }
               : table === 'forest_explorations'
@@ -2281,6 +2440,7 @@ export class FocusQuestDatabase {
                 ? { area_id: FOREST_MAP_ID, departure_exit_id: null, ...(row as Row) }
               : table === 'sessions'
                 ? {
+                    focus_presentation: 'quiet', before_focus: null, before_focus_completed: 0,
                     run_id: null,
                     node_id: null,
                     planned_minutes: null,

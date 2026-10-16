@@ -1,5 +1,11 @@
 # Focus Quest core plan: agent brief
 
+## 2026-10-15 模型品質與使用者成長提案（§56）
+
+後續使用者已授權先修不合理處：五圖握杖接點／帽沿淨空與苗圃燈架已局部修正，碰撞與動作檢查工具恢復；250 測試、建置、四圖 5 fps 完整探索及秋谷場景 QA 通過。未重發安裝包，未改玩家存檔；詳細證據、驗收界線與 Claude 美術補強候選見 §56.8。下段「僅授權記錄」描述最初記錄時點，由本段更新工程修正範圍。
+
+使用者要求記錄本輪模型／特效檢查、改善分工及推廣想法，已加入核心企畫書 §56。包含接觸感、路徑淨空、跨圖人物基準、遮擋／光影／瀑布候選改善，以及短影片、小型創作者與 15–20 人四週試用方案。觀察、碰撞風險及待驗證提案分開記錄；本輪非全圖防穿模驗收。沿用 Claude 設計、Codex 工程修正／正式整合／實機驗收；本次僅授權文件記錄，不自動啟動美術修改或對外推廣。詳細證據與檢查工具缺口見 §56.3。
+
 ## 2026-10-13 Area 07 樓梯與互動修正（0.6.34）
 
 使用者要求移除苗圃樓梯懸空坐姿；正式排程與測試頁已取消 `stairSit`，舊存檔原時段改等待。苗圃低幀率行走與育苗機繞行、轉盤連續休息及苔痕貨車坐姿過渡已修正。四圖低幀率全程檢查、214 測試與包內完整流程通過，發布與存檔核對見 `RELEASE_0.6.34_QA.md`。保留已驗收模型、音效與有效時間規則。
@@ -173,3 +179,12 @@ Cloud and Moss Focus ambience are implemented independently of gameplay. All Foc
 
 ## 2026-10-03 debug 與設定修正（0.6.26）
 Windows 換行造成的收藏室 ready／本機模組接線已修正；背景預載不消耗核心展示。三圖材質改為批次預編譯、營火錄音重用、目的地可見才開始音場，減少開始卡頓及錯場景音效。音量滑桿移除陰影，背景音下方分隔線上移。沿用現有苔痕運鏡；演出輸入可喚回介面。186 測試／型別／建置、真 Electron 與包內回歸見 RELEASE_0.6.26_QA.md。
+
+## Latest design decision: 2026-10-14, core plan §55 (quiet Focus, end-of-Focus recap, event replay)
+
+User-approved direction; A implemented on 2026-10-14 (239 tests, typecheck/build and isolated Electron QA; not packaged). Claude has delivered B prototype v1; the layouts and notebook/collection replay entry points still await user acceptance before production integration. See the updated handoff for API contracts and evidence. Settings gain 「專注中的演出」: 安靜 (default) / 現場 (current behaviour). In 安靜, Focus is ambient only: dimmer, desaturated, quieter scene, no one-shot sounds; recorded events still happen and save on schedule but show only a small action (walk + pose, tiny amber/blue glint; no camera keys, no cinematic UI hiding, no beams/flashes). The opening and first/second-visit story events play in full before the timer starts (clue granted when playback starts; skippable; not counted as Focus time). After Focus, a glass timeline recap replays this session's recorded events in full, cores always last; skip / skip-all. Notebook journey pages replay seen story, item, core, encounter and true-ending events by re-running the event script from stored parameters (pure visual; no records written). Handoff: `handoff/focus-quiet-recap/README.md`; recap and replay layouts await a Claude prototype.
+
+## Latest design decision: 2026-10-15, core plan §57 (refined low poly)
+
+- Keep low poly; raise finish instead of switching style. Rules for every map: refined traveller (woven kasa, pleated A-line cloak with mantle, belt token, gaiters and boots, gloved hands, pack with bedroll, cream scarf, hooked staff with a swinging lantern; still faceless), bottom-to-top object gradients, sun-side rim light, contact shading on ground, bevelled boxes, softened foliage facets, smooth flats with faceted cliffs. Quiet Focus (§55) must stay dim.
+- This round: Area 05 outdoor only. Spec and porting notes: `docs/handoff/style-refine-2026-10-15/README.md`; design source `docs/prototypes/src/styleRefine.js`. The refined traveller also replaces the traveller on 01/02/03/07 and the campfire lobby in the same batch (user confirmed); other maps' lighting/material pass comes later via Claude proposals. Exception: collection-room cats stay deliberately hyper-detailed, as if from another game (user decision), not bound by the §57 style.

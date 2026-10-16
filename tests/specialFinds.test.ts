@@ -3,6 +3,13 @@ import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, relative, isAbsolute } from 'node:path'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { AREA01_SPECIAL_FINDS, dueLampCount, FOREST_MAP_ID } from '../src/shared/specialFinds'
 import type { AppSnapshot } from '../src/shared/types'
 
@@ -24,7 +31,7 @@ afterEach(() => {
 function advance(seconds: number) { now += seconds * 1000; vi.setSystemTime(now) }
 function database(path?: string) {
   if (!path) { const dir = mkdtempSync(join(tmpdir(), 'focus-quest-forest-')); directories.push(dir); path = join(dir, 'test.db') }
-  const db = new FocusQuestDatabase(path); opened.add(db); return { db, path }
+  const db = liveDatabase(path); opened.add(db); return { db, path }
 }
 function close(db: FocusQuestDatabase) { db.close(); opened.delete(db) }
 function startArea(db: FocusQuestDatabase) {

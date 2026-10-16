@@ -2300,3 +2300,11 @@ select:focus { border-bottom-color: var(--amber-light); transform: translateY(-1
 .next-route-grid > button .route-exit-tag small { flex-basis: 100%; color: #89938f; font-size: 11px; letter-spacing: .02em; }
 .next-route-grid > button .route-exit-tag.exit-pines { color: #9fc0a2; }
 .route-exit-note { margin: 10px 0 0; color: #c9b58f; font-size: 12px; letter-spacing: .04em; }
+
+.focus-event-playback { position:absolute;inset:0;overflow:hidden; }
+.before-focus-playback { position:absolute;inset:0;z-index:100;background:rgba(17,24,29,.12); }
+.before-focus-controls { position:absolute;bottom:24px;left:24px;right:24px;display:flex;align-items:center;justify-content:space-between;color:#f0ede6;gap:16px; }
+.before-focus-controls button { padding:10px 20px;background:rgba(24,35,43,.8);border:1px solid rgba(255,255,255,.25);color:inherit;border-radius:14px; }
+.focus-event-error { position:absolute;left:24px;bottom:80px;color:#eee; }
+
+.event-playback-caption { position:absolute;left:15%;right:15%;bottom:80px;text-align:center;color:#f0ede6;background:rgba(24,35,43,.75);border-radius:14px;padding:12px 20px;font-size:14px; }

@@ -1,3 +1,7 @@
+import { buildRefinedTraveller } from '../styleRefine.js';
+import { recapAction } from '../../../shared/focusRecap';
+import { quietCanvas, quietRare, quietLampLevel } from '../quietPresentation.js';
+import { QUIET_FOCUS } from '../../../shared/focusPresentation';
 import { advanceAnimation } from '../animationSteps';
 import * as T from '../cloudRuins/vendor/three.module.js';
 import AREA from '../../../../docs/area03/area-03-reflection-lake.scene.json';
@@ -1572,7 +1576,9 @@ const head = new T.Group(); head.position.y = 0.6; upper.add(head);
 mesh(new T.SphereGeometry(0.105, 12, 9), M.skin, head); mesh(new T.ConeGeometry(0.3, 0.13, 12), M.hat, head, 0, 0.1, 0);
 const armGeo = new T.CylinderGeometry(0.034, 0.03, 0.3, 5); armGeo.translate(0, -0.15, 0);
 const armL = mesh(armGeo, M.cloak, upper, -0.13, 0.44, 0.02), armR = mesh(armGeo, M.cloak, upper, 0.13, 0.44, 0.02);
+mesh(new T.SphereGeometry(0.03, 6, 4), M.skin, armR, 0, -0.3, 0);
 const staff = new T.Group(); staff.position.set(0.2, 0.25, 0.08); upper.add(staff);
+const staffGripOffset = new T.Vector3();
 mesh(new T.CylinderGeometry(0.017, 0.02, 1.08, 5), M.tWood, staff, 0, 0.02, 0); mesh(new T.BoxGeometry(0.02, 0.02, 0.14), M.woodDark, staff, 0, 0.55, 0.06);
 const travGlowMat = new T.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 1.2, roughness: 1 }); travGlowMat.userData.glow = true;
 const travLamp = mesh(new T.BoxGeometry(0.075, 0.1, 0.075), travGlowMat, staff, 0, 0.46, 0.13);
@@ -1583,6 +1589,7 @@ const travLight = new T.PointLight(0xffb05a, 0.8, 3.2, 2); scene.add(travLight);
 const travHalo = new T.Sprite(new T.SpriteMaterial({ map: haloTex, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.3, fog: false })); travHalo.scale.set(0.8, 0.8, 1); travHalo.position.set(0, 0.46, 0.13); staff.add(travHalo);
 const book = mesh(new T.BoxGeometry(0.2, 0.025, 0.14), M.paper, upper, 0, 0.1, 0.24); book.rotation.x = -0.4;
 const cup = mesh(new T.CylinderGeometry(0.035, 0.03, 0.05, 8), M.paper, armL, 0, -0.3, 0.02); cup.visible = false;
+const refinedTraveller = buildRefinedTraveller({THREE:T,trav,body,legL,legR,upper,cloak,head,armL,armR,staff,lantern:travLight,lanternGlow:travHalo}); refinedTraveller.set(true);
 shadowy(trav); travLamp.castShadow = false;
 const POSE = {
   idle: {}, walk: {},
@@ -1709,7 +1716,7 @@ function legAt(leg, d) {
 const bySpot = {}; (AREA.spots || []).forEach((s) => { bySpot[s.id] = s; });
 const lampNode = (k) => AREA.lamps[k].node;
 const dueOf = (k) => AREA.lamps[k].dueAt * PLANNED;
-const lampsDue = () => Math.max(0, Math.min(5, Math.floor(sim * 5 / PLANNED + 1e-9)));
+const lampsDue = () => opts.recapLamps ?? Math.max(0, Math.min(5, Math.floor(sim * 5 / PLANNED + 1e-9)));
 const todKey = () => { const t = timeOfDayAt(sim); return timeMode === 'auto' ? (t.blend < 0.5 ? t.from : t.to) : timeMode; };
 const mrand = (a, b) => a + Math.random() * (b - a);
 const easeInOut = (x) => x * x * (3 - 2 * x);
@@ -1970,6 +1977,10 @@ function travUpdate(dt) {
   legL.rotation.x = pose.legX + swing + (dangle ? Math.sin(tAcc * 1.6) * 0.15 : 0); legR.rotation.x = pose.legX - swing + (dangle ? Math.sin(tAcc * 1.6 + 1.3) * 0.15 : 0);
   head.rotation.x = pose.headX; head.rotation.y = pose.headY; armL.rotation.x = pose.armL; armL.rotation.z = pose.armLz; armR.rotation.z = pose.armRz;
   armR.rotation.x = -0.35 + pose.staffX * 0.8; staff.rotation.x = pose.staffX; staff.rotation.z = pose.staffZ; cloak.rotation.z = swing * 0.07;
+    // Keep the authored tilt, with the pole held outside the brim and attached to the hand.
+    armR.rotation.z = Math.max(0.7, pose.armRz);
+    staffGripOffset.set(0, -0.1, 0).applyQuaternion(staff.quaternion);
+    staff.position.set(0, -0.3, 0).applyQuaternion(armR.quaternion).add(armR.position).sub(staffGripOffset);
   book.visible = pose.book > 0.5; cup.visible = pose.cup > 0.5;
   rippleUpdate(dtm); splashUpdate(dtm);
 }
@@ -1994,7 +2005,7 @@ function lampsUpdate(dt, snap) {
     const target = i < dueN ? 1 : 0;
     if (L.prev !== undefined && L.prev !== target && target === 1 && !snap) setStatus('第 ' + (i + 1) + ' 盞燈亮了。');
     L.prev = target;
-    L.level = snap ? target : L.level + (target - L.level) * (1 - Math.exp(-dt * 3));
+    L.level = opts.quietFocus&&!lobby ? quietLampLevel(sim,i,600) : snap ? target : L.level + (target - L.level) * (1 - Math.exp(-dt * 3));
     if (i === 3) { L.obj.rotation.z = Math.sin(tAcc * 1.05 + 0.7) * 0.07 * MOTION; L.obj.rotation.x = Math.sin(tAcc * 0.79 + 2.1) * 0.04 * MOTION; }
     if (i === 4) { swingE.set(Math.sin(tAcc * 1.3) * 0.018 * MOTION, 0, Math.sin(tAcc * 1.6 + 1.0) * 0.022 * MOTION); swingQ.setFromEuler(swingE); L.obj.quaternion.copy(L.q0).multiply(swingQ); }
     lampFlameWorld(L, lampTmp); L.flameY = lampTmp.y;
@@ -2074,7 +2085,7 @@ function update(dt) {
   if (!dragging && !holdCam) { const q = Math.exp(-dt * 2.6); yawOff *= q; pitchOff *= q; }
   bridgeFxUpdate(dt);
   s4Update(dt);
-  travLightAnchor.getWorldPosition(travLight.position);
+  refinedTraveller.tick(dt); refinedTraveller.syncLight();
   if (!trav.visible) travLight.intensity = 0;
   placeCamera();
 }
@@ -2115,9 +2126,7 @@ function renderFrame() {
   const bg = scene.background; scene.background = null;
   clipPlane.constant = -(WL - 0.005); renderer.clippingPlanes = [clipPlane];
   renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.shadowMap.autoUpdate = true;
-  renderer.render(scene, reflCam);
-  renderer.setRenderTarget(null); renderer.clippingPlanes = []; scene.background = bg;
-  renderer.shadowMap.autoUpdate = false;
+  try{renderer.render(scene,reflCam);}finally{renderer.setRenderTarget(null);renderer.clippingPlanes=[];scene.background=bg;renderer.shadowMap.autoUpdate=false;}
   S4P.mirrorRender();       // the shadow map was just rendered; the main pass reuses it
   glass.render(scene, camera, 0.016, cur.haze, [0.34, 0.24, 0.08], paused);
   lastStats = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
@@ -2355,6 +2364,7 @@ function say(i, text) { if (rare && rare.said < i) { rare.said = i; setStatus(te
 
 // what the traveller does in each sequence: pose key, pose targets, facing, position
 function rareOverride(p) {
+  if(opts.quietFocus&&!lobby)return {key:rare.core&&TR.t<QUIET_FOCUS.corePoseSeconds?'crouch':'reachDown'};
   const ev = rare.ev, o = {};
   if (ev.source === 'gauge') {
     const toPost = uvDir([NODE.r_gauge.u, NODE.r_gauge.v], [GU + 0.04, GV - 0.2]);
@@ -2393,7 +2403,11 @@ function rareOverride(p) {
   }
   return o;
 }
-function rareUpdate(p) {   // props, as a function of progress only (so a frozen progress is a stable picture)
+function rareUpdate(p) {
+  if(opts.quietFocus&&!lobby){
+    [S4P.plate,S4P.shardItem,S4P.srcGlint,S4P.seam,S4P.disc,S4P.basin,S4P.touch,S4P.amberRing].forEach(o=>o.visible=false);
+    quietRare({core:rare.core,glint:S4P.itemGlint},trav,TR.t,MOTION<1);flashK=0;lakeHush=0;
+    S4P.beam.visible=false;S4P.beamRings.forEach(r=>r.visible=false);S4P.stars.forEach(s=>s.visible=false);S4P.starLines.forEach(s=>s.visible=false);return;}   // props, as a function of progress only (so a frozen progress is a stable picture)
   const ev = rare.ev, core = rare.core, T0 = tAcc;
   const hand = handPos(), bag = bagPos();
   const fl = p > 0.33 && p < 0.62 ? Math.sin(Math.PI * (p - 0.33) / 0.29) : 0; const pulse = 0.85 + 0.15 * Math.sin(T0 * 9);
@@ -2919,6 +2933,7 @@ function storyOverride() {
 
 // ---- props, reflection, camera, lake, as a function of progress ----
 function storyUpdate(dt) {
+  if(opts.quietFocus&&!lobby){releaseCam();return;}
   if (STY.active && TR.state !== 'story') { storyCleanup(); return; }
   if (!STY.active || !TR.story) return;
   const S = TR.story, ev = S.ev, p = clamp01(S.t / S.dur), t = S.t;
@@ -3182,8 +3197,12 @@ function applyAction(now) {
 function anchor(node) { const n=NODE[node];if(!n)return null;const p=W(n.u,n.v,n.y+0.7).project(camera);return {x:(p.x+1)/2*canvas.clientWidth,y:(1-p.y)/2*canvas.clientHeight}; }
 function lobbyCamera(dt) {
   if(!lobby)return;
+  // During renderer handoff the canvas can be detached for a layout commit. A zero-size
+  // projection would turn the camera target and reflection clipping plane into NaN.
+  const width=canvas.clientWidth,height=canvas.clientHeight;if(width<=0||height<=0)return;
+  if(view.kind==='overview'){releaseCam();target.copy(DEFAULT_TARGET);camera.zoom=1;const vh=baseVw/(width/height);camera.left=-baseVw/2;camera.right=baseVw/2;camera.top=vh/2;camera.bottom=-vh/2;camera.updateProjectionMatrix();placeCamera();return;}
   const node=view.kind==='look'?view.exit:(sim>=3000?'p_seat':TR.node),n=NODE[node]||NODE.p_seat;
-  const aspect=canvas.clientWidth/canvas.clientHeight, available=Math.max(.35,1-(chrome.right||0)/canvas.clientWidth);
+  const aspect=width/height, available=Math.max(.35,1-(chrome.right||0)/width);
   const vw=view.kind==='overview'?baseVw:12/available, vh=vw/aspect;
   const q=1-Math.exp(-dt*4),want=W(n.u,n.v,n.y+.7);
   // Keep the resting traveller left of the frosted panel.
@@ -3198,18 +3217,25 @@ function draw(now=performance.now()) {
   if(!inspection)applyAction(now);lobbyCamera(elapsed);advanceAnimation(paused?0:realElapsed, step=>update(step));renderFrame();
   const anchors={rest:anchor('p_seat'),entry:anchor(AREA.ports.entry),a_arch:anchor('a_arch'),b_far:anchor('b_far')};items.forEach((it,i)=>{const p=anchor('p_seat');anchors['item:'+it.key]={x:p.x+(i-1)*34,y:p.y+70};});opts.reportAnchors?.(anchors);
   if(++readyFrames===2)opts.reportReady?.();
-  opts.reportLights?.(lampsDue());opts.reportCinematic?.(!!(rare?.core || STY.active));
+  quietCanvas(canvasHost,opts.quietFocus&&!lobby);opts.reportLights?.(lampsDue());opts.reportCinematic?.(!opts.quietFocus&&!!(rare?.core || STY.active));
   const a=lake?.action,activity=opts.departure&&!departureDone?'旅人沿踏石離開湖畔。':a?.kind==='walk'?'旅人沿著湖畔踏石前行。':a?.kind==='lamp'?'旅人點亮路燈。':a?.kind==='cuff'?'旅人捲起褲管。':STORY[a?.eventId]?.name||EVT[a?.eventId]?.name||REST_LIST.find(r=>r.id===a?.eventId)?.name||'旅人在湖畔等候。';
   if(activity!==reportedActivity){reportedActivity=activity;opts.reportActivity?.(activity);}
 }
-function loop(now){draw(now);if(!dead)raf=requestAnimationFrame(loop);}
+function loop(now){if(!opts.recapDormant)draw(now);else lastReal=now;if(!dead)raf=requestAnimationFrame(loop);}
 const observer=new ResizeObserver(()=>{resize();});observer.observe(host);
-const watchdog=setInterval(()=>{if(!dead&&performance.now()-lastReal>250)draw();},33);
+const watchdog=setInterval(()=>{if(!dead&&!opts.recapDormant&&performance.now()-lastReal>250)draw();},33);
 if(!opts.manualFrames)raf=requestAnimationFrame(loop);else draw();
 return {
  areaId:'area-03-reflection-lake',
  setLakeState(state){lake=state;TIDE_SEED=state.seed;},
- setProgress(seconds){savedProgress=seconds;lastProgressAt=performance.now();},
+ beginRecapEvent(record,id){storyCleanup();TR.story=null;endRare();lobby=false;opts.departure=null;opts.quietFocus=false;opts.replay=true;actionKey=null;
+   const action=recapAction(record,id);lake={...structuredClone(record.scene.lake),action,effectiveSeconds:action.startSeconds};savedProgress=sim=action.startSeconds;lastProgressAt=performance.now();paused=false;},
+ async warmRecapEvent(record){this.beginRecapEvent(record,-Math.random());this.renderNow();paused=true;if(rare)rareUpdate(.5);await renderer.compileAsync(scene,camera,()=>dead);this.showRecapOverview();},
+ showRecapOverview(close=false){storyCleanup();TR.story=null;endRare();lobby=true;actionKey=null;view={kind:close?'close':'overview'};paused=false;},
+ setRecapLamps(count){opts.recapLamps=Math.max(0,Math.min(5,count));LAMPS.forEach((L,i)=>L.level=i<opts.recapLamps?1:0);},
+ setRecapDormant(value){opts.recapDormant=value;lastReal=performance.now();},
+ enableRecapTransitions(){glass.enableTransitions();},beginRecapTransition(duration){glass.crossfade(duration);},
+ setStory(){},setQuietFocus(value){opts.quietFocus=!!value;},setProgress(seconds){savedProgress=seconds;lastProgressAt=performance.now();},
  setPaused(value){paused=!!value;lastProgressAt=performance.now();glass.jumpPaused(paused);},
  setReducedMotion(value){releaseCam();MOTION=value ? 0.25 : 1;},setUiFade(value){glass.setUiFade(value);},
  setChrome(value){chrome=value;glass.setChrome(value);},
@@ -3218,7 +3244,7 @@ return {
  setLobbyView(value){view=value;},setLobbyItems(value){items=value;},playSpecialFind(){},
  enterLobby(nextHost,nextOpts){observer.disconnect();host=nextHost;host.appendChild(canvas);observer.observe(host);opts={...opts,...nextOpts,departure:null};lobby=true;paused=false;actionKey=null;view={kind:'close'};resize();},
  renderNow(){draw();},debugState(){return {...api.state(),traveller:{...api.tr(),stepIndex:Math.floor(TR.phase/Math.PI),air:TR.air},worldMarks:{...marks},action:lake?.action,paused,lobby,departureDone,chrome};},
- destroy(){if(dead)return;storyCleanup();S5.vignette.remove();dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();glass.dispose();rt.dispose();mrt.dispose();const resources=new Set();scene.traverse(o=>{if(o.geometry)resources.add(o.geometry);if(o.shadow?.map)resources.add(o.shadow.map);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){resources.add(m);for(const v of Object.values(m)){if(v?.isTexture)resources.add(v);}for(const u of Object.values(m.uniforms||{})){if(u.value?.isTexture)resources.add(u.value);}}});resources.forEach(r=>r.dispose());renderer.dispose();canvas.remove();GOV.c.remove();opts.reportCinematic?.(false);},
+ destroy(){if(dead)return;refinedTraveller.dispose();storyCleanup();S5.vignette.remove();dead=true;cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();glass.dispose();rt.dispose();mrt.dispose();const resources=new Set();scene.traverse(o=>{if(o.geometry)resources.add(o.geometry);if(o.shadow?.map)resources.add(o.shadow.map);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){resources.add(m);for(const v of Object.values(m)){if(v?.isTexture)resources.add(v);}for(const u of Object.values(m.uniforms||{})){if(u.value?.isTexture)resources.add(u.value);}}});resources.forEach(r=>r.dispose());renderer.dispose();canvas.remove();GOV.c.remove();opts.reportCinematic?.(false);},
  // Isolated QA only: no production control calls these prototype inspection entries.
  qa:api, setInspection(value){inspection=value;}
 };

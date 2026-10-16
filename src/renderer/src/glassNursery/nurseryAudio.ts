@@ -1,3 +1,4 @@
+import { nurseryAudioFrame } from './nurseryAudioFrame'
 import {NurseryBgmSchedule, nurseryLeafEnvelope, type NurseryMusicPeriod} from './nurseryBgm'
 const urls = import.meta.glob('./audio/*.wav', { eager: true, query: '?url', import: 'default' }) as Record<string,string>
 export interface NurseryAudioSettings { environmentVolume: number; musicVolume?: number; audioMuted?: boolean }
@@ -40,6 +41,7 @@ export function createNurseryAudio() {
   auditionBgm(name:string){if(/^bgm_(a|b|ab|c)$/.test(name))return startBgm(name);return false},
   setShortGaps(value:boolean){schedule.shortGaps=value;if(value&&!bgm)schedule.nextAt=Math.min(schedule.nextAt,ctx.currentTime+3)},
   update(settings: NurseryAudioSettings|undefined,inactive:boolean,state:{paused?:boolean;run:number;turn:number;mist:number;vortex:number;ride:boolean;core:boolean;burst:number;fade:number;period?:NurseryMusicPeriod;action?:boolean}) {
+   state=nurseryAudioFrame(state)
    if(dead)return;const next=!!settings&&!inactive&&!settings.audioMuted&&(settings.environmentVolume>0||(settings.musicVolume??0)>0)
    period=state.period??'day';schedule.setCore(state.core,ctx.currentTime)
    enabled=next;musicAllowed=next&&(settings?.musicVolume??0)>0

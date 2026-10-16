@@ -28,6 +28,7 @@ function measureGlassChrome(host: HTMLElement): CloudRuinsChrome {
 }
 
 interface CloudRuinsFocusSceneProps {
+  quietFocus?: boolean
   audioActive?: boolean
   audioSettings?: Pick<AppSettings, 'environmentVolume' | 'musicVolume' | 'audioMuted'>
   progressSeconds: number
@@ -64,6 +65,7 @@ interface CloudRuinsFocusSceneProps {
 // them: it never advances focus time and nothing waits for its animations.
 export function CloudRuinsFocusScene({
   audioSettings,
+  quietFocus = false,
   audioActive = true,
   progressSeconds,
   targetSeconds,
@@ -131,6 +133,7 @@ export function CloudRuinsFocusScene({
     let handle: CloudRuinsSceneHandle
     try {
       handle = createCloudRuinsScene(host.current, {
+        quietFocus,
         progressSeconds: initial.progressSeconds,
         targetSeconds,
         seed,
@@ -214,6 +217,8 @@ export function CloudRuinsFocusScene({
     return () => query.removeEventListener('change', onChange)
   }, [])
 
+  useEffect(()=>{scene.current?.setStory(story??null)},[story])
+  useEffect(()=>{scene.current?.setQuietFocus(!!quietFocus)},[quietFocus])
   return <div className="focus-exploration-game biome-cloud-ruins" ref={host} aria-label="雲上遺庭自動探索畫面">
     {failed && <p className="cloud-ruins-fallback">探索畫面暫時無法顯示，專注時間照常累積。</p>}
   </div>

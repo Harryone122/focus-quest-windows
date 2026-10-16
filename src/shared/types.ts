@@ -48,6 +48,9 @@ export interface QuestTask {
 }
 
 export interface FocusSession {
+  beforeFocusCompleted?: boolean
+  presentation?: import('./focusPresentation').FocusPresentation
+  beforeFocus?: import('./focusPresentation').BeforeFocus | null
   id: string
   taskId: string
   stepId: string
@@ -248,6 +251,7 @@ export interface RpgState {
 }
 
 export interface AppSettings {
+  focusPresentation?: import('./focusPresentation').FocusPresentation
   audioMuted: boolean
   environmentVolume: number
   musicVolume: number
@@ -356,7 +360,7 @@ export interface FocusResult {
 
 export interface BackupPayload {
   format: 'focusquest-backup'
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14
   exportedAt: string
   data: Record<string, unknown[]>
 }
@@ -369,6 +373,13 @@ export interface OverlayState {
 }
 
 export interface FocusQuestApi {
+  beginBeforeFocusEvent: (sessionId: string, eventId: string) => Promise<AppSnapshot>
+  finishBeforeFocus: (sessionId: string, skippedIds?: string[]) => Promise<AppSnapshot>
+  getFocusRecap: (sessionId: string) => Promise<import('./focusPresentation').FocusRecap>
+  listReplayEvents: (runId?: string) => Promise<import('./focusPresentation').FocusEventRecord[]>
+  getReplayEvent: (recordId: string) => Promise<import('./focusPresentation').FocusEventRecord>
+
+
   pinCollectionClue: (clueId: string) => Promise<AppSnapshot>
   pinCollectionClues: (clueIds: string[]) => Promise<AppSnapshot>
   setTrackingClue: (placeId: string | null) => Promise<AppSnapshot>

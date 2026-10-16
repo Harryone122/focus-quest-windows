@@ -40,7 +40,7 @@ export function createNurseryRuntime(id:string,stories:string[]):NurseryRuntime 
 export const nurseryClues = scene.clues
 export const nurseryStoryKeys:Record<string,string> = {story_first_tray:'first',story_second_chart:'chart',carry_silvered_shard:'shard',carry_sapling:'plant',find_pressed_leaf:'leaf',find_mulch_cloth:'mulch',find_core:'core',caretaker_transplant:'transplant'}
 const events = scene.storyEvents.filter(e=>e.id!=='caretaker_transplant').map(e=>({id:e.id,node:e.standNode!,sec:e.sec!,kind:'story' as const}))
-export function advanceNurseryRuntime(saved:NurseryRuntime, target:number, world:NurseryMarks, finds:readonly {id:string;eventId:string;lampIndex:number}[]) {
+export function advanceNurseryRuntime(saved:NurseryRuntime, target:number, world:NurseryMarks, finds:readonly {id:string;eventId:string;lampIndex:number}[],onEvent?:(state:NurseryRuntime,marks:NurseryMarks)=>void) {
   const s=structuredClone(saved),marks={...world},end=Math.max(s.seconds,Math.floor(target))
   // Retire a removed pose in old saves without changing its saved focus time.
   if(s.action?.kind==='ambient'&&s.action.eventId==='stairSit'){s.action.kind='wait';delete s.action.eventId}
@@ -69,10 +69,11 @@ export function advanceNurseryRuntime(saved:NurseryRuntime, target:number, world
     if(!event&&story&&!s.storySegments.includes(segment)&&s.seconds>=30&&fits(story.node,story.sec))event=story
     if(event){
       if(s.node!==event.node){const r=nurseryRoute(s.node,event.node);start('walk',event.node,r.seconds,event.id,undefined,r.path);continue}
+      const beforeMarks={...marks}
       s.storySegments.push(segment)
       if(find?.eventId===event.id)s.handledFinds.push(find.id)
       else {s.startedStories.push(event.id);if(event.id==='carry_sapling'){marks.saplingInLuggage=false;marks.saplingPlanted=true;marks.saplingStage=0}}
-      start('story',event.id==='find_core'?'K':event.node,event.sec,event.id);if(event.id==='find_core')s.action!.fromNode='B';continue
+      start('story',event.id==='find_core'?'K':event.node,event.sec,event.id);if(event.id==='find_core')s.action!.fromNode='B';onEvent?.(s,beforeMarks);continue
     }
     if(!lamp){start('rest','H',60);s.action!.fromNode=s.node;continue}
     const remaining=nurseryRoute(s.node,lamp.standNode)

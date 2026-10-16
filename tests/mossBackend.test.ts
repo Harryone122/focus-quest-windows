@@ -3,6 +3,13 @@ import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { isAbsolute, join, relative } from 'node:path'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { FOREST_MAP_ID, MOSS_MAP_ID } from '../src/shared/specialFinds'
 import type { AppSnapshot, BackupPayload } from '../src/shared/types'
 import type { MossRuntime } from '../src/shared/area02'
@@ -14,7 +21,7 @@ let db: FocusQuestDatabase
 const temporaryDirectories: string[] = []
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date(2026, 8, 27, 9))
-  db = new FocusQuestDatabase(':memory:')
+  db = liveDatabase(':memory:')
 })
 afterEach(() => {
   db.close(); vi.restoreAllMocks(); vi.useRealTimers()
@@ -208,14 +215,14 @@ describe('moss SQLite and IPC-facing contracts', () => {
   it('reopens a real paused SQLite file with the awarded find already packed, without rerolling', () => {
     const directory = mkdtempSync(join(tmpdir(), 'focus-quest-moss-')); temporaryDirectories.push(directory)
     const path = join(directory, 'test.db')
-    db.close(); db = new FocusQuestDatabase(path)
+    db.close(); db = liveDatabase(path)
     vi.spyOn(Math, 'random').mockReturnValue(0.01)
     const s = start(prepare()); advance(610); db.processActiveSpecialFinds(); db.pauseFocus(s.activeSession!.id)
     expect(runtime().intent?.kind).toBe('special')
     const rewards = rows('forest_reward_rolls'), seed = runtime().weatherSeed
     const cooldown = runtime().eventCompletedAt, lastSpot = runtime().lastEventSpot
     expect(Object.keys(cooldown!).length).toBeGreaterThan(0)
-    db.close(); advance(86400); db = new FocusQuestDatabase(path)
+    db.close(); advance(86400); db = liveDatabase(path)
     expect(db.processActiveSpecialFinds()).toBe(false)
     expect(runtime().weatherSeed).toBe(seed)
     expect(runtime().eventCompletedAt).toEqual(cooldown)

@@ -1,3 +1,4 @@
+import { focusAudioSettings } from '../../shared/focusPresentation'
 import { TravelLoading } from './loading/TravelLoading'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { GlassNurseryFocusScene } from './GlassNurseryFocusScene'
@@ -122,18 +123,22 @@ export function AreaFocusScene(props: AreaFocusSceneProps): React.JSX.Element {
   const leaving = nurseryLeave ? NURSERY : lakeLeave ? LAKE : cloudCue ? 'area-01-cloud-ruins' : mossLeave && mossLeave !== 'loading' ? MOSS : null
   const departureOver = departureReported || departureElapsedMs >= DEPARTURE_FALLBACK_MS
   const onDepartureComplete = (): void => setDepartureReported(true)
+  const quietFocus = session.presentation !== 'live' && !session.beforeFocus
+  const audioSettings = focusAudioSettings(snapshot.settings,quietFocus)
+  if(quietFocus&&(node?.areaId===FOREST_MAP_ID||!node?.areaId)){audioSettings.environmentVolume *= 10**(-6/20*(1-1/1.4));audioSettings.musicVolume *= 10**(-6/20*(1-1/1.4))}
   const common = {
+    quietFocus,
     progressSeconds: props.progressSeconds, targetSeconds: props.targetSeconds, sessionId: session.id,
     departureElapsedMs, paused: props.paused, retainForLobby: props.retainForLobby, uiFade: props.uiFade,
     onActivityChange: props.onActivityChange, onCinematicChange: props.onCinematicChange
   }
   const cloudProps = {
-    audioSettings: snapshot.settings,
+    audioSettings,
     ...common, seed: props.seed, specialFinds: props.specialFinds,
     coreTaken: snapshot.mapCores.some((core) => core.mapId === FOREST_MAP_ID),
     worldMarks: snapshot.worldMarks.filter((entry) => entry.mapId === FOREST_MAP_ID).map((entry) => entry.mark),
     onWorldMark: props.onWorldMark,
-    story: snapshot.cloudStory?.nodeId === node?.id ? snapshot.cloudStory : null,
+    story: !session.beforeFocus&&snapshot.cloudStory?.nodeId === node?.id ? snapshot.cloudStory : null,
     onStoryRecord: props.onStoryRecord,
     onCinematicChange: props.onCinematicChange
   }
@@ -183,15 +188,15 @@ export function AreaFocusScene(props: AreaFocusSceneProps): React.JSX.Element {
   return <div className="area-focus-scenes">
     {!destinationReady && (!entrance || departureElapsedMs >= CAMPFIRE_WINDOW_MS || campfireFailed) && (showDestination || waitingForCue) && <TravelLoading paused={props.paused} />}
     {crossing && releasedSession !== session.id && <div className="area-scene-layer" key="source" data-area-layer="source">
-      {leaving === NURSERY && nurseryLeave ? <GlassNurseryFocusScene {...common} audioSettings={snapshot.settings} audioActive={props.audioActive!==false} retainForLobby={false} nursery={nurseryLeave.state} progressSeconds={nurseryLeave.state?.effectiveSeconds??3000} nodeId={`leave:${parent?.id}`} departure={nurseryLeave.cue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)}/> : leaving === LAKE && lakeLeave ? <ReflectionLakeFocusScene {...common} audioSettings={snapshot.settings} retainForLobby={false} lake={lakeLeave.state} nodeId={`leave:${parent?.id}`} departure={lakeLeave.cue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)} /> : leaving === MOSS && mossCue
+      {leaving === NURSERY && nurseryLeave ? <GlassNurseryFocusScene {...common} audioSettings={audioSettings} audioActive={props.audioActive!==false} retainForLobby={false} nursery={nurseryLeave.state} progressSeconds={nurseryLeave.state?.effectiveSeconds??3000} nodeId={`leave:${parent?.id}`} departure={nurseryLeave.cue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)}/> : leaving === LAKE && lakeLeave ? <ReflectionLakeFocusScene {...common} audioSettings={audioSettings} retainForLobby={false} lake={lakeLeave.state} nodeId={`leave:${parent?.id}`} departure={lakeLeave.cue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)} /> : leaving === MOSS && mossCue
         ? <MossStationFocusScene departureOnly {...common} retainForLobby={false} moss={null} nodeId={`leave:${mossCue.cue.exit}`}
           departure={mossCue.cue} departureState={mossCue.state} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)} />
         : <CloudRuinsFocusScene departureOnly {...cloudProps} retainForLobby={false} departure={cloudCue} onDepartureComplete={onDepartureComplete} onReady={()=>setSourceReady(true)} />}
     </div>}
     {mountDestination && <div className="area-scene-layer area-scene-destination" key="destination" data-area-layer="destination"
       style={{ opacity: !crossing || destinationVisible ? 1 : 0 }}>
-      {area === NURSERY ? <GlassNurseryFocusScene {...common} {...destinationCallbacks} audioSettings={snapshot.settings} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} nursery={snapshot.nursery??null} nodeId={node?.id??session.id} onReady={()=>{setReadySession(session.id);props.onReady?.()}}/> : area === LAKE ? <ReflectionLakeFocusScene {...common} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} audioSettings={snapshot.settings} lake={lakeState ?? null} nodeId={node?.id??session.id} departure={leaving===LAKE?lakeLeave?.cue:null} departureState={lakeLeave?.state} onDepartureComplete={onDepartureComplete} onReady={()=>{setReadySession(session.id);props.onReady?.()}} /> : area === MOSS
-        ? <MossStationFocusScene {...common} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} audioSettings={snapshot.settings} moss={moss} nodeId={node?.id ?? session.id}
+      {area === NURSERY ? <GlassNurseryFocusScene {...common} {...destinationCallbacks} audioSettings={audioSettings} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} nursery={snapshot.nursery??null} nodeId={node?.id??session.id} onReady={()=>{setReadySession(session.id);props.onReady?.()}}/> : area === LAKE ? <ReflectionLakeFocusScene {...common} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} audioSettings={audioSettings} lake={lakeState ?? null} nodeId={node?.id??session.id} departure={leaving===LAKE?lakeLeave?.cue:null} departureState={lakeLeave?.state} onDepartureComplete={onDepartureComplete} onReady={()=>{setReadySession(session.id);props.onReady?.()}} /> : area === MOSS
+        ? <MossStationFocusScene {...common} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} audioSettings={audioSettings} moss={moss} nodeId={node?.id ?? session.id}
           onReady={() => { setReadySession(session.id); props.onReady?.() }}
           departure={leaving === MOSS && mossCue ? mossCue.cue : null} departureState={mossCue?.state ?? null} />
         : <CloudRuinsFocusScene {...cloudProps} {...destinationCallbacks} audioActive={props.audioActive !== false && (!crossing || destinationVisible) && (!entrance || entranceDismissed)} onReady={() => { setReadySession(session.id); props.onReady?.() }}
@@ -199,7 +204,7 @@ export function AreaFocusScene(props: AreaFocusSceneProps): React.JSX.Element {
     </div>}
     {entrance && !entranceDismissed && node && <div className={`campfire-depart-layer${entranceFading ? ' is-fading' : ''}`}>
       <CampfireStage
-        audioSettings={snapshot.settings} active={!props.paused}
+        audioSettings={audioSettings} active={!props.paused}
         stage={snapshot.worldMarks.some((mark) => mark.mapId === 'campfire-start' && mark.mark === 'future_self_met')
           ? Math.max(1, Math.min(4, Math.ceil(snapshot.mapCores.length / 3) + 1)) : 0}
         seenStage={true} returned={false} departing

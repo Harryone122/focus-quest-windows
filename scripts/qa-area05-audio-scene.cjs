@@ -13,7 +13,7 @@ module.exports=async({app,win,profile,root})=>{
   let s=await state();assert.equal(s.audio.loaded,43);assert.deepEqual(s.audio.failures,[]);assert.equal(s.audio.settings.musicVolume,25);assert.equal(s.audio.windRockRate,1.5);
   report.checks.push('43 installed recordings decode; accepted 25% music, 35% environment, wind-rock rate 1.5');
   await until(async()=>!!(await state()).audio.music);
-  s=await state();const first=s.audio.history.find(e=>e.bgmSeconds);assert(first.clock>=19.9&&first.clock<=41);assert(first.bgmSeconds>=60&&first.bgmSeconds<=120);report.firstMusic=first;
+  s=await state();const first=s.audio.history.find(e=>e.bgmSeconds);report.firstMusic=first;assert(first.clock>=19.9&&first.clock<=41);assert(first.bgmSeconds>=60&&first.bgmSeconds<=120);
   report.checks.push('arrival 20–40s environment-only; real music segment 60–120s at a bar candidate');
   await js('echoTrialScene.pause()');await until(async()=>(await state()).audio.context==='suspended');const frozen=await state();await wait(700);s=await state();assert.equal(s.audio.clock,frozen.audio.clock);assert.equal(s.sim,frozen.sim);assert.deepEqual(s.position,frozen.position);assert.deepEqual(s.audio.music,frozen.audio.music);
   await js('echoTrialScene.play()');await until(async()=>(await state()).audio.context==='running');

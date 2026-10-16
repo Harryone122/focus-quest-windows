@@ -147,8 +147,86 @@ s=s.replace('function riverbedHeight(x, z) {\n  const height = H(x, z), [distanc
 s=s.replace('    const [channelDistance,channelAlong]=riverDist(cx,cz);\n    // The spillway is bare riverbed rock, including terrain seen through the curtain.\n    if(channelAlong>4.35&&channelDistance<riverWidth(channelAlong)+0.5&&cy<0.7) col=ROCK.clone();\n    else if (CUTZ(cx - 0.6, cz) || CUTZ(cx + 0.6, cz) || CUTZ(cx, cz - 0.6) || CUTZ(cx, cz + 0.6) ? (cy > 1.62 && ny < 0.62) : false) col = CUTC.clone(); // every steep face along the cut edge takes the sawn-stone colour (no alternating teeth)\n', '    if (CUTZ(cx - 0.6, cz) || CUTZ(cx + 0.6, cz) || CUTZ(cx, cz - 0.6) || CUTZ(cx, cz + 0.6) ? (cy > 1.62 && ny < 0.62) : false) col = CUTC.clone(); // every steep face along the cut edge takes the sawn-stone colour (no alternating teeth)\n')
 s=s.replace('      const w = riverWidth(t), y = H(x, z) + 0.32, blend=riverLipBlend(t);\n      const nx=(-dz/L)*(1-blend)+Math.sin(FALL_TH)*blend, nz=(dx/L)*(1-blend)-Math.cos(FALL_TH)*blend;\n      const N=Math.hypot(nx,nz);\n      return [[x + nx/N*w, y, z + nz/N*w], [x - nx/N*w, y, z - nz/N*w]];', '      const w = riverWidth(t), y = H(x, z) + 0.32;\n      return [[x - dz/L*w, y, z + dx/L*w], [x + dz/L*w, y, z - dx/L*w]];')
 s=s.replace('curtain(3.5, -0.05, 0, 0.75, 0.95, 1.3); curtain(3.0, 0.14, 0.1, 0.95, 1.12, 4.7); curtain(1.7, 0.34, 0.55, 0.7, 1.3, 8.1); curtain(1.1, 0.42, -0.85, 0.6, 1.22, 2.9);\n\n', "curtain(3.5, -0.05, 0, 0.75, 0.95, 1.3); curtain(3.0, 0.14, 0.1, 0.95, 1.12, 4.7); curtain(1.7, 0.34, 0.55, 0.7, 1.3, 8.1); curtain(1.1, 0.42, -0.85, 0.6, 1.22, 2.9);\n// Opaque blue water behind the original white sheets hides the cliff through their gaps.\n// Follow the falling water's arc; keep the authored river width unchanged.\nconst fallBacking=curtain(3.5,-0.10,0,1,0.95,1.3);\nfallBacking.renderOrder=1;\nfallBacking.material.transparent=false;\nfallBacking.material.depthWrite=true;\nfallBacking.material.fragmentShader=NOISE_GLSL+`\nvarying vec2 vUv; uniform float uTime; uniform vec3 uTint;\nvoid main(){\n  float flow=vn(vec2(vUv.x*10.,vUv.y*18.-uTime*1.8));\n  vec3 blue=mix(vec3(0.27,0.46,0.52),vec3(0.42,0.62,0.66),0.3+0.35*flow);\n  gl_FragColor=vec4(blue*uTint,1.);\n}`;\nfallBacking.material.needsUpdate=true;\n\n")
+
+# User-approved fan: match the river lip, then ease the waterfall width outwards.
+s=s.replace('function fallPt(u, drop, w, outOff, lat0 = 0, bow = 0.22) { const lat = lat0 + (u - 0.5) * w * (1 + 0.16 * drop / FALL_L), ou = outOff + 0.95 * Math.sqrt(Math.max(0, drop)) + bow * Math.sin(u * Math.PI) * (0.3 + drop / FALL_L);', 'function fallPt(u, drop, w, outOff, lat0 = 0, bow = 0.22) {\n  // All water sheets share the narrow river lip, then fan out with a smooth tangent.\n  const d = Math.max(0, drop), f = Math.min(1, d / 1.8), fan = f * f * (3 - 2 * f);\n  const lipWidth = riverWidth(5) * 2;\n  const width = lipWidth + (w * (1 + 0.16 * d / FALL_L) - lipWidth) * fan;\n  const lat = lat0 * fan + (u - 0.5) * width;\n  const ou = outOff * fan + 0.95 * d / Math.sqrt(d + 0.15) + bow * Math.sin(u * Math.PI) * (0.3 + d / FALL_L) * fan;')
+# 2026-10-14 user correction: the entire falling water is white foam from the cliff lip.
+s=s.replace('// Blue only near the lip; as the water falls it aerates into white foam, so the lower fall reads as white spray.', '// User-approved correction: white foam starts at the cliff lip; no blue backing on the fall.')
+s=s.replace('vec3(0.56, 0.75, 0.81)', 'vec3(0.84, 0.84, 0.84)')
+s=s.replace('  float flow=vn(vec2(x*10.,y*18.-t*1.8));\n', '')
+s=s.replace('  vec3 blue=mix(vec3(0.27,0.46,0.52),vec3(0.42,0.62,0.66),0.3+0.35*flow);\n', '')
+s=s.replace('vec3(0.82,0.88,0.91),vec3(0.97,0.99,1.)', 'vec3(0.84),vec3(0.99)')
+s=s.replace('  float aer=smoothstep(0.12,0.42,y+(churn-0.5)*0.12);\n', '')
+s=s.replace('gl_FragColor=vec4(mix(blue,foam,aer)*uTint,1.);', 'gl_FragColor=vec4(foam*uTint,1.);')
 footer=footer.replace('curtainWidth:3.5,lipCenterGap:', 'curtainWidth:3.5,opaqueBacking:!fallBacking.material.transparent&&fallBacking.material.depthWrite,lipCenterGap:')
-(out/'echoQuarryScene.js').write_text(header+s+footer,encoding='utf-8')
+# 2026-10-14 Claude design pass on the Area 05 fall (user: white foam to the lip, no blue curtain, fan-shaped join).
+# Applied on top of the Codex working-tree version (white backing + 1.8-unit flare).
+WF_OLD_FALLPT = '''  const d = Math.max(0, drop), f = Math.min(1, d / 1.8), fan = f * f * (3 - 2 * f);
+  const lipWidth = riverWidth(5) * 2;
+  const width = lipWidth + (w * (1 + 0.16 * d / FALL_L) - lipWidth) * fan;
+  const lat = lat0 * fan + (u - 0.5) * width;'''
+WF_NEW_FALLPT = '''  // The main sheet starts exactly at the river's lip width, curls over the edge, then opens as one even fan
+  // down the whole drop (FALL_SPREAD x the lip at the bottom) instead of flaring out right under the lip.
+  const d = Math.max(0, drop), f = Math.min(1, d / 1.8), fan = f * f * (3 - 2 * f);
+  const lipWidth = riverWidth(5) * 2, k = Math.min(1.2, d / FALL_L), a = 0.18;
+  const open = (k < a ? k * k / (2 * a) : k - a / 2) / (1 - a / 2);
+  const width = lipWidth * (w / 3.5) * (1 + (FALL_SPREAD - 1) * open);
+  const lat = lat0 * fan * 0.62 + (u - 0.5) * width;'''
+WF_OLD_CONST = 'const FW = window.__fall, FALL_L = 9.6, '
+WF_NEW_CONST = 'const FW = window.__fall, FALL_L = 9.6, FALL_SPREAD = 1.35, '
+WF_OLD_CURT = 'vec3 c = mix(vec3(0.84, 0.84, 0.84), vec3(0.97, 0.99, 1.), clamp(streak * 0.85 + crest * 0.8 + lace * 0.3, 0., 1.));'
+WF_NEW_CURT = ('vec3 c = mix(vec3(0.88, 0.9, 0.92), vec3(0.98, 0.99, 1.), clamp(streak * 0.85 + crest * 0.5 + lace * 0.3, 0., 1.));\n'
+               '  c = mix(vec3(0.55, 0.72, 0.75), c, smoothstep(0.01, 0.12, y)); // river colour carries over the lip, gone within the curl')
+WF_OLD_BACK = '''  float churn=vn(vec2(x*13.+3.,y*9.-t*2.4))*0.6+vn(vec2(x*29.,y*22.-t*3.3)+7.)*0.4;
+  vec3 foam=mix(vec3(0.84),vec3(0.99),smoothstep(0.3,0.75,churn));
+  if(churn<smoothstep(0.84,0.97,y)*1.05)discard;
+  gl_FragColor=vec4(foam*uTint,1.);'''
+WF_NEW_BACK = '''  float churn=vn(vec2(x*13.+3.,y*9.-t*2.4))*0.6+vn(vec2(x*29.,y*22.-t*3.3)+7.)*0.4;
+  float streak=vn(vec2(x*26.+5.,sqrt(y)*8.-t*2.2));
+  vec3 foam=mix(vec3(0.8,0.83,0.86),vec3(1.),smoothstep(0.25,0.8,churn*0.55+streak*0.5));
+  // only the curl over the lip keeps the river's blue-green; below it the whole fall is white water
+  vec3 lip=mix(vec3(0.42,0.62,0.66),vec3(0.82,0.92,0.93),0.3+0.4*churn);
+  float aer=smoothstep(0.015,0.13,y+(churn-0.5)*0.05);
+  if(churn<smoothstep(0.84,0.97,y)*1.05)discard;
+  gl_FragColor=vec4(mix(lip,foam,aer)*uTint,1.);'''
+def wf_apply(s):
+    for old, new in ((WF_OLD_CONST, WF_NEW_CONST), (WF_OLD_FALLPT, WF_NEW_FALLPT), (WF_OLD_CURT, WF_NEW_CURT), (WF_OLD_BACK, WF_NEW_BACK)):
+        if s.count(old) != 1: print('waterfall pass: no single match for', old[:60]); continue
+        s = s.replace(old, new)
+    return s
+s = wf_apply(s)
+
+# Seam fix: share river colour, texture phase, opacity and final edge with the waterfall.
+s=s.replace('const CURTAIN_FS = NOISE_GLSL + `', 'const RIVER_COLOR_GLSL = `\nvec3 riverColor(float s, float sd, float t, float len){\n  float rap = smoothstep(len - 7., len, s);\n  // Fixed advection keeps spatial frequency stable even after a full exploration.\n  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - t * 0.9)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - t * 1.17) + 7.) * 0.4;\n  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - t * 1.62)));\n  float bank = smoothstep(0.6, 1., abs(sd));\n  vec3 c = mix(vec3(0.27, 0.46, 0.52), vec3(0.42, 0.62, 0.66), 0.25 + 0.5 * n + 0.25 * bank);\n  c = mix(c, vec3(0.90, 0.97, 0.97), clamp(st * 0.6 + bank * 0.35 * smoothstep(0.45, 0.8, n) + rap * 0.55 * smoothstep(0.35, 0.75, n), 0., 1.));\n  return c;\n}`;\nconst CURTAIN_FS = NOISE_GLSL + `')
+s=s.replace('  float a = (0.32 + 0.68 * streak) * edge;', '  float a = (0.32 + 0.68 * streak) * edge; a *= smoothstep(0., 0.055, y);')
+s=s.replace('fallBacking.material.fragmentShader=NOISE_GLSL+`', 'fallBacking.material.fragmentShader=NOISE_GLSL+RIVER_COLOR_GLSL+`')
+s=s.replace('varying vec2 vUv; uniform float uTime; uniform vec3 uTint;\nvoid main(){\n  float x=vUv.x,y=vUv.y,t=uTime;', 'varying vec2 vUv; uniform float uTime, uRiverLen; uniform vec3 uTint;\nvoid main(){\n  float x=vUv.x,y=vUv.y,t=uTime;')
+s=s.replace('  vec3 lip=mix(vec3(0.42,0.62,0.66),vec3(0.82,0.92,0.93),0.3+0.4*churn);', '  vec3 lip=riverColor(uRiverLen+y*9.6,1.-2.*x,t,uRiverLen);')
+s=s.replace('fallBacking.material.needsUpdate=true;', 'fallBacking.material.uniforms.uRiverLen={value:window.__riverLen || 20};\nfallBacking.material.needsUpdate=true;')
+s=s.replace('const RIV_FS = NOISE_GLSL + `', 'const RIV_FS = NOISE_GLSL + RIVER_COLOR_GLSL + `')
+s=s.replace('void main(){ float s = vF.x, sd = vF.y; float rap = smoothstep(uLen - 7., uLen, s);\n  // Fixed advection keeps spatial frequency stable even after a full exploration.\n  float n = vn(vec2(sd * 2.2 + 3., s * 1.1 - uTime * 0.9)) * 0.6 + vn(vec2(sd * 4.7, s * 2.6 - uTime * 1.17) + 7.) * 0.4;\n  float st = smoothstep(0.66, 0.92, vn(vec2(sd * 7. + s * 0.15, s * 3.0 - uTime * 1.62)));\n  float bank = smoothstep(0.6, 1., abs(sd));\n  vec3 c = mix(vec3(0.27, 0.46, 0.52), vec3(0.42, 0.62, 0.66), 0.25 + 0.5 * n + 0.25 * bank);\n  c = mix(c, vec3(0.90, 0.97, 0.97), clamp(st * 0.6 + bank * 0.35 * smoothstep(0.45, 0.8, n) + rap * 0.55 * smoothstep(0.35, 0.75, n), 0., 1.));\n  gl_FragColor = vec4(c * uTint, 0.94); }', 'void main(){ float s = vF.x, sd = vF.y;\n  vec3 c = riverColor(s, sd, uTime, uLen);\n  // Match the opaque falling water gradually before reaching its lip.\n  gl_FragColor = vec4(c * uTint, mix(0.94,1.,smoothstep(uLen-0.65,uLen,s))); }')
+s=s.replace('  return [FW.fx + ft[0] * lat + fo[0] * ou, FW.fy - drop, FW.fz + ft[1] * lat + fo[1] * ou]; }', '  const edge = out.children.find(c => c.isMesh && c.geometry.attributes.aFlow).geometry.attributes.position;\n  const left = edge.count - 4, right = edge.count - 2, blend = Math.min(1,d/0.6), join = blend*blend*(3-2*blend);\n  const lx = edge.getX(left)*(1-u)+edge.getX(right)*u, lz = edge.getZ(left)*(1-u)+edge.getZ(right)*u;\n  return [lx*(1-join)+(FW.fx + ft[0]*lat + fo[0]*ou)*join, FW.fy-drop, lz*(1-join)+(FW.fz + ft[1]*lat + fo[1]*ou)*join]; }')
+s=s.replace('function fallPt(u, drop, w, outOff, lat0 = 0, bow = 0.22) {', 'const riverLipPositions = out.children.find(c => c.isMesh && c.geometry.attributes.aFlow).geometry.attributes.position;\nfunction fallPt(u, drop, w, outOff, lat0 = 0, bow = 0.22) {')
+s=s.replace('const edge = out.children.find(c => c.isMesh && c.geometry.attributes.aFlow).geometry.attributes.position;', 'const edge = riverLipPositions;')
+# Preserve the verified hand/staff contact fix when re-porting the design.
+grip_anchor = 'const staff = new THREE.Group(); staff.position.set(0.2, 0.25, 0.08); upper.add(staff);'
+grip_pose = 'staff.rotation.x = pose.staffX; staff.rotation.z = pose.staffZ; cloak.rotation.z = swing * 0.07;'
+assert s.count(grip_anchor) == 1 and s.count(grip_pose) == 1, 'Traveller grip source changed'
+s=s.replace(grip_anchor, 'tmesh(new THREE.SphereGeometry(0.03, 6, 4), TMAT.skin, armR, 0, -0.3, 0);\n'+grip_anchor+'\nconst staffGripOffset = new THREE.Vector3();')
+s=s.replace(grip_pose, grip_pose+'\n  armR.rotation.z = 0.7;\n  staffGripOffset.set(0, -0.1, 0).applyQuaternion(staff.quaternion);\n  staff.position.set(0, -0.3, 0).applyQuaternion(armR.quaternion).add(armR.position).sub(staffGripOffset);')
+
+def refine_scene(text):
+    text="import { buildRefinedTraveller, buildWorldPass } from '../styleRefine.js';\n"+text
+    marker='book.rotation.x = -0.4; book.visible = false;'
+    assert marker in text
+    text=text.replace(marker,marker+'\nconst refinedTraveller=buildRefinedTraveller({THREE,trav,body,legL,legR,upper,cloak,head,armL,armR,staff,lantern,lanternGlow});refinedTraveller.set(true);',1)
+    text=text.replace('  camera_update(dt);','  refinedTraveller.tick(dt); refinedTraveller.syncLight();\n  camera_update(dt); refinedWorld.tick(cam);',1)
+    text=text.replace('reset();applyLook(1);update(.001);draw();const warmAt=', 'const refinedWorld=buildWorldPass({THREE,scene,out,sun,win:window});refinedWorld.set(true);\nreset();applyLook(1);update(.001);draw();const warmAt=',1)
+    text=text.replace('destroy(){audio.dispose();','destroy(){refinedTraveller.dispose();refinedWorld.dispose();audio.dispose();',1)
+    text=text.replace('const refinedWorld=buildWorldPass',"qaChecks['refinement']=function(action,dt=.2){\n if(action==='step')update(dt);\n if(action==='snapshot'||action==='step')return {rotation:refinedTraveller.lanternPivot.rotation.toArray().slice(0,3),position:trav.position.toArray(),stats:refinedWorld.stats,sim};\n if(action==='portrait') {scene.updateMatrixWorld(true);const c=cam.clone(),p=trav.localToWorld(new THREE.Vector3(0,.63,0));c.position.copy(p).add(new THREE.Vector3(2,1,3).applyQuaternion(trav.quaternion));c.lookAt(p);c.left=-1.2;c.right=1.2;c.top=.75;c.bottom=-.75;c.zoom=1;c.updateProjectionMatrix();refinedWorld.tick(c);renderer.render(scene,c);const png=renderer.domElement.toDataURL('image/png').split(',')[1];refinedWorld.tick(cam);return png;}\n};\n"+'const refinedWorld=buildWorldPass',1)
+    return text
+
+(out/'echoQuarryScene.js').write_text(refine_scene(header+s+footer),encoding='utf-8')
 import importlib.util
 audio_spec=importlib.util.spec_from_file_location('wire_area05_audio',root/'scripts/wire-area05-audio.py')
 audio_wire=importlib.util.module_from_spec(audio_spec);audio_spec.loader.exec_module(audio_wire)

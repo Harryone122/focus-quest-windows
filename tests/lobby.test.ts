@@ -1,10 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { afterFocusFromSnapshot, departureFromSnapshot, lobbyFromSnapshot } from '../src/renderer/src/lobby/fromSnapshot'
 import type { AppSnapshot } from '../src/shared/types'
 
 let db: FocusQuestDatabase
-beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date(2026, 8, 27, 9)); db = new FocusQuestDatabase(':memory:') })
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date(2026, 8, 27, 9)); db = liveDatabase(':memory:') })
 afterEach(() => { db.close(); vi.restoreAllMocks(); vi.useRealTimers() })
 const advance = (seconds: number): void => { vi.setSystemTime(Date.now() + seconds * 1000) }
 function prepare(minutes: number = 50): AppSnapshot {

@@ -22,6 +22,8 @@ export type MossLobbyView = { kind: 'close' } | { kind: 'look'; exit: MossExit }
 
 export interface MossStationSceneOptions {
   /** 'lobby' holds the saved state still (Today): the traveller rests on the bench or waits at the last lamp. */
+  quietFocus?: boolean
+  replay?: boolean
   mode?: 'focus' | 'lobby'
   lobbyView?: MossLobbyView | null
   /** Effective seconds on this node (saved progress + this Focus); the same value the HUD uses. */
@@ -66,6 +68,15 @@ export interface MossStationSceneHandle {
   /** No-op: Area 02 finds play from the saved event action itself. */
   playSpecialFind(eventId: string): void
   setWorldState(state: { coreTaken?: boolean; worldMarks?: string[] }): void
+  beginRecapEvent(record:import('../../../shared/focusPresentation').FocusEventRecord,actionId:number):void
+  warmRecapEvent(record:import('../../../shared/focusPresentation').FocusEventRecord):Promise<void>
+  showRecapOverview(close?:boolean):void
+  setRecapLamps(count:number):void
+  setRecapDormant(dormant:boolean):void
+  enableRecapTransitions():void
+  beginRecapTransition(duration:number):void
+  setRecapRate?(rate:number):void
+  setQuietFocus(quiet:boolean):void
   setPaused(paused: boolean): void
   setUiFade(opacity: number): void
   setChrome(chrome: CloudRuinsChrome): void

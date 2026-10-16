@@ -1,12 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { FOREST_MAP_ID, MOSS_MAP_ID } from '../src/shared/specialFinds'
 import { COLLECTION_CLUES } from '../src/shared/collectionRoom'
 import { lobbyFromSnapshot } from '../src/renderer/src/lobby/fromSnapshot'
 
 type Row = Record<string, any>
 let db: FocusQuestDatabase
-beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-02T03:00:00Z')); db = new FocusQuestDatabase(':memory:') })
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-02T03:00:00Z')); db = liveDatabase(':memory:') })
 afterEach(() => { db.close(); vi.useRealTimers() })
 const advance = (s: number) => vi.setSystemTime(Date.now() + s * 1000)
 function start() {

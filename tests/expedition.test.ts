@@ -4,6 +4,13 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { FocusQuestDatabase } from '../src/main/database'
+
+// Existing timing/story fixtures exercise the live presentation; quiet flow is covered separately.
+function liveDatabase(...args: ConstructorParameters<typeof FocusQuestDatabase>): FocusQuestDatabase {
+  const db = new FocusQuestDatabase(...args)
+  db.updateSettings({ focusPresentation: 'live' })
+  return db
+}
 import { chooseRouteAreas, fullThresholdSeconds, generateRoutes } from '../src/shared/expedition'
 import { FOREST_MAP_ID, MOSS_MAP_ID } from '../src/shared/specialFinds'
 import type { AppSnapshot, BackupPayload, ExpeditionNode } from '../src/shared/types'
@@ -19,7 +26,7 @@ function database(): { db: FocusQuestDatabase; path: string } {
   const directory = mkdtempSync(join(tmpdir(), 'focus-quest-expedition-'))
   directories.push(directory)
   const path = join(directory, 'focus-quest.db')
-  return { db: new FocusQuestDatabase(path), path }
+  return { db: liveDatabase(path), path }
 }
 
 function createTask(db: FocusQuestDatabase, title = '完成 Gameplay Prototype', role: 'main' | 'backlog' = 'main'): AppSnapshot {
@@ -375,7 +382,7 @@ describe('reward, route, and restart persistence', () => {
     const children = resolved.expeditionNodes.filter((entry) => entry.parentNodeId === node.id).map((entry) => entry.id)
     db.close()
 
-    const reopened = new FocusQuestDatabase(path)
+    const reopened = liveDatabase(path)
     let restored = reopened.getSnapshot()
     const restoredNode = restored.expeditionNodes.find((entry) => entry.id === node.id)!
     expect(restored.pendingDebrief?.resolution).toBe('full')
@@ -386,7 +393,7 @@ describe('reward, route, and restart persistence', () => {
     restored = reopened.getSnapshot()
     reopened.close()
 
-    const reopenedAgain = new FocusQuestDatabase(path)
+    const reopenedAgain = liveDatabase(path)
     const awaitingRoute = reopenedAgain.getSnapshot()
     expect(awaitingRoute.pendingDebrief).not.toBeNull()
     expect(awaitingRoute.expeditionNodes.find((entry) => entry.id === node.id)?.state).toBe('awaiting_route')
@@ -409,7 +416,7 @@ describe('reward, route, and restart persistence', () => {
     const { snapshot, node } = startRunAndSelect(db, 50)
     const sessionId = startNodeFocus(db, snapshot, node)
     db.close()
-    const reopened = new FocusQuestDatabase(path)
+    const reopened = liveDatabase(path)
     const restored = reopened.getSnapshot()
     expect(restored.activeSession?.id).toBe(sessionId)
     expect(restored.activeSession?.nodeId).toBe(node.id)
@@ -425,7 +432,7 @@ describe('reward, route, and restart persistence', () => {
     snapshot = first.db.selectExpeditionNode(snapshot.todayRun!.id, route.id)
     first.db.close()
 
-    let reopened = new FocusQuestDatabase(first.path)
+    let reopened = liveDatabase(first.path)
     let restored = reopened.getSnapshot()
     expect(selectedNodeForRun(restored.todayRun, restored.expeditionNodes)?.id).toBe(route.id)
     expect(canStartSelectedNode(restored.todayRun, selectedNodeForRun(restored.todayRun, restored.expeditionNodes), restored.tasks[0])).toBe(true)
@@ -433,7 +440,7 @@ describe('reward, route, and restart persistence', () => {
     restored = beginFor(reopened, sessionId, 23 * 60)
     reopened.close()
 
-    reopened = new FocusQuestDatabase(first.path)
+    reopened = liveDatabase(first.path)
     restored = reopened.getSnapshot()
     expect(restored.pendingDebrief?.resolution).toBe('partial')
     expect(selectedNodeForRun(restored.todayRun, restored.expeditionNodes)?.state).toBe('partial')
@@ -537,7 +544,7 @@ describe('work outcome and compatibility', () => {
       CREATE TABLE events (id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT NOT NULL, numeric_payload TEXT NOT NULL);
     `)
     raw.close()
-    const migrated = new FocusQuestDatabase(path)
+    const migrated = liveDatabase(path)
     expect(migrated.getSnapshot().todayRun).toBeNull()
     expect(migrated.getSnapshot().rpg.focusSeconds).toBe(0)
     migrated.close()

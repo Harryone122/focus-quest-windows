@@ -1,3 +1,4 @@
+import { nurseryAudioFrame } from '../src/renderer/src/glassNursery/nurseryAudioFrame'
 import {describe,it,expect} from 'vitest'
 import {crossedNurseryCues,nurseryAudioCues} from '../src/renderer/src/glassNursery/nurseryAudioCues'
 describe('nursery audio follows the local visible action',()=>{
@@ -20,4 +21,9 @@ describe('nursery audio follows the local visible action',()=>{
  it('marks the three strokes at the same thresholds as the new visible ticks',()=>{
   expect(nurseryAudioCues.marks.map(c=>c.at)).toEqual([.2,.42,.64])
  })
+})
+
+it('keeps valid scene automation intact and makes transient invalid values safe for Web Audio',()=>{
+ const valid={run:.4,turn:.2,mist:.7,vortex:.1,burst:0,fade:1};expect(nurseryAudioFrame(valid)).toEqual(valid)
+ const invalid={...valid,mist:NaN,vortex:Infinity,fade:NaN};expect(nurseryAudioFrame(invalid)).toEqual({...valid,mist:0,vortex:0,fade:0});expect(Number.isNaN(invalid.mist)).toBe(true)
 })

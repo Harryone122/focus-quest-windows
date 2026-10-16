@@ -3,7 +3,7 @@ import type { AppSnapshot, FocusSession } from '../../../shared/types'
 import { DELETE_YESTERDAY_CONFIRMATION } from '../../../shared/taskList'
 import { LobbyA } from './LobbyA'
 import { DepartureSheet } from './DepartureSheet'
-import { AfterFocus } from './AfterFocus'
+import { FocusRecap } from './FocusRecap'
 import { afterFocusFromSnapshot, departureFromSnapshot, lobbyFromSnapshot, selectedNode } from './fromSnapshot'
 import type { DepartureInput, LobbyActions } from './lobbyTypes'
 
@@ -104,9 +104,13 @@ export function ConnectedAfterFocus(props: Props & { onReturned: () => void; ret
   const { run, busy } = useMutation(props)
   const model = afterFocusFromSnapshot(snapshot)
   if (!model || !snapshot.pendingDebrief || !snapshot.todayRun) return null
-  const pending = snapshot.pendingDebrief, lobby = lobbyFromSnapshot(snapshot)
-  return <AfterFocus model={model} seed={lobby.seed} coreOwned={lobby.map.coreOwned} worldMarks={lobby.map.worldMarks} retainFocusBackdrop={props.retainFocusBackdrop} busy={busy} actions={{
-    answerTask: (done) => void run(() => window.focusQuest.finishListFocus(pending.sessionId, done)),
+  const pending = snapshot.pendingDebrief
+  return <FocusRecap snapshot={snapshot} model={model} busy={busy} actions={{
+    answerTask: (done) => void run(async () => {
+      const next=await window.focusQuest.finishListFocus(pending.sessionId, done)
+      if(afterFocusFromSnapshot(next)?.pendingEvents.length)return next
+      const returned=await window.focusQuest.dismissDebrief(pending.sessionId);onReturned();return returned
+    }),
     chooseEvent: (nodeId, key) => void run(() => window.focusQuest.chooseRunRelic(pending.runId, nodeId, key)),
     finish: () => void run(async () => {
       const next = await window.focusQuest.dismissDebrief(pending.sessionId)

@@ -1,3 +1,4 @@
+import refinedSource from '../styleRefine.js?raw'
 import { TravelLoading } from '../loading/TravelLoading'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import nurserySilhouette from '../../../../docs/area07/campfire-silhouette-07.html?raw'
@@ -35,7 +36,9 @@ function wayFor(route: LobbyRouteOption | undefined): Way | null {
 
 function embeddedDocument(): string {
   const moduleUrl = new URL(threeModuleUrl, window.location.href).href
+  const refinedScript = refinedSource.replace(/export function /g, 'function ')
   const bootstrap = `<script type="module">import * as THREE from ${JSON.stringify(moduleUrl)}; window.THREE = THREE; window.__campfireEmbedded = true;
+    ${refinedScript}
     const poseTimes = ${JSON.stringify(campfirePoseTimes)};
     window.__campfireTime = seconds => { const t = Math.max(0, Math.min(8, seconds)); for(let i=1;i<poseTimes.length;i++){const [b,y]=poseTimes[i],[a,x]=poseTimes[i-1];if(t<=b)return x+(y-x)*(t-a)/(b-a)}return 5; };\n`
   const silhouette = nurserySilhouette.slice(nurserySilhouette.indexOf('function silGlassNursery(d)'),nurserySilhouette.indexOf('// destinations waiting in the mist'))
@@ -74,7 +77,17 @@ function embeddedDocument(): string {
     .replace('waterM.opacity = 0.35 + 0.65 * kr; glintM.opacity = 0.18 * kr', 'waterM.opacity = 0.08 + 0.18 * kr; glintM.opacity = 0.045 * kr')
   const html = prototypeHtml.replace('const DEST = {};',silhouette+'\n'+echoSilhouette+'\n'+lakeSilhouette+'\nconst DEST = {};').replace(/<script src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/three\.js\/r128\/three\.min\.js"><\/script>\s*<script>/, bootstrap)
   if (html === prototypeHtml) throw new Error('營火原型的場景入口已變更，無法載入。')
-  const paced = html
+  const refinedHtml = html.replace('const HERO_SEAT =', `
+const heroRefined = buildRefinedTraveller({THREE:T,trav:hero.g,body:hero.hip,upper:hero.torso,cloak:hero.cloak,head:hero.head,
+  legL:hero.legs[0].thigh,legR:hero.legs[1].thigh,armL:hero.arms[0].sh,armR:hero.arms[1].sh,staff:heroStaff.g,staffOffset:.54,
+  lantern:heroStaff.g.children.find(o=>o.isPointLight),lanternGlow:heroStaff.g.children.find(o=>o.isSprite)});
+heroRefined.set(true);
+window.addEventListener('pagehide',()=>heroRefined.dispose(),{once:true});
+heroStaff.lantern.g = heroRefined.lightAnchor;
+heroStaff.lantern.set = v => { heroRefined.materials.glass.emissiveIntensity=1.35*v; const l=heroStaff.g.children.find(o=>o.isPointLight);if(l)l.intensity=v;heroRefined.lanternPivot.children.find(o=>o.isSprite).material.opacity=.3*v; };
+heroStaff.lantern.set(0);
+const HERO_SEAT =`).replace('  // lanterns hang upright and swing a little', '  heroRefined.tick(dt); heroRefined.syncLight();\n  // lanterns hang upright and swing a little');
+  const paced = refinedHtml.replace('[heroStaff, oldStaff].forEach', '[oldStaff].forEach')
     .replace('S.t += dt; const t = S.t; if (t > 2.55', 'S.t += dt; const t = window.__campfireTime(S.t); if (t > 2.55')
     .replace('const t = S.t; const tilt = S.mode', 'const t = window.__campfireTime(S.t); const tilt = S.mode')
     .replace('w: 6.2 }, 1.6); S.panned', 'w: 6.2 }, 4.1); S.panned')

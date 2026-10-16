@@ -161,8 +161,8 @@ export function LobbyA({ model, actions, audioSettings, active = true, busy = fa
       playFromStart={Boolean(departureSession)}
       onDepartureComplete={onDepartureComplete}
       departureStartedAt={departureSession?.startedAt}
-      departureElapsedMs={departureSession ? focusElapsedMs(departureSession) : undefined}
-      departurePaused={Boolean(departureSession?.suspendedAt)}
+      departureElapsedMs={departureSession ? departureSession.beforeFocus ? Math.max(0,Date.now()-Date.parse(departureSession.beforeFocus.startedAt)) : focusElapsedMs(departureSession) : undefined}
+      departurePaused={Boolean(departureSession?.suspendedAt&&!departureSession?.beforeFocus)}
       onFailed={() => setSceneFailed(true)}
     /> : <LobbyStage
       audioSettings={audioSettings}

@@ -9,24 +9,35 @@ const report={checks:[],errors:[]};
   b.onLoad({filter:/\.txt\?raw$/},a=>({loader:'text',contents:fs.readFileSync(a.path.replace(/\?raw$/,''),'utf8')}));
   b.onLoad({filter:/nurseryAudio\.ts$/},()=>({loader:'js',contents:'export function createNurseryAudio(){return null}'}));
   b.onLoad({filter:/(glassNursery|mossStation|reflectionLake|cloudRuins)Scene\.js$/},a=>{let s=fs.readFileSync(a.path,'utf8').replace(/\r\n/g,'\n');
-   if(a.path.includes('glassNursery'))s=s.replace(/let compiled=false;[^\n]+/,'let compiled=true; window.__step=()=>draw();window.__position=()=>TRV.pos.toArray();').replace('  glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);','  if(window.__draw)glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);');
+   if(a.path.includes('glassNursery')){
+    const render='glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);';
+    assert(s.includes(render),'Nursery render hook changed; update the audit before running');
+    s=s.replace(/let compiled=false;[^\n]+/,'let compiled=true; window.__step=()=>draw();window.__position=()=>TRV.pos.toArray();').replace(render,'if(window.__draw)'+render);
+   }
    else if(a.path.includes('reflectionLake'))s=s.replace('function draw(now=performance.now()) {','window.__step=dt=>{applyAction(performance.now());update(dt);};window.__position=()=>trav.position.toArray();\nfunction draw(now=performance.now()) {');
    else s=s.replace('  let programsReady = !!opts.manualFrames;','  window.__step=dt=>update(Math.min(.05,dt),dt);window.__position=()=>trav.position.toArray();\n  let programsReady = !!opts.manualFrames;');
+   const contact=`window.__contact=()=>{${a.path.includes('glassNursery')?'const {armR,staff,head}=TU;':''}scene.updateMatrixWorld(true);let pole,hat;staff.traverse(o=>{if(o.geometry?.type==='TubeGeometry')pole=o});head.traverse(o=>{if(o.geometry?.type==='LatheGeometry')hat=o});if(!pole||!hat)throw Error('Refined model missing');const hand=armR.localToWorld(new T.Vector3(0,-.29,.004)),points=pole.geometry.parameters.path.getPoints(80).map(p=>pole.localToWorld(p));let gap=Infinity,hatHits=0;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i];gap=Math.min(gap,hand.distanceTo(new T.Line3(a,b).closestPointToPoint(hand,true,new T.Vector3())));hatHits+=new T.Raycaster(a,b.clone().sub(a).normalize(),0,a.distanceTo(b)).intersectObject(hat,false).length;}return {gap,hatHits}};`;
+   const shot=`window.__shot=()=>{scene.updateMatrixWorld(true);const center=trav.localToWorld(new T.Vector3(0,.6,0));camera.position.copy(center).add(new T.Vector3(2,1,3).applyQuaternion(trav.quaternion));camera.lookAt(center);camera.left=-1.2;camera.right=1.2;camera.top=.75;camera.bottom=-.75;camera.zoom=1;camera.updateProjectionMatrix();renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png').split(',')[1]};`;
+   s=s.replace('window.__position=()=>',contact+shot+'window.__position=()=>');
    return {loader:'js',contents:s};});
  }}]});
  fs.writeFileSync(path.join(out,'index.html'),`<!doctype html><style>html,body,#host{margin:0;width:100%;height:100%;overflow:hidden}</style><div id="host"></div><script type="module">window.__now=10000;performance.now=()=>__now;requestAnimationFrame=()=>0;cancelAnimationFrame=()=>{};setInterval=()=>0;window.code=await import('./scenes.mjs');window.make=(name,extra={})=>{window.handle?.destroy();host.replaceChildren();window.handle=code[name](host,{manualFrames:true,targetSeconds:3000,seed:17,...extra});};window.ready=true;</script>`);
  await app.whenReady();const win=new BrowserWindow({width:1280,height:800,show:false});win.webContents.on('console-message',(_e,l,m)=>{if(l>=3)report.errors.push(m)});await win.loadFile(path.join(out,'index.html'));const js=s=>win.webContents.executeJavaScript(s,true);
  for(let i=0;i<100&&!await js('window.ready===true');i++)await new Promise(r=>setTimeout(r,100));
+ assert(await js('window.ready===true'),'Scene audit failed to initialize: '+report.errors.join('\n'));
  for(const name of process.env.FOCUSQUEST_QA_FIXTURES_ONLY?[]:['nursery','moss','lake','cloud']){
   const result=await js(`(()=>{const name=${JSON.stringify(name)},dt=.2,failures=[],events=new Set();let state,marks,snapshot,advance,setter;
    if(name==='nursery'){state=code.n.createNurseryRuntime('continuity',[]);marks=code.n.emptyNurseryMarks();advance=code.n.advanceNurseryRuntime;setter='setNurseryState';snapshot=()=>({seed:state.seed,action:state.action,worldMarks:marks,coreTaken:false});}
    if(name==='moss'){state=code.m.createMossRuntime('continuity');marks=code.m.emptyMossMarks();advance=code.m.advanceMossRuntime;setter='setMossState';snapshot=()=>code.m.mossSceneSnapshot('qa',state,marks,false);}
    if(name==='lake'){state=code.l.createLakeRuntime('continuity');marks=code.l.emptyLakeMarks();advance=code.l.advanceLakeRuntime;setter='setLakeState';snapshot=()=>code.l.lakeSnapshot('qa',state,marks,false);}
    if(advance){const r=advance(state,0,marks,[]);state=r.state;marks=r.marks;make(name,{[name]:snapshot()});}else make(name);
-   __step(0);let prev=__position(),previousAction=state?.action?.id,max=0,boundaryMax=0;
-   for(let frame=1;frame<=15000;frame++){const time=frame*dt;__now+=dt*1000;if(advance){const r=advance(state,time,marks,[]);state=r.state;marks=r.marks;handle[setter](snapshot());if(state.action?.eventId)events.add(state.action.eventId);}handle.setProgress(time);__step(dt);const p=__position(),distance=Math.hypot(...p.map((v,i)=>v-prev[i]));max=Math.max(max,distance);const boundary=previousAction!==state?.action?.id;if(boundary)boundaryMax=Math.max(boundaryMax,distance);if(distance>1.2)failures.push({time,distance,action:state?.action,debug:handle.debugState()});prev=p;previousAction=state?.action?.id;}
-   return {name,max,boundaryMax,events:[...events],failures:failures.slice(0,12),failureCount:failures.length};})()`);
+   __step(0);let prev=__position(),previousAction=state?.action?.id,max=0,boundaryMax=0;let maxGripGap=0,hatHits=0;const contactFailures=[];
+   for(let frame=1;frame<=15000;frame++){const time=frame*dt;__now+=dt*1000;if(advance){const r=advance(state,time,marks,[]);state=r.state;marks=r.marks;handle[setter](snapshot());if(state.action?.eventId)events.add(state.action.eventId);}handle.setProgress(time);__step(dt);const p=__position(),distance=Math.hypot(...p.map((v,i)=>v-prev[i]));max=Math.max(max,distance);const boundary=previousAction!==state?.action?.id;if(boundary)boundaryMax=Math.max(boundaryMax,distance);if(distance>1.2)failures.push({time,distance,action:state?.action,debug:handle.debugState()});if(frame%100===0||boundary){const c=__contact();maxGripGap=Math.max(maxGripGap,c.gap);hatHits+=c.hatHits;if(c.gap>.035||c.hatHits)contactFailures.push({time,...c,action:state?.action?.eventId});}prev=p;previousAction=state?.action?.id;}
+   // Sample the actual rendered pose after a full exploration; full cloud event probes live in qa-cloud-grip.
+   const contact=__contact();maxGripGap=Math.max(maxGripGap,contact.gap);hatHits+=contact.hatHits;
+   return {name,max,boundaryMax,maxGripGap,hatHits,contactFailures:contactFailures.slice(0,12),events:[...events],failures:failures.slice(0,12),failureCount:failures.length};})()`);
   report.checks.push(result);fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(result));
+  fs.writeFileSync(path.join(out,name+'-contact.png'),Buffer.from(await js('__shot()'),'base64'));
  }
  const fixtures=await js(`(()=>{const results=[];
   for(const eventId of ['ev_wagon_shelter','ev_wagon_label',code.m.mossStoryEvents.find(e=>e.anim==='sitDoor').id]){
@@ -43,6 +54,7 @@ const report={checks:[],errors:[]};
  })()`);
  report.fixtures=fixtures;console.log(JSON.stringify(fixtures));fs.writeFileSync(path.join(out,'fixtures.json'),JSON.stringify(fixtures,null,2));
  assert(report.checks.every(c=>c.failureCount===0&&c.boundaryMax<.45),'Movement exceeded a plausible 5-fps step; inspect report');
+ assert(report.checks.every(c=>c.maxGripGap<.035&&c.hatHits===0),'Hand or hat contact regression');
  assert(fixtures.slice(0,3).every(f=>f.max<.3&&f.endDistance<.01&&f.seatDistance>.1),'Cargo doorway must approach and leave its seat smoothly');
  assert(fixtures[3].max<.45&&fixtures[3].pauseDistance===0,'Rotating-seat checkpoints and pause must preserve position');assert.equal(report.errors.length,0);app.exit(0);
 })().catch(e=>{report.failure=e.stack;fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));console.error(e);app.exit(1)});

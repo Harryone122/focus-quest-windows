@@ -14,6 +14,6 @@ app.whenReady().then(async()=>{const primary=screen.getPrimaryDisplay(),d=screen
  if(process.env.FOCUSQUEST_AREA05_AUDIO_QA||process.env.FOCUSQUEST_AREA05_QA)win.webContents.setAudioMuted(true);
  const trialPage=path.join(root,'trial-renderer/index.html');
  await win.loadFile(fs.existsSync(trialPage)?trialPage:path.join(root,'previews/area05-trial/dist/index.html'));
- if(process.env.FOCUSQUEST_AREA05_AUDIO_QA)await require(process.env.FOCUSQUEST_AREA05_AUDIO_QA==='motion'?'./qa-area05-motion.cjs':process.env.FOCUSQUEST_AREA05_AUDIO_QA==='smoke'?'./qa-area05-audio-smoke.cjs':process.env.FOCUSQUEST_AREA05_AUDIO_QA==='murmur'?'./qa-area05-murmur.cjs':'./qa-area05-audio-scene.cjs')({app,win,profile,root});else if(process.env.FOCUSQUEST_AREA05_QA)await require('./qa-echo-quarry.cjs')({app,win,profile,root});else win.showInactive();
+ if(process.env.FOCUSQUEST_STYLE_QA)await require('./qa-style-refine.cjs')({app,win,profile,root});else if(process.env.FOCUSQUEST_AREA05_AUDIO_QA)await require(process.env.FOCUSQUEST_AREA05_AUDIO_QA==='motion'?'./qa-area05-motion.cjs':process.env.FOCUSQUEST_AREA05_AUDIO_QA==='smoke'?'./qa-area05-audio-smoke.cjs':process.env.FOCUSQUEST_AREA05_AUDIO_QA==='murmur'?'./qa-area05-murmur.cjs':'./qa-area05-audio-scene.cjs')({app,win,profile,root});else if(process.env.FOCUSQUEST_AREA05_QA)await require('./qa-echo-quarry.cjs')({app,win,profile,root});else win.showInactive();
 }).catch(e=>{console.error(e);app.exit(1)});
 app.on('window-all-closed',()=>app.quit());

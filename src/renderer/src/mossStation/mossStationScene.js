@@ -1,3 +1,7 @@
+import { buildRefinedTraveller } from '../styleRefine.js';
+import { recapAction } from '../../../shared/focusRecap';
+import { quietCanvas, quietRare, quietLampLevel } from '../quietPresentation.js';
+import { QUIET_FOCUS } from '../../../shared/focusPresentation';
 import { advanceAnimation } from '../animationSteps';
 // 苔痕驛站 — Focus Active and lobby scene (Area 02).
 //
@@ -1165,7 +1169,9 @@ const head = new T.Group(); head.position.y = 0.6; upper.add(head);
 mesh(new T.SphereGeometry(0.105, 12, 9), M.skin, head); mesh(new T.ConeGeometry(0.3, 0.13, 12), M.hat, head, 0, 0.1, 0);
 const armGeo = new T.CylinderGeometry(0.034, 0.03, 0.3, 5); armGeo.translate(0, -0.15, 0);
 const armL = mesh(armGeo, M.cloak, upper, -0.13, 0.44, 0.02), armR = mesh(armGeo, M.cloak, upper, 0.13, 0.44, 0.02);
+mesh(new T.SphereGeometry(0.03, 6, 4), M.skin, armR, 0, -0.3, 0);
 const staff = new T.Group(); staff.position.set(0.2, 0.25, 0.08); upper.add(staff);
+const staffGripOffset = new T.Vector3();
 mesh(new T.CylinderGeometry(0.017, 0.02, 1.08, 5), M.wood, staff, 0, 0.02, 0); mesh(new T.BoxGeometry(0.02, 0.02, 0.14), M.woodDark, staff, 0, 0.55, 0.06);
 const travGlowMat = new T.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 1.2, roughness: 1 }); travGlowMat.userData.glow = true;
 const travLamp = mesh(new T.BoxGeometry(0.075, 0.1, 0.075), travGlowMat, staff, 0, 0.46, 0.13);
@@ -1175,6 +1181,7 @@ const book = mesh(new T.BoxGeometry(0.2, 0.025, 0.14), M.paper, upper, 0, 0.1, 0
 const umb = new T.Group(); umb.position.set(-0.12, 0.95, 0.05); upper.add(umb); umb.visible = false;
 { mesh(new T.ConeGeometry(0.62, 0.24, 14, 1, true), mat(0x4b5a6e, { side: T.DoubleSide }), umb, 0, 0.12, 0); for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; mesh(new T.BoxGeometry(0.012, 0.012, 0.6), M.woodDark, umb, Math.cos(a) * 0.3, 0.06, Math.sin(a) * 0.3).rotation.y = -a + Math.PI / 2; } mesh(new T.CylinderGeometry(0.012, 0.012, 0.8, 4), M.wood, umb, 0, -0.2, 0); }
 const cup = mesh(new T.CylinderGeometry(0.035, 0.03, 0.05, 8), M.paper, armL, 0, -0.3, 0.02); cup.visible = false;
+const refinedTraveller = buildRefinedTraveller({THREE:T,trav,body,legL,legR,upper,cloak,head,armL,armR,staff,lantern:travLight,lanternGlow:travHalo}); refinedTraveller.set(true);
 shadowy(trav); travLamp.castShadow = false;
 const travMats = []; trav.traverse((c) => { if (c.isMesh) { if (c.material !== travGlowMat) c.material = c.material.clone(); travMats.push(c.material); } });
 let lastFade = 1;
@@ -1312,6 +1319,7 @@ function endRare() {
 }
 let hush = 1;
 function rareUpdate(p) {
+  if(opts.quietFocus&&!LOBBY){quietRare(rare,trav,Math.max(0,sim-(moss?.action?.startSeconds??sim)),MOTION<1);return;}
   const ev = rare.ev, core = rare.core;
   if (ev.source === 'cart') CART.lid.rotation.x = -1.5 * easeIO(Math.min(1, Math.max(0, (p - 0.08) / 0.25)));
   if (ev.source === 'tablet') { const k = Math.min(1, Math.max(0, (p - 0.06) / 0.38)); MARKS.rubPaper.material.opacity = k < 1 && p < 0.5 ? 0.95 : 0; if (k > 0 && !MARKS.rubPaper.material.map) { MARKS.rubPaper.material.map = charTex; MARKS.rubPaper.material.needsUpdate = true; } MARKS.rubPaper.material.color.setScalar(1.3 - 0.3 * k); }
@@ -1394,7 +1402,7 @@ function storyUpdate(p) {
     D0.wake.position.set(q.x, WATERLINE + 0.04, q.z); D0.wake.scale.setScalar(1 + 0.3 * Math.sin(tAcc * 3)); D0.wake.material.opacity = b > 0 ? 0 : op * 0.35; D0.wake.material.color.copy(cur.fog).lerp(WHITE, 0.7);
     boatNudge = 0.07 * Math.sin(tAcc * 5) * Math.sin(Math.PI * win(p, 0.26, 0.42));
     if (op > 0.05) story.look = q;
-    { const fo = win(p, 0.76, 0.9) * (1 - win(p, 0.95, 1)); STORY.far.forEach((sp) => { sp.visible = fo > 0.01; sp.material.opacity = fo * (0.55 + 0.25 * Math.sin(tAcc * 1.3 + sp.userData.ph)); sp.position.copy(sp.userData.base); sp.position.y += Math.sin(tAcc * 0.5 + sp.userData.ph) * 0.12; }); }
+    { const fo = win(p, 0.76, 0.9) * (1 - win(p, 0.95, 1)); STORY.far.forEach((sp) => { sp.visible = !opts.quietFocus && fo > 0.01; sp.material.opacity = fo * (0.55 + 0.25 * Math.sin(tAcc * 1.3 + sp.userData.ph)); sp.position.copy(sp.userData.base); sp.position.y += Math.sin(tAcc * 0.5 + sp.userData.ph) * 0.12; }); }
     if (story.held) story.held.visible = fx === 'wick' && p > 0.1 && p < 0.9;
   }
   if (fx === 'driftRain') {
@@ -1517,7 +1525,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     const ev = a && a.kind === 'event' ? SEV[a.eventId] : null;
     if (ev && TR.storyId !== a.id) { endStory(); TR.storyId = a.id; startStory(ev); }
     else if (!ev && TR.storyId !== -1) { endStory(); TR.storyId = -1; }
-    const next = !!(ev && ev.kind === 'opening');
+    const next = !opts.quietFocus && !!(ev && ev.kind === 'opening');
     if (next !== cinematic) { cinematic = next; if (next) endDrag(); opts.reportCinematic(next); }
   }
   let lampsLit = litLampCount(reported, planned), lastLightsReport = -1;
@@ -1589,7 +1597,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
   function stepDirector(dt) {
     if (LOBBY) return;
     anchors.traveller = trav.position.clone().add(V3(0,0.7,0)).toArray();
-    const id = DIR.on && story ? story.ev.id : null, p = story ? story.p : 1;
+    const id = !opts.quietFocus && DIR.on && story ? story.ev.id : null, p = story ? story.p : 1;
     let want = dirShot(id, p, anchors, AREA.storyEvents);
     const keys = id && SEV[id].camera?.keys;
     const index = keys ? keyIndex(keys, p) : -1, key = id + ':' + index;
@@ -1879,7 +1887,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     }
     lastPhase = wx.phase;
     // lamps are saved-time milestones (the same value the HUD uses), never the traveller's gesture
-    const dueNow = TR.state === 'depart' ? 5 : litLampCount(reported, planned);
+    const dueNow = opts.recapLamps ?? (TR.state === 'depart' ? 5 : litLampCount(reported, planned));
     lampsLit = dueNow;
     if (dueNow !== lastLightsReport && TR.state !== 'depart') { lastLightsReport = dueNow; try { opts.reportLights(dueNow); } catch (_) {} }
     if (TR.state === 'depart') {
@@ -1939,7 +1947,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
         if (a.kind === 'event') {
           const ev = EV[a.eventId], sev = SEV[a.eventId];
           if (ev) {
-            animKey = ev.rare ? (rare ? (prog < 0.5 ? SRC_POSE[ev.source] : prog < 0.88 ? 'hold' : 'idle') : 'idle') : (a.anim || ev.anim);
+            animKey = opts.quietFocus&&ev.rare&&ev.tier==='core' ? (sim-a.startSeconds<QUIET_FOCUS.corePoseSeconds?'crouch':'idle') : ev.rare ? (rare ? (prog < 0.5 ? SRC_POSE[ev.source] : prog < 0.88 ? 'hold' : 'idle') : 'idle') : (a.anim || ev.anim);
             want = faceFor(node, ev);
             eventEffect(ev, prog);
             if (rare) rareUpdate(prog);
@@ -2005,6 +2013,10 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     legL.rotation.x = pose.legX + swing + (dangle ? Math.sin(tAcc * 1.6) * 0.15 : 0); legR.rotation.x = pose.legX - swing + (dangle ? Math.sin(tAcc * 1.6 + 1.3) * 0.15 : 0);
     head.rotation.x = pose.headX; head.rotation.y = pose.headY; armL.rotation.x = pose.armL; armL.rotation.z = pose.armLz;
     armR.rotation.x = -0.35 + pose.staffX * 0.8; staff.rotation.x = pose.staffX; staff.rotation.z = pose.staffZ; cloak.rotation.z = swing * 0.07;
+    // Keep the authored tilt, with the pole held outside the brim and attached to the hand.
+    armR.rotation.z = 0.7;
+    staffGripOffset.set(0, -0.1, 0).applyQuaternion(staff.quaternion);
+    staff.position.set(0, -0.3, 0).applyQuaternion(armR.quaternion).add(armR.position).sub(staffGripOffset);
     book.visible = pose.book > 0.5; cup.visible = pose.cup > 0.5;
     umb.visible = umbrellaSaved === 'borrowed' && raining && TR.state !== 'depart' && !LOBBY && a && (a.kind === 'walk' || a.kind === 'wait' || a.kind === 'lamp') && !(a.kind === 'wait' && SHELTERS.has(a.node)) && fade > 0.5;
     if (story?.held) { story.held.position.copy(trav.localToWorld(V3(-0.1,0.62,0.3))); story.held.rotation.y = trav.rotation.y; }
@@ -2018,7 +2030,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     glowWin.emissiveIntensity = 0.95 * cur.win; R.interior.forEach((q) => { q.l.intensity = q.k * cur.win; });
     // Keep light membership stable when the traveller/boat fades out. Removing a parent
     // from visibility changes the light count and recompiles every StandardMaterial on Windows.
-    travLight.position.copy(staff.localToWorld(V3(0, 0.46, 0.13)));
+    refinedTraveller.tick(dt); refinedTraveller.syncLight();
     BOAT.light.position.copy(BOAT.g.localToWorld(V3(-0.22, 0.95, -0.47)));
     travLight.intensity = 0.8 * Math.min(1.4, cur.lamp) * lastFade; travHalo.material.opacity = Math.min(0.45, cur.lamp * 0.3) * lastFade; travGlowMat.emissiveIntensity = 0.6 + 0.6 * Math.min(1, cur.lamp);
     const mistCol = cur.fog.clone().lerp(WHITE, 0.45);
@@ -2040,7 +2052,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     STONE_MESHES.slice(0, 4).forEach((s, i) => { s.position.y = Math.max(H(STONES[i][0], STONES[i][1]), WATERLINE) + 0.02 - 0.18 * wx.rain; });
     // ----- lamps: driven by effective time, not by the traveller -----
     const rareP = rare && a ? actionProgress(a) : 0;
-    R.lamps.forEach((L, i) => { const tgt2 = i < lampsLit ? 1 : 0; L.level += (tgt2 - L.level) * (primed ? 1 - Math.exp(-dt * 3) : 1); const fl = 1 + (Math.sin(tAcc * 7.3 + i * 2) * 0.03 + Math.sin(tAcc * 13.1 + i) * 0.02) * MOTION; const flash = rare && rare.core ? 1 + 0.9 * Math.max(0, Math.sin(Math.PI * Math.min(1, Math.max(0, (rareP - 0.33) / 0.3)))) : 1; const dayK = Math.max(0, 1 - cur.lamp); L.glow.emissiveIntensity = L.level * (1.3 + 1.1 * dayK) * fl * flash; L.light.intensity = L.level * Math.max(cur.lamp, 0.75) * 1.1 * fl * flash; L.halo.material.opacity = L.level * Math.min(1, cur.lamp) * 0.55 * flash; L.dayHalo.material.opacity = L.level * Math.min(0.85, dayK * 1.3) * fl * Math.min(1.4, flash); });
+    R.lamps.forEach((L, i) => { const tgt2 = i < lampsLit ? 1 : 0; L.level = opts.quietFocus&&!LOBBY ? quietLampLevel(sim,i,planned/5) : L.level + (tgt2 - L.level) * (primed ? 1 - Math.exp(-dt * 3) : 1); const fl = 1 + (Math.sin(tAcc * 7.3 + i * 2) * 0.03 + Math.sin(tAcc * 13.1 + i) * 0.02) * MOTION; const flash = !opts.quietFocus && rare && rare.core ? 1 + 0.9 * Math.max(0, Math.sin(Math.PI * Math.min(1, Math.max(0, (rareP - 0.33) / 0.3)))) : 1; const dayK = Math.max(0, 1 - cur.lamp); L.glow.emissiveIntensity = L.level * (1.3 + 1.1 * dayK) * fl * flash; L.light.intensity = L.level * Math.max(cur.lamp, 0.75) * 1.1 * fl * flash; L.halo.material.opacity = L.level * Math.min(1, cur.lamp) * 0.55 * flash; L.dayHalo.material.opacity = L.level * Math.min(0.85, dayK * 1.3) * fl * Math.min(1.4, flash); });
     // ----- world motion -----
     const sway = wind * MOTION;
     R.ferns.forEach((q) => { q.o.rotation.x = Math.sin(tAcc * 1.1 + q.ph) * q.amp * sway; q.o.rotation.z = Math.sin(tAcc * 0.8 + q.ph * 1.7) * q.amp * 0.7 * sway; });
@@ -2066,6 +2078,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
       cover.style.background = '#' + cur.fog.getHexString();
     }
     if (!dragging) { const q = Math.exp(-dt * 2.6); yawOff *= q; pitchOff *= q; }
+    quietCanvas(canvas,opts.quietFocus&&!LOBBY);
     placeCamera();
     if (LOBBY) lobbyCameraStep(dt, false);
   }
@@ -2076,6 +2089,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
   if (!programsReady) void renderer.compileAsync(scene, camera, () => disposed).then(() => disposed ? undefined : glass.prepare(() => disposed)).then(() => { if (!disposed) programsReady = true; }).catch(error => { console.error('苔痕驛站材質載入失敗', error); programsReady = true; });
   const glassDeep = new T.Color();
   function frame(scheduleNext = true) {
+    if(opts.recapDormant&&scheduleNext!==false){clock.getDelta();lastFrameAt=performance.now();raf=requestAnimationFrame(frame);return;}
     if (!programsReady) { lastFrameAt = performance.now(); if (scheduleNext !== false) raf = requestAnimationFrame(frame); return; }
     if (disposed || (opts.departureOnly && departureReported)) return;
     if (performance.now() - lastFrameAt > 250) DIR.snap = true;
@@ -2106,7 +2120,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
   // manualFrames: headless QA draws only on renderNow(); the app always runs the loop.
   if (!opts.manualFrames) raf = requestAnimationFrame(frame);
   // Windows can stop RAF completely when minimized: one timer keeps the same pause-aware frame going (~30 fps).
-  const backgroundFrameTimer = opts.manualFrames ? 0 : setInterval(() => { if (!disposed && performance.now() - lastFrameAt >= 30) frame(false); }, 33);
+  const backgroundFrameTimer = opts.manualFrames ? 0 : setInterval(() => { if (!disposed && !opts.recapDormant && performance.now() - lastFrameAt >= 30) frame(false); }, 33);
 
   function setMossState(s) {
     if (!s) return;
@@ -2156,7 +2170,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
       lampsLit = litLampCount(reported, planned); lobbyRestShown = lobbyRestNode(); setAnchorWorld(); statusMsg = '';
       Object.keys(trails).forEach((k) => { scene.remove(trails[k].mesh); delete trails[k]; });
       Object.assign(lobbyCam, { kind: opts.lobbyView && opts.lobbyView.kind === 'overview' ? 'overview' : 'close', exit: null, cur: null, t: 1 });
-      anchorsDirty = true; resize(); requestRedraw(1600);
+      anchorsDirty = true; if(opts.replay){if(lobbyCam.kind==='overview')frameLobby(host.clientWidth,host.clientHeight,0,0,0);else lobbyCameraStep(0,true);}else resize(); requestRedraw(1600);
     },
     setUiFade(opacity) { glass.setUiFade(opacity); requestRedraw(1800); },
     setChrome(chrome) {
@@ -2171,6 +2185,16 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
     setWorldState(state) { if (state && typeof state.coreTaken === 'boolean') coreSaved = state.coreTaken; },
     /** Area 02 plays finds from the saved action itself (the event carries the chosen reveal). */
     playSpecialFind() {},
+    beginRecapEvent(record,id){
+      endRare();endStory();TR.dep=null;TR.state='idle';TR.rareId=TR.storyId=-1;presentedRare.clear();LOBBY=false;opts.mode='focus';opts.quietFocus=false;
+      const action=recapAction(record,id);moss={...structuredClone(record.scene.moss),action,effectiveSeconds:action.startSeconds};readSnapshot(moss);reported=sim=action.startSeconds;reportedAt=sceneNow();primed=false;DIR.snap=true;this.setPaused(false);
+    },
+    async warmRecapEvent(record){this.beginRecapEvent(record,-Math.random());this.renderNow();this.setPaused(true);if(rare)rareUpdate(.5);await renderer.compileAsync(scene,camera,()=>disposed);this.showRecapOverview();},
+    showRecapOverview(close=false){endRare();endStory();this.enterLobby(host,{...opts,mode:'lobby',lobbyView:{kind:close?'close':'overview'}});this.setPaused(false);},
+    setRecapLamps(count){opts.recapLamps=Math.max(0,Math.min(5,count));lampsLit=opts.recapLamps;R.lamps.forEach((L,i)=>L.level=i<lampsLit?1:0);requestRedraw(200);},
+    setRecapDormant(value){opts.recapDormant=value;clock.getDelta();},
+    enableRecapTransitions(){glass.enableTransitions();},beginRecapTransition(duration){glass.crossfade(duration);},
+    setQuietFocus(value){opts.quietFocus=!!value;},
     setProgress(progressSeconds) {
       const v = Math.max(0, Number(progressSeconds) || 0);
       const t = sceneNow();
@@ -2217,6 +2241,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: mistTex, color: 0xffffff, 
         edgeLengths: opts.manualFrames ? EDGES.map((edge) => ({ a: edge.a, b: edge.b, length: edge.len })) : undefined };
     },
     destroy() {
+      refinedTraveller.dispose();
       disposed = true;
       document.removeEventListener('visibilitychange', recoverCamera); window.removeEventListener('focus', recoverCamera); cutCover.remove();
       clearInterval(backgroundFrameTimer);

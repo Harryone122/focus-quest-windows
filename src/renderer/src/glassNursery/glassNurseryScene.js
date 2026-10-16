@@ -1,3 +1,7 @@
+import { buildRefinedTraveller } from '../styleRefine.js';
+import { recapAction } from '../../../shared/focusRecap';
+import { quietCanvas, quietRare, quietLampLevel } from '../quietPresentation.js';
+import { QUIET_FOCUS } from '../../../shared/focusPresentation';
 import { advanceAnimation } from '../animationSteps';
 import * as T from '../cloudRuins/vendor/three.module.js';
 import { createEdgeGlass } from '../cloudRuins/edgeGlass.js';
@@ -8,7 +12,7 @@ export function createGlassNurseryScene(host, options) {
 let opts={...options}, paused=!!opts.paused,lobby=opts.mode==='lobby',dead=false,raf=0;
 let audio=null,lastBook=false,seeking=false,audioSettings=opts.audioSettings,audioActive=opts.audioActive!==false,lastRun=null,nextBird=20,nextTick=12,doorPlayed=false;
 try { audio=createNurseryAudio(); } catch(e) { console.error('苗圃音效無法建立',e); }
-function sound(name,duration,music=false,gain=1){if(!seeking&&!paused)audio?.shot(name,duration,music,gain);}
+function sound(name,duration,music=false,gain=1){if(opts.quietFocus&&!lobby&&!/(stone_step_dry|nursery_(disc_step|ladder_step|fern_brush)|dep_cloth)/.test(name))return;if(!seeking&&!paused)audio?.shot(name,duration,music,gain);}
 let nursery=opts.nursery||null,progress=opts.progressSeconds||0,progressAt=performance.now(),lastReal=performance.now();
 const realDocument=globalThis.document,canvasHost=realDocument.createElement('canvas'),lens=realDocument.createElement('canvas');
 canvasHost.style.cssText='width:100%;height:100%;display:block';lens.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none';host.append(canvasHost,lens);
@@ -248,7 +252,7 @@ function traveller(parent) {
   const legL = mesh(legGeo, M.woodDark, body, -0.07, 0.3, 0), legR = mesh(legGeo, M.woodDark, body, 0.07, 0.3, 0);
   mesh(footGeo, M.woodDark, legL); mesh(footGeo, M.woodDark, legR);
   const upper = new T.Group(); upper.position.y = 0.3; body.add(upper);
-  mesh(new T.ConeGeometry(0.23, 0.6, 8), M.cloak, upper, 0, 0.25, 0);
+  const cloak = mesh(new T.ConeGeometry(0.23, 0.6, 8), M.cloak, upper, 0, 0.25, 0);
   mesh(new T.CylinderGeometry(0.07, 0.07, 0.34, 7), M.canvasBag, upper, 0, 0.36, -0.15).rotation.z = Math.PI / 2;
   const head = new T.Group(); head.position.y = 0.6; upper.add(head);
   mesh(new T.SphereGeometry(0.105, 12, 9), M.skin, head); const hat = mesh(new T.ConeGeometry(0.3, 0.13, 12), M.hat, head, 0, 0.1, 0);
@@ -256,13 +260,15 @@ function traveller(parent) {
   const armL = mesh(armGeo, M.cloak, upper, -0.13, 0.44, 0.02), armR = mesh(armGeo, M.cloak, upper, 0.13, 0.44, 0.02);
   mesh(new T.SphereGeometry(0.03, 6, 4), M.skin, armL, 0, -0.31, 0); mesh(new T.SphereGeometry(0.03, 6, 4), M.skin, armR, 0, -0.31, 0);
   // the staff hangs from the right hand, so it follows the arm swing
-  const staff = new T.Group(); staff.position.set(0.03, -0.3, 0.05); armR.add(staff);
+  const staff = new T.Group(); staff.position.set(0, -0.31, 0); armR.add(staff);
   mesh(new T.CylinderGeometry(0.017, 0.02, 1.08, 5), M.wood, staff, 0, 0.28, 0);
+  mesh(new T.BoxGeometry(0.02, 0.02, 0.14), M.woodDark, staff, 0, 0.77, 0.06);
   const gm = new T.MeshStandardMaterial({ color: 0x2c2620, emissive: 0xffb45e, emissiveIntensity: 1.2, roughness: 1 });
   mesh(new T.BoxGeometry(0.075, 0.1, 0.075), gm, staff, 0, 0.72, 0.13).castShadow = false;
   const halo = new T.Sprite(new T.SpriteMaterial({ map: SOFT, color: 0xffc27a, blending: T.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.3 })); halo.position.set(0, 0.72, 0.13); halo.scale.setScalar(0.8); staff.add(halo);
   const book = mesh(new T.BoxGeometry(0.16, 0.025, 0.12), M.paper, armL, 0, -0.32, 0.05); book.visible = false;
-  trav.userData = { head, halo, upper, body, legL, legR, armL, armR, staff, hat, book };
+  const refined = buildRefinedTraveller({THREE:T,trav,body,legL,legR,upper,cloak,head,armL,armR,staff,staffOffset:.1,lanternGlow:halo}); refined.set(true);
+  trav.userData = { refined, head, halo, upper, body, legL, legR, armL, armR, staff, hat, book };
   return trav;
 }
 
@@ -610,7 +616,7 @@ function apply(P) {
   beamU.uOpacity.value = P.beam;
   const C = CONCEPTS[active];
   C.mist.forEach((s) => { s.material.opacity = P.mist * 0.55; s.material.color.copy(P.mistC); });
-  C.lamps.forEach((l, i) => { const k = (i < LIT ? Math.max(P.lamps, 0.45) : 0) + (typeof flare !== 'undefined' ? flare[i] || 0 : 0); l.gm.emissiveIntensity = 1.4 * k; l.light.intensity = 1.1 * k; l.halo.material.opacity = 0.55 * k; });
+  C.lamps.forEach((l, i) => { const k = (i < LIT ? Math.max(P.lamps, 0.45)*(opts.quietFocus&&!lobby?quietLampLevel(progress+(paused?0:Math.max(0,(performance.now()-progressAt)/1000)),i,600):1) : 0) + (typeof flare !== 'undefined' ? flare[i] || 0 : 0); l.gm.emissiveIntensity = 1.4 * k; l.light.intensity = 1.1 * k; l.halo.material.opacity = 0.55 * k; });
   if (C.wipe) { C.wipe.material.color.copy(P.bg); C.wipe.material.opacity = MEM.state.wipe ? Math.max(0, (P.gO - 0.18) / 0.54) * 0.85 : 0; }
   if (C.motes) C.motes.material.opacity = Math.min(1, P.beam * 1.3);
   trav.userData.head.rotation.x = P.look;
@@ -637,7 +643,7 @@ function setConcept(k) {
   resize(); apply(cur);
 }
 let moodKey = 'day';
-function setMood(k, instant) { moodKey = k; playSeq = null; from = cur; to = MOODS[k]; mt = instant ? 1 : 0; if (instant) cur = lerpMood(to, to, 0); statusEl.textContent = STATUS[k]; document.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === k))); }
+function setMood(k, instant) { if(opts.quietFocus&&!lobby)return; moodKey = k; playSeq = null; from = cur; to = MOODS[k]; mt = instant ? 1 : 0; if (instant) cur = lerpMood(to, to, 0); statusEl.textContent = STATUS[k]; document.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === k))); }
 document.querySelectorAll('[data-c]').forEach((b) => b.addEventListener('click', () => setConcept(b.dataset.c)));
 document.querySelectorAll('[data-m]').forEach((b) => b.addEventListener('click', () => setMood(b.dataset.m)));
 $('play').addEventListener('click', () => { setMood('night', true); playSeq = { t: -1.2, dur: 9 }; statusEl.textContent = '夜裡的濃霧……'; document.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-pressed', 'false')); });
@@ -784,6 +790,7 @@ const veil = new T.Sprite(new T.SpriteMaterial({ map: SOFT, color: 0xffffff, tra
 
 // ---- traveller pose rig ----
 const TU = trav.userData;
+const staffWorldTilt = new T.Quaternion(), staffTiltEuler = new T.Euler();
 function setTravOpacity(o) { trav.traverse((c) => { if (c.isMesh) { if (!c.userData.own) { c.material = c.material.clone(); c.userData.own = 1; } c.material.transparent = o < 0.999; c.material.opacity = o; } }); TU.halo.material.opacity = 0.3 * o; }
 
 // ---- navigation graph ----
@@ -814,9 +821,9 @@ function polyAt(p, d) { for (let i = 1; i < p.length; i++) { const s = p[i].dist
 // ---- traveller state machine ----
 const TRV = { node: 'H', pos: NP('H'), yaw: Math.PI * 0.25, path: null, d: 0, speed: 2.0, onArrive: null, act: null };
 function nearestNode() { let best = 'H', bd = 1e9; Object.keys(N).forEach((k) => { const d = NP(k).distanceTo(TRV.pos); if (d < bd) { bd = d; best = k; } }); return best; }
-function walkTo(id, then, speed = 2.0) { TRV.savedWalk = false; TRV.node = nearestNode(); TRV.path = [TRV.pos.clone(), ...route(TRV.node, id)]; TRV.d = 0; TRV.speed = speed; TRV.target = id; TRV.onArrive = then; TRV.act = null; SIM.ride = false; }
+function walkTo(id, then, speed = 2.0) { if(opts.recapNoWalk){TRV.pos.copy(NP(id));TRV.node=id;TRV.path=null;TRV.act=null;then?.();return;} TRV.savedWalk = false; TRV.node = nearestNode(); TRV.path = [TRV.pos.clone(), ...route(TRV.node, id)]; TRV.d = 0; TRV.speed = speed; TRV.target = id; TRV.onArrive = then; TRV.act = null; SIM.ride = false; }
 function faceTo(x, z) { const dx = x - TRV.pos.x, dz = z - TRV.pos.z; return Math.atan2(dx, dz); }
-function doAct(a) { TRV.act = Object.assign({ t: 0 }, a); TRV.path = null; if (a.cam) { camGoal.set(...a.cam.at); camZoomGoal = a.cam.zoom; } if (a.say) say(a.say); if (a.start) a.start(); }
+function doAct(a) { if(opts.quietFocus&&!lobby){a={...a,cam:null,say:null};} TRV.act = Object.assign({ t: 0 }, a); TRV.path = null; if (a.cam) { camGoal.set(...a.cam.at); camZoomGoal = a.cam.zoom; } if (a.say) say(a.say); if (a.start) a.start(); }
 function camHome() { camGoal.copy(CI.target); camZoomGoal = 1; }
 
 // ---- ambient (visual-only) events ----
@@ -946,8 +953,10 @@ function animateTraveller(dt, pose, moving, prog) {
   TU.body.position.y = PZ.hip + bob; TU.upper.rotation.set(PZ.lean, 0, 0); TU.upper.scale.y = 1;
   TU.legL.rotation.x = PZ.legX + swing + (dangle ? Math.sin(time * 1.6) * 0.15 : 0); TU.legR.rotation.x = PZ.legX - swing + (dangle ? Math.sin(time * 1.6 + 1.3) * 0.15 : 0);
   TU.head.rotation.set(PZ.headX, 0, 0);
-  TU.armL.rotation.set(PZ.armL, 0, -0.12 + PZ.armLz); TU.armR.rotation.set(-0.35 + PZ.armR, 0, 0.12);
-  TU.staff.rotation.set(-(-0.35 + PZ.armR) * 0.85 + PZ.staffX, 0, PZ.staffZ);   // seated: the staff leans out against the rim, like the lake map
+  TU.armL.rotation.set(PZ.armL, 0, -0.12 + PZ.armLz); TU.armR.rotation.set(-0.35 + PZ.armR, 0, 0.7);
+  // Keep the grip at the palm while the authored lean stays independent of the carrying arm.
+  staffWorldTilt.setFromEuler(staffTiltEuler.set((-0.35 + PZ.armR) * 0.15 + PZ.staffX, 0, PZ.staffZ));
+  TU.staff.quaternion.copy(TU.armR.quaternion).invert().multiply(staffWorldTilt);
   TU.book.visible = PZ.book > 0.5; if(lastBook&&!TU.book.visible)sound('dep_notebook_close',.5,false,.45);lastBook=TU.book.visible;
 }
 
@@ -987,6 +996,7 @@ function simUpdate(dt) {
   // apply pose
   trav.position.copy(TRV.pos); let dy = trav.rotation.y; let d = TRV.yaw - dy; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; trav.rotation.y = dy + d * Math.min(1, dt * 8);
   animateTraveller(dt, pose, moving, TRV.act ? Math.min(1, TRV.act.t / TRV.act.dur) : 0);
+  TU.refined.tick(dt);
   setTravOpacity(Math.max(0, Math.min(1, SIM.fade)));
   // machine: hold the disc for the tray events, drips on the empty tray
   if (SIM.holdDisc && CI.disc && SIM.discGoal !== undefined) { let r = CI.disc.rotation.y, g = SIM.discGoal; while (g - r > Math.PI) g -= Math.PI * 2; while (g - r < -Math.PI) g += Math.PI * 2; CI.disc.rotation.y += (g - r) * Math.min(1, dt * 1.2); }
@@ -1105,16 +1115,16 @@ function testMood(name){
 function applyWorld(){const m=nursery?.worldMarks;if(!m)return;setMemKey('pot',m.potUpright);setMemKey('wipe',m.glassWiped);
   setSap(m.saplingTransplanted?3:m.saplingPlanted?m.saplingStage:-1);
   if(nursery.coreTaken){jar.visible=false;cageDoor.rotation.y=-1.7;padlock.visible=false;keyG.visible=false;}}
-function clearAction(){audio?.stopShots();TRV.savedWalk=false;TRV.onArrive=null;SIM.burst=0;TRV.path=null;TRV.act=null;SIM.ride=false;SIM.seatWait=false;SIM.board=null;SIM.carry=null;SIM.holdDisc=false;SIM.dripOn=false;camHome();}
+function clearAction(){audio?.stopShots();coreFx.visible=false;amberFx.material.opacity=0;chartSpot.material.opacity=0;TRV.savedWalk=false;TRV.onArrive=null;SIM.burst=0;TRV.path=null;TRV.act=null;SIM.ride=false;SIM.seatWait=false;SIM.board=null;SIM.carry=null;SIM.holdDisc=false;SIM.dripOn=false;camHome();}
 function presentAction(now){
   if(opts.testMode)return;
   const a=nursery?.action,seconds=paused||lobby?progress:Math.min(a?.endSeconds??progress+1,progress+(now-progressAt)/1000);
-  LIT=Math.min(5,Math.floor(seconds/600));
+  LIT=opts.recapLamps??Math.min(5,Math.floor(seconds/600));
   if(opts.departure){if(!departureStarted){clearAction();applyWorld();const p=seatPos();TRV.pos.copy(p.p);depart(opts.departure.exit==='exit_corridor'?'corridor':'cellar');departureStarted=true;}
     if(!SIM.dep&&!departureDone){departureDone=true;opts.reportDepartureComplete?.();}return;}
   if(transplant)return;
   if(lobby){if(key!=='lobby'){clearAction();applyWorld();rest();key='lobby';}return;}
-  cur=a?.eventId==='carry_silvered_shard'?lerpMood(MOODS.night,MOODS.night,0):moodAt(seconds/30);playSeq=null;mt=1;
+  cur=!opts.quietFocus&&a?.eventId==='carry_silvered_shard'?lerpMood(MOODS.night,MOODS.night,0):moodAt(seconds/30);playSeq=null;mt=1;
   if(!a)return;
   const next=`${a.id}:${a.kind}`;
   if(key===next)return;key=next;
@@ -1123,7 +1133,12 @@ function presentAction(now){
   clearAction();applyWorld();
   if(a.kind==='walk'){TRV.pos.copy(NP(a.route[0]));TRV.path=routePoints(a.route);TRV.d=0;TRV.speed=polyLen(TRV.path)/Math.max(1,a.endSeconds-a.startSeconds);TRV.target=a.node;TRV.savedWalk=true;}
   else {TRV.node=a.fromNode??a.node;if(a.kind!=='rest')TRV.pos.copy(NP(a.fromNode??a.node));
-    if(a.kind==='story'){const f=STORY[nurseryStoryKeys[a.eventId]];f?.();}
+    if(a.kind==='story'){
+      if(opts.quietFocus&&['find_core','find_pressed_leaf','find_mulch_cloth'].includes(a.eventId)){const core=a.eventId==='find_core',item=a.eventId==='find_pressed_leaf'||a.eventId==='find_mulch_cloth';
+        const pickup=()=>doAct({dur:core?QUIET_FOCUS.corePoseSeconds:a.endSeconds-a.startSeconds,pose:core?'crouch':item?'reach':'look',update:p=>{const elapsed=p*(core?QUIET_FOCUS.corePoseSeconds:a.endSeconds-a.startSeconds);amberFx.position.copy(TRV.pos);amberFx.position.y+=.7;amberFx.scale.setScalar(.12);amberFx.material.color.setHex(core?0x9cc8e8:0xffbf70);amberFx.material.opacity=opts.reducedMotion?0:.18*Math.max(0,1-elapsed/(core?QUIET_FOCUS.coreFadeSeconds:QUIET_FOCUS.itemFadeSeconds));},end:()=>{amberFx.material.opacity=0;}});
+        if(core)doAct({dur:3,pose:'reach',end:()=>walkTo('K',pickup,2)});else pickup();
+      }else{const f=STORY[nurseryStoryKeys[a.eventId]];f?.();}}
+
     else if(a.kind==='ambient'){runAmbient(a.eventId);}
     else if(a.kind==='lamp'){TRV.yaw=faceTo(...LAMP_POS[a.lamp-1]);doAct({dur:2.2,pose:'light'});}
     else if(a.kind==='rest'){rest();}}
@@ -1143,7 +1158,7 @@ function draw(now=performance.now()){
   const run=Math.max(0,Math.min(1,1-cur.lamps*1.15));
   const audible=audioActive&&!paused&&!departureDone;
   if(opts.testMode&&playSeq&&playSeq.t>playSeq.dur*.5)audioPeriod='day';
-  audio?.update(audioSettings,!audible,{paused,run,turn:SIM.holdDisc||cur.lamps>.85?0:run,mist:cur.mist,vortex:SIM.vortex||0,ride:SIM.ride,core:TRV.act?.audioKey==='core',burst:SIM.burst||0,fade:opts.departure?SIM.fade:1,period:nursery?.action?.eventId==='carry_silvered_shard'?'night':audioPeriod,action:!!nurseryAudioCues[TRV.act?.audioKey]});
+  audio?.update(audioSettings,!audible,{paused,run,turn:SIM.holdDisc||cur.lamps>.85?0:run,mist:cur.mist,vortex:SIM.vortex||0,ride:SIM.ride,core:!opts.quietFocus&&TRV.act?.audioKey==='core',burst:SIM.burst||0,fade:opts.departure?SIM.fade:1,period:nursery?.action?.eventId==='carry_silvered_shard'?'night':audioPeriod,action:!opts.quietFocus&&!!nurseryAudioCues[TRV.act?.audioKey]});
   if(lastRun!==null&&Math.abs(run-lastRun)<.1&&audible){if(lastRun<=.0225&&run>.0225)sound('nursery_machine_start',6);if(lastRun>.0225&&run<=.0225)sound('nursery_machine_stop',5);}lastRun=run;
   if(audible&&time>nextBird&&run>.25){sound('nursery_birds_day',5,false,.5*run);nextBird=time+16+Math.random()*18;}
   if(audible&&time>nextTick&&run===0){sound('nursery_glass_tick',.5,false,.25);nextTick=time+12+Math.random()*22;}
@@ -1157,27 +1172,35 @@ function draw(now=performance.now()){
   }else advanceAnimation(activeElapsed,step=>tick(step));
   if(opts.testMode&&testId&&!testFinished){testElapsed+=activeElapsed;if(!TRV.path&&!TRV.act&&!SIM.dep&&!SIM.board&&!SIM.seatWait){testFinished=true;}}
   if(!SIM.holdDisc&&CI.disc&&!lobby&&!opts.departure){const seconds=paused?progress:progress+(now-progressAt)/1000;const night=cur.lamps>.85;CI.disc.rotation.y=night?Math.floor(seconds/600)*Math.PI*2:seconds/600*Math.PI*2;}
-  glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);
-  opts.reportCinematic?.(transplant||nursery?.action?.kind==='story');
+  if(opts.quietFocus&&!lobby){spot.material.opacity=0;handM.opacity=0;chartSpot.material.opacity=0;coreFx.visible=false;}
+  quietCanvas(canvasHost,opts.quietFocus&&!lobby);glass.render(scene,camera,dt,scene.background,[.34,.24,.08],paused);
+  opts.reportCinematic?.(transplant||(!opts.quietFocus&&nursery?.action?.kind==='story'));
   const anchors={rest:anchor('H'),entry:anchor('D'),exit_corridor:anchor('D'),exit_cellar:anchor('X2')};items.forEach((item,i)=>{const p=anchors.rest;anchors['item:'+item.key]={x:p.x+i*30,y:p.y+60};});opts.reportAnchors?.(anchors);
   if(++ready===2)opts.reportReady?.();
   if(!opts.testMode&&transplant&&!TRV.act&&!TRV.path){transplant=false;key=null;applyWorld();glass.setUiFade(1);opts.reportCinematic?.(false);opts.reportTransplantComplete?.();globalThis.dispatchEvent(new CustomEvent('focusquest:nursery-transplant-done')); }
 }
-function loop(now){draw(now);if(!dead)raf=requestAnimationFrame(loop);}
+function loop(now){if(!opts.recapDormant)draw(now);else lastReal=now;if(!dead)raf=requestAnimationFrame(loop);}
 const observer=new ResizeObserver(()=>{resize();fgResize();});observer.observe(host);
-const watchdog=setInterval(()=>{if(performance.now()-lastReal>250)draw();},33);
+const watchdog=setInterval(()=>{if(!opts.recapDormant&&performance.now()-lastReal>250)draw();},33);
 function transplantChoice(e){if(!lobby||e.detail?.nodeId!==nursery?.nodeId)return;if(e.detail.state)nursery=e.detail.state;clearAction();transplant=true;glass.setUiFade(0);SIM.dep=null;STORY.transplant();opts.reportCinematic?.(true);}
 globalThis.addEventListener('focusquest:nursery-transplant',transplantChoice);
 raf=requestAnimationFrame(loop);
 return {areaId:'area-07-glass-nursery',
  setNurseryState(s){nursery=s;for(let i=0;i<FOG_ROLL.length;i++)FOG_ROLL[i]=nurseryFog(s.seed,i*600);},setProgress(s){if(Math.abs(s-progress-(performance.now()-progressAt)/1000)>2){audio?.stopShots();lastRun=null;}progress=s;progressAt=performance.now();},setPaused(v){paused=!!v;progressAt=performance.now();glass.jumpPaused(paused);},
  auditionBgm(name){draw();return audio?.auditionBgm(name);},setShortMusicGaps(value){audio?.setShortGaps(value);},
- setAudioSettings(s,active=true){audioSettings=s;audioActive=active;},setReducedMotion(){},setUiFade(v){glass.setUiFade(v);},setChrome(v){chrome=v;glass.setChrome(v);},setWorldState(){},playSpecialFind(){},
+ beginRecapEvent(record,id){clearAction();transplant=false;lobby=false;opts.departure=null;opts.quietFocus=false;opts.recapNoWalk=true;key=null;
+   const action=recapAction(record,id);nursery={...structuredClone(record.scene.nursery),action,effectiveSeconds:action.startSeconds};progress=action.startSeconds;progressAt=performance.now();paused=false;actionElapsed=0;},
+ async warmRecapEvent(record){this.beginRecapEvent(record,-Math.random());this.renderNow();paused=true;coreFx.visible=true;amberFx.material.opacity=.5;await renderer.compileAsync(scene,camera,()=>dead);this.showRecapOverview();},
+ showRecapOverview(close=false){clearAction();opts.recapNoWalk=false;lobby=true;key=null;view={kind:close?'close':'overview'};paused=false;},
+ setRecapLamps(count){opts.recapLamps=Math.max(0,Math.min(5,count));LIT=opts.recapLamps;},
+ setRecapDormant(value){opts.recapDormant=value;lastReal=performance.now();},
+ enableRecapTransitions(){glass.enableTransitions();},beginRecapTransition(duration){glass.crossfade(duration);},
+ setStory(){},setQuietFocus(value){opts.quietFocus=!!value;},setAudioSettings(s,active=true){audioSettings=s;audioActive=active;},setReducedMotion(value){opts.reducedMotion=!!value;},setUiFade(v){glass.setUiFade(v);},setChrome(v){chrome=v;glass.setChrome(v);},setWorldState(){},playSpecialFind(){},
  setRoutes(v,hover){routes=v;if(hover){const r=routes.find(r=>r.key===hover);if(r?.exit)view={kind:'look',exit:r.exit};}},setLobbyView(v){view=v;},setLobbyItems(v){items=v;},
  enterLobby(nextHost,nextOpts){observer.disconnect();host=nextHost;host.append(canvas,lens);observer.observe(host);opts={...opts,...nextOpts,departure:null};lobby=true;paused=false;key=null;resize();fgResize();},
  renderNow(){draw();},debugState(){return {areaId:'area-07-glass-nursery',action:nursery?.action,worldMarks:nursery?.worldMarks,audio:audio?.debugState(),localAction:TRV.act?{key:TRV.act.audioKey,t:TRV.act.t,dur:TRV.act.dur}:null,lit:LIT,departureDone,transplant,position:TRV.pos.toArray(),camera:target.toArray(),zoom:camZoom};},
  qa:{testPlay,testMood,testState(){return {id:testId,elapsed:testElapsed,finished:testFinished,moving:!!TRV.path||!!SIM.dep,paused,ready:compiled&&ready>=2,audio:audio?.debugState()};},seek(s){seeking=true;try{for(let t=0;t<s;t+=.05){time+=.05;tick(Math.min(.05,s-t));}}finally{seeking=false;}},setAudioSettings(s,active=true){audioSettings=s;audioActive=active;},T,scene,renderer,camera,N,EDGES,NP,route,edgePts,polyLen,polyAt,CORR,CELL,MC,BOARD,trav,M,M2,setSap,play(id){clearAction();transplant=true;STORY[id]?.();},advance(s){for(let t=0;t<s;t+=.05){time+=.05;tick(.05);}renderer.render(scene,camera);}},
- destroy(){if(dead)return;dead=true;audio?.destroy();cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();globalThis.removeEventListener('focusquest:nursery-transplant',transplantChoice);listeners.forEach(([type,fn])=>globalThis.removeEventListener(type,fn));scene.traverse(o=>{o.geometry?.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m)return;Object.values(m).forEach(v=>{if(v?.isTexture)v.dispose();});m.dispose();});});glass.dispose();renderer.dispose();canvas.remove();lens.remove();}
+ destroy(){if(dead)return;TU.refined.dispose();dead=true;audio?.destroy();cancelAnimationFrame(raf);clearInterval(watchdog);observer.disconnect();globalThis.removeEventListener('focusquest:nursery-transplant',transplantChoice);listeners.forEach(([type,fn])=>globalThis.removeEventListener(type,fn));scene.traverse(o=>{o.geometry?.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m)return;Object.values(m).forEach(v=>{if(v?.isTexture)v.dispose();});m.dispose();});});glass.dispose();renderer.dispose();canvas.remove();lens.remove();}
 };
 
 }

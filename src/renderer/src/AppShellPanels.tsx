@@ -39,7 +39,8 @@ export function SettingsPanel({ snapshot, onChanged, onError, onNotice }: Props)
   const s = snapshot.settings
   return <div className="shell-panel-body shell-settings">
     <section className="shell-group"><h3>專注</h3><div className="shell-setting-row"><div><strong>提醒</strong><small>{s.reminderPolicy === 'off' ? '不發提醒，讓你安靜前進。' : s.reminderPolicy === 'gentle' ? '需要時輕輕提醒你。' : '依照你的節奏安排提醒。'}</small></div>{option<ReminderPolicy>(s.reminderPolicy, [{ key: 'off', label: '安靜' }, { key: 'gentle', label: '溫和' }, { key: 'structured', label: '有節奏' }], (key) => void update({ reminderPolicy: key }))}</div>
-      {s.reminderPolicy === 'structured' && <label className="shell-setting-row"><span>晚上整理今天的時間</span><input type="time" value={s.eveningReminder} onChange={(event) => void update({ eveningReminder: event.target.value })} /></label>}
+      <div className="shell-setting-row"><div><strong>專注中的演出</strong><small>從下一次專注生效。安靜模式把完整演出留到專注後。</small></div>{option(s.focusPresentation ?? 'quiet', [{key:'quiet',label:'安靜'},{key:'live',label:'現場'}], key=>void update({focusPresentation:key}))}</div>
+      {s.reminderPolicy === 'structured'  && <label className="shell-setting-row"><span>晚上整理今天的時間</span><input type="time" value={s.eveningReminder} onChange={(event) => void update({ eveningReminder: event.target.value })} /></label>}
       <label className="shell-setting-row"><span>開始前確認手機放遠</span><input type="checkbox" checked={s.phoneRitual} onChange={(event) => void update({ phoneRitual: event.target.checked })} /></label></section>
     <section className="shell-group shell-audio-group"><h3>旅途聲音</h3><p className="shell-intro">環境聲會跟著天氣變化。拉到 0 就關閉。</p>
       <label className="shell-setting-row"><span>全部靜音</span><input aria-label="全部靜音" type="checkbox" checked={s.audioMuted} onChange={event => void update({ audioMuted: event.target.checked })} /></label>
