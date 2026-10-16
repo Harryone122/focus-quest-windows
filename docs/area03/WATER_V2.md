@@ -4,6 +4,8 @@
 
 使用者授權製作試玩網頁並一起提交目前進度。已合併 GitHub `claude/nifty-maxwell-g3y9yq`，保留完整原型與新舊比較面板，未移植正式場景。私人試玩入口：https://focus-quest-trial-oct17.racingeagle16.chatgpt.site （選「倒影湖畔 · 水面 v2」）。真 Electron 畫面與畫布檢查通過，未出現頁面／shader 錯誤，本機截圖在 `previews/web-trial-qa/lake.png`。下一步仍是使用者試看驗收水面取捨。
 
+工程檢查：TypeScript 與 Electron/Vite 建置通過。250 項測試以單 worker 執行時 246 通過、4 項 5 秒逾時；將逾時上限提高至 60 秒後，該 4 項定向重跑全數通過（未改測試或正式程式）。網站已由 Sites 確認發布成功，來源提交 `5f21fde0477a7aec1446fe49972f1fae616e3729`；本輪未重發 Windows 安裝包。
+
 > **目前交接摘要（2026-10-16，Claude）**
 > 狀態：設計原型完成，**等使用者在網頁原型試看驗收**；驗收前 Codex 不移植。
 > 下一位：使用者打開 `docs/prototypes/reflection-lake.html`，用測試面板「水面：新版／舊版」「試看陣風」「試看漲潮」及四個時段比較。驗收後由 Codex 移植到 `src/renderer/src/reflectionLake/reflectionLakeScene.js`。
