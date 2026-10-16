@@ -7898,13 +7898,13 @@ const LIFE = (() => {
   // ---------------------------------------------------------------- fish that jump, drops and ripple rings
   const jump = new T.Group(); jump.visible = false; grp.add(jump);
   { const b = mesh(new T.SphereGeometry(0.09, 7, 5), ML.fish, jump, 0, 0, 0); b.scale.set(0.8, 0.8, 2.6); const tl = mesh(new T.ConeGeometry(0.06, 0.14, 4), ML.fish, jump, 0, 0, -0.27); tl.rotation.x = -Math.PI / 2; tl.scale.set(1, 0.3, 1); }
-  const dropMat = new T.MeshBasicMaterial({ color: 0xffffff, fog: false });
-  const drops = []; for (let i = 0; i < 7; i++) { const d = mesh(new T.IcosahedronGeometry(0.03, 0), dropMat, grp); d.visible = false; drops.push({ m: d, vx: 0, vy: 0, vz: 0 }); }
+  const dropMat = new T.MeshBasicMaterial({ color: 0xeef6fb, transparent: true, opacity: 0.8, fog: false });
+  const drops = []; for (let i = 0; i < 7; i++) { const d = mesh(new T.IcosahedronGeometry(0.022, 0), dropMat, grp); d.visible = false; drops.push({ m: d, vx: 0, vy: 0, vz: 0 }); }
   const rings = []; for (let i = 0; i < 2; i++) { const g = new T.RingGeometry(0.9, 1.0, 40); g.rotateX(-Math.PI / 2); const m = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide, fog: false }); const r = new T.Mesh(g, m); r.layers.set(2); r.visible = false; grp.add(r); rings.push({ r, m, t: -1, delay: i * 0.4 }); }
   const JF = { on: false, t: 0, u: 0, v: 0, dx: 1, dz: 0, next: lq(12, 24), T: 0.9, WL: 0 };
   const DEEP = [[-7, -7], [5, -7], [-9, 7], [8, 8], [14, -2], [-2, 16.5], [-18, -8], [13, 12], [-6, 1.5], [4, 15]];
   function splash(u, v, WL, big) {
-    rings.forEach((q) => { q.t = -q.delay; q.u = u; q.v = v; q.big = big ? 1.25 : 1; q.active = true; });
+    addRipple(u, v, big ? 1.9 : 1.5, big ? 3.8 : 3.2);   // a real ripple train in the water shader (the white ring meshes are retired)
     drops.forEach((d) => { const a = lq(0, 6.283), sp = lq(0.25, 0.7); d.m.visible = true; d.age = 0; d.u = u; d.v = v; d.y = WL + 0.02; d.vu = Math.cos(a) * sp * 0.5; d.vv = Math.sin(a) * sp * 0.5; d.vy = lq(1.4, 2.4); });
   }
   function startJump(u, v, WL) {
@@ -8063,7 +8063,7 @@ const FRAG = [
 // drifting clouds (Claude 2026-10-16, user: calm water, no waves, no white dots; the clouds reflected in the lake drift on the wind):
 // uCloudA / uCloudB = how far the low and the high cloud layers have travelled (lake units, JS integrates speed x wind direction),
 // uCloudEvo = slow change of shape, uCloudMore = extra cover from the test panel, uSwell = the old wind swells (0 = still water)
-'uniform vec2 uCloudA, uCloudB; uniform float uCloudEvo, uCloudMore, uSwell, uCSK, uCSAmt;',
+'uniform vec2 uFwd; uniform vec2 uCloudA, uCloudB; uniform float uCloudEvo, uCloudMore, uSwell, uCSK, uCSAmt;',
 'varying vec3 vW;',
 'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
 'float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = hash(i), b = hash(i + vec2(1.0, 0.0)), c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0)); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }',
@@ -8086,7 +8086,18 @@ const FRAG = [
 '  rip *= amp;',
 // footstep ripples (SPEC 8.4): rings of (u, v, age, maxRadius); they shake the reflection and add a faint bright line, and die at the still ring
 '  vec2 ripF = vec2(0.0); float ripL = 0.0;',
-'  for (int i = 0; i < 6; i++) { vec4 rp = uRip[i]; if (rp.z >= 0.0) { vec2 dvv = uv - rp.xy; float dd = length(dvv); float rad = rp.w * (1.0 - (1.0 - rp.z) * (1.0 - rp.z)); float wd = 0.06 + 0.05 * rp.z; float env = exp(-pow((dd - rad) / wd, 2.0)) * (1.0 - rp.z) * ringMask; ripF += dvv / max(dd, 0.001) * sin((dd - rad) / wd * 3.14159) * env * 0.006; ripL += env * exp(-pow((dd - rad) / (wd * 0.45), 2.0)); } }',
+// ripple trains (Claude 2026-10-16, user: the occasional ripple was just a white circle spreading out, make it real): a drop or a step
+// sends out a short train of concentric wavelets. The leading front runs out and slows down; three or four smaller rings follow
+// behind it, their spacing grows as they spread and they die out from the inside. No white line: the rings bend the reflection
+// and shade the water by their slope (the side facing the camera mirrors deeper sky, the far side the pale horizon), like real water.
+'  float ripS = 0.0;',
+'  for (int i = 0; i < 6; i++) { vec4 rp = uRip[i]; if (rp.z >= 0.0) { vec2 dvv = uv - rp.xy; float dd = length(dvv); vec2 rn = dvv / max(dd, 0.001);',
+'    float R = rp.w * (1.0 - pow(1.0 - rp.z, 1.7)); float dbk = R - dd;',
+'    float lam = 0.055 + 0.07 * rp.z * min(rp.w, 1.8); float trainW = 0.10 + 0.32 * rp.z * min(rp.w, 1.8);',
+'    float env = smoothstep(-0.025, 0.02, dbk) * exp(-max(dbk, 0.0) / trainW) * pow(1.0 - rp.z, 1.4) / sqrt(1.0 + 2.5 * R) * ringMask;',
+'    env *= 1.0 - smoothstep(0.0, 0.35, dbk - R * 0.85);',   // nothing left near the centre once the train has passed
+'    float rph = 6.2832 * dbk / lam; float rs = cos(rph) * env;',
+'    ripF += rn * rs * 0.016; ripS += (dot(rn, uFwd) * 0.7 + 0.3) * rs * 4.0; ripL += max(0.0, -sin(rph)) * env * 0.6; } }',
 // procedural sky: base colour, drifting clouds, thin haze toward the top of the screen, stars at night
 '  float sy = gl_FragCoord.y / uRes.y;',
 '  float hazeK = uHazeLo > 0.99 ? 0.0 : pow(smoothstep(uHazeLo, 1.0, sy), 1.0 - (0.8 - uHazeLo) * 1.4);',
@@ -8140,7 +8151,9 @@ const FRAG = [
 // Now a soft, multiplicative brightness variation of a few percent that follows the water colour, so it never adds pale patches, and it fades
 // out on far water (px = lake units per pixel), where its noise cells would otherwise alias into a mosaic of little rectangles.
 '  col *= 1.0 + 0.045 * (smoothstep(0.25, 0.85, vn(uv * 3.1 + vec2(uTime * 0.25, -uTime * 0.17))) - 0.5) * uRipple * uSwell * rfade * ringMask * (1.0 - smoothstep(0.02, 0.06, px));',
-'  col += ripL * 0.14 * mix(uHaze, vec3(1.0), 0.65);',
+'  col = mix(col, col * 0.82 + uSkyTop * 0.06, clamp(ripS, 0.0, 1.0) * 0.7);',
+'  col = mix(col, mix(uHaze, vec3(1.0), 0.35), clamp(-ripS, 0.0, 1.0) * 0.32);',
+'  col += ripL * 0.10 * mix(uHaze, vec3(1.0), 0.5);',
 '  col += vec3(0.50, 0.62, 0.92) * uWinGlow * 0.17 * exp(-max(wr - uWinR, 0.0) * 1.5) * (1.0 - winMask);',
 // depth from the baked height map: bottom shows through the shallows, wet line along the shore
 '  vec2 muv = (uv - uMap.xy) / (uMap.zw - uMap.xy);',
@@ -8178,7 +8191,7 @@ const WU = {
   uMap: { value: new T.Vector4(MAPB.u0, MAPB.v0, MAPB.u1, MAPB.v1) }, uRip: { value: Array.from({ length: 6 }, () => new T.Vector4(0, 0, -1, 0.5)) },
   uSkyTop: { value: new T.Color() }, uHaze: { value: new T.Color() }, uCloud: { value: new T.Color() }, uTint: { value: new T.Color() },
   uWinC: { value: new T.Vector2() }, uWinM: { value: new T.Vector4(1, 0, 0, 1) }, uBrip: { value: new T.Vector3(0, 0, -1) }, uWinK: { value: 0 }, uWinR: { value: 1.1 }, uWinGlow: { value: 0 }, uWinDay: { value: 0 },
-  uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }, uCSK: { value: 0 }, uCSAmt: { value: 0 }
+  uCloudA: { value: new T.Vector2() }, uCloudB: { value: new T.Vector2() }, uCloudEvo: { value: 0 }, uCloudMore: { value: 0 }, uSwell: { value: 0 }, uCSK: { value: 0 }, uCSAmt: { value: 0 }, uFwd: { value: new T.Vector2(0, 1) }
 };
 const water = new T.Mesh(new T.PlaneGeometry(600, 600, 1, 1).rotateX(-Math.PI / 2), new T.ShaderMaterial({ uniforms: WU, vertexShader: VERT, fragmentShader: FRAG, extensions: { derivatives: true } }));
 water.frustumCulled = false; water.layers.set(2); water.userData.noMerge = true; scene.add(water);
@@ -8497,7 +8510,7 @@ const SEAT_HOP = 0.12;
 // feet down in front instead of the on-the-floor sit (legs straight out). No lift, no SEAT_HOP: nothing floats, nothing clips.
 const BENCH_LEG = -1.0;
 const benchHip = (seat) => seat / 1.15 - 0.3;   // hip joint (body y + 0.3, model scale 1.15) at the seat top
-const RIP_STEP_R = 0.5;
+const RIP_STEP_R = 0.7;
 function travUpdate(dt) {
   const move = (playing || TR.free) && !TR.hold;
   const dtm = move ? dt : 0;
@@ -8573,7 +8586,7 @@ function travUpdate(dt) {
   const wet = WL > sy + 0.005 && air < 0.02 && !SIT_KEYS[key];
   if (move && wet && (moving || key === 'spin')) {
     const si = Math.floor(TR.phase / Math.PI);
-    if (si !== TR.stepN) { TR.stepN = si; TR.ripT = 0; if (tAcc - (TR.lastRip === undefined ? -9 : TR.lastRip) > 0.09) { TR.lastRip = tAcc; addRipple(u + (si % 2 ? 0.05 : -0.05), v, RIP_STEP_R, 1.2); TR.splashCount = (TR.splashCount || 0) + 1; if (TR.splashCount >= TR.splashAt) { TR.splashCount = 0; TR.splashAt = 4 + Math.floor(Math.random() * 3); splashAt(u, v, WL); } } }
+    if (si !== TR.stepN) { TR.stepN = si; TR.ripT = 0; if (tAcc - (TR.lastRip === undefined ? -9 : TR.lastRip) > 0.09) { TR.lastRip = tAcc; addRipple(u + (si % 2 ? 0.05 : -0.05), v, RIP_STEP_R, 1.8); TR.splashCount = (TR.splashCount || 0) + 1; if (TR.splashCount >= TR.splashAt) { TR.splashCount = 0; TR.splashAt = 4 + Math.floor(Math.random() * 3); splashAt(u, v, WL); } } }
   } else if (move && wet) { TR.ripT += dt; if (TR.ripT > 1.5) { TR.ripT = 0; addRipple(u, v, 0.28, 1.2); } }
   else TR.stepN = Math.floor(TR.phase / Math.PI);
   TR.wading = wet; TR.moving = moving; TR.slope = slope; TR.air = air;
@@ -8597,7 +8610,8 @@ function travUpdate(dt) {
   head.rotation.x = pose.headX; head.rotation.y = pose.headY; armL.rotation.x = pose.armL; armL.rotation.z = pose.armLz; armR.rotation.z = pose.armRz;
   armR.rotation.x = -0.35 + pose.staffX * 0.8; staff.rotation.x = pose.staffX; staff.rotation.z = pose.staffZ; cloak.rotation.z = swing * 0.07;
   book.visible = pose.book > 0.5; cup.visible = pose.cup > 0.5;
-  rippleUpdate(dtm); splashUpdate(dtm);
+  { const rdt = Math.max(0, tAcc - (TR.ripClock === undefined ? tAcc : TR.ripClock)); TR.ripClock = tAcc; rippleUpdate(rdt); }   // the world's motion clock: fish ripples also run while he stands still; paused = frozen
+  splashUpdate(dtm);
 }
 function resetTraveller() {
   TR.state = 'idle'; TR.route = null; TR.recent = []; TR.lit = 0; TR.act = null; TR.amb = null; TR.ambLast = null; TR.cuffDone = true; TR.cuffPending = false; TR.after = null; TR.forcePose = null; TR.faceOv = null; TR.hold = false; TR.free = false; TR.restLast = false; TR.t = 0; TR.pending = []; TR.dep = null;
@@ -8668,6 +8682,7 @@ function cloudsUpdate() {
   CLOUD.evo += 0.012 * CT.change * dt;
   WU.uCloudA.value.set(CLOUD.a[0], CLOUD.a[1]); WU.uCloudB.value.set(CLOUD.b[0], CLOUD.b[1]); WU.uCloudEvo.value = CLOUD.evo; WU.uCloudMore.value = CT.more; WU.uSwell.value = CT.swell;
   // cloud shadows: they only hold back the direct sun, so they are strongest by day and a faint moonlight shadow at night
+  { camera.updateMatrixWorld(); const e = camera.matrixWorld.elements, fx = -e[8], fz = -e[10], fu = (fx - fz) * Math.SQRT1_2, fv = (-fx - fz) * Math.SQRT1_2, fh = Math.hypot(fu, fv) || 1; WU.uFwd.value.set(fu / fh, fv / fh); }   // screen 'away' on the lake, for ripple shading
   WU.uCSK.value = (0.12 + 0.33 * cur.glint) * CT.shade; WU.uCSAmt.value = (cur.cloudAmt - 0.5) * 0.6 + CT.more;
 }
 
