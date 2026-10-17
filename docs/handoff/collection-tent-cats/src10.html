@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>帳篷小屋三花貓</title>
+<style>
+  :root{ color-scheme: dark;
+    --bg:#0b0807; --glass:rgba(28,20,16,.48); --glass-b:rgba(255,226,190,.16);
+    --ink:#f6ead9; --ink-dim:rgba(246,234,217,.62); --accent:#ffb36b;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0b0807; } }
+  :root[data-theme="dark"]{ --bg:#0b0807; }
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;}
+  canvas{display:block;width:100vw;height:100vh;touch-action:none}
+  .panel{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px);box-sizing:border-box;
+    display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-radius:16px;
+    background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(14px) saturate(1.2);
+    -webkit-backdrop-filter:blur(14px) saturate(1.2);font-size:13px}
+  .grp{display:flex;gap:4px;align-items:center}
+  .lab{color:var(--ink-dim);margin:0 4px 0 6px;font-size:12px}
+  button{font:inherit;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    border-radius:10px;padding:6px 10px;cursor:pointer;transition:background .2s,border-color .2s}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button:hover{background:rgba(255,255,255,.12)}
+  button.on{background:rgba(255,179,107,.22);border-color:rgba(255,179,107,.55)}
+  .hint{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:calc(16px + env(safe-area-inset-left,0px));right:calc(110px + env(safe-area-inset-right,0px));font-size:12px;color:var(--ink-dim);pointer-events:none;
+    text-shadow:0 1px 6px rgba(0,0,0,.6)}
+  .hint b{color:var(--ink);font-weight:600}
+  .fps{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(16px + env(safe-area-inset-right,0px));font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  #load{position:fixed;inset:0;display:grid;place-items:center;font-size:14px;color:var(--ink-dim);background:var(--bg);transition:opacity .6s}
+</style>
+</head>
+<body>
+<div id="load">正在把貓抱進帳篷…</div>
+<div class="hint"><b>帳篷收藏室 · 三花貓第十版</b>　拖曳旋轉、滾輪縮放；點貓咪，牠會慢慢眨眼看你；按「打哈欠」看牠張嘴。</div>
+<div class="fps" id="fps"></div>
+<div class="panel">
+  <div class="grp"><span class="lab">鏡頭</span>
+    <button data-cam="wide" class="on">全景</button><button data-cam="mid">貓</button><button data-cam="face">臉部特寫</button><button data-cam="side">側臉</button></div>
+  <div class="grp"><span class="lab">動作</span>
+    <button id="yawnBtn">打哈欠</button><button id="blinkBtn">眨眼</button></div>
+  <div class="grp"><span class="lab">毛髮</span>
+    <button id="furBtn" class="on">開</button></div>
+  <div class="grp"><span class="lab">毛層</span>
+    <button data-q="16">16</button><button data-q="32" class="on">32</button><button data-q="56">56</button></div>
+</div>
+<script id="catdata" type="application/json">/*CATDATA*/</script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const params = new URLSearchParams(location.search);
+const DATA = JSON.parse(document.getElementById('catdata').textContent);
+const M = DATA.meta;
+const b64 = (s, T) => { const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new T(u.buffer); };
+
+// ---------------- renderer ----------------
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: !!params.get('shot') });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.3;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0d0a0a');
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.02, 60);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.minDistance = 0.25; controls.maxDistance = 5.5;
+controls.maxPolarAngle = Math.PI * 0.53;
+
+// ---------------- helpers ----------------
+function hashv(x, y, z) { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); }
+function lowpoly(geo, j = 0.01) {
+  geo = geo.index ? geo.toNonIndexed() : geo;
+  const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const kx = Math.round(x * 1000), ky = Math.round(y * 1000), kz = Math.round(z * 1000);
+    p.setXYZ(i, x + (hashv(kx, ky, kz) - .5) * j, y + (hashv(ky, kz, kx) - .5) * j, z + (hashv(kz, kx, ky) - .5) * j);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+const matCache = {};
+function mat(hex, o = {}) {
+  const k = hex + JSON.stringify(o);
+  if (!matCache[k]) matCache[k] = new THREE.MeshStandardMaterial(Object.assign({ color: hex, flatShading: true, roughness: .85, metalness: 0 }, o));
+  return matCache[k];
+}
+function box(w, h, d, hex, x, y, z, j = .01, o) {
+  const m = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(w, h, d, Math.max(1, Math.round(w / .25)), Math.max(1, Math.round(h / .25)), Math.max(1, Math.round(d / .25))), j), typeof hex === 'string' ? mat(hex, o) : hex);
+  m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m;
+}
+function add(parent, m) { parent.add(m); return m; }
+
+// ---------------- room (low-poly) ----------------
+const room = new THREE.Group(); scene.add(room);
+const WOOD = '#6e4428', WOOD_D = '#4b2c19', WOOD_L = '#8a5a35', STONE = '#6d6763', STONE_D = '#55504c', RED = '#7c2126', RED_D = '#5e171c';
+
+// floor planks
+for (let i = 0; i < 16; i++) {
+  const z = -1.5 + i * 0.24 + 0.12;
+  add(room, box(4.6, 0.06, 0.23, i % 2 ? '#5d3920' : '#664026', 0.2, -0.03, z, 0.012));
+}
+// back wall (z=-1.55) with window hole x[-1.55,-0.55] y[0.85,2.05]
+const WALLC = '#5a3a24';
+function wallPlanksX(x0, x1, y0, y1, z) {
+  const n = Math.max(1, Math.round((x1 - x0) / 0.2));
+  for (let i = 0; i < n; i++) {
+    const w = (x1 - x0) / n; const x = x0 + w * (i + .5);
+    add(room, box(w * 0.98, y1 - y0, 0.07, i % 3 === 0 ? '#5f3d26' : (i % 3 === 1 ? WALLC : '#53351f'), x, (y0 + y1) / 2, z, 0.012));
+  }
+}
+wallPlanksX(-2.1, -1.55, 0, 2.9, -1.55);
+wallPlanksX(-1.55, -0.55, 0, 0.85, -1.55);
+wallPlanksX(-1.55, -0.55, 2.05, 2.9, -1.55);
+wallPlanksX(-0.55, 2.4, 0, 2.9, -1.55);
+// right wall
+for (let i = 0; i < 12; i++) add(room, box(0.07, 2.9, 0.26, i % 2 ? '#563722' : '#4e311e', 2.4, 1.45, -1.45 + i * 0.27, 0.012));
+// left wall
+for (let i = 0; i < 12; i++) add(room, box(0.07, 2.9, 0.26, i % 2 ? '#563722' : '#4e311e', -2.1, 1.45, -1.45 + i * 0.27, 0.012));
+// window frame + mullions
+add(room, box(1.12, 0.09, 0.16, WOOD_D, -1.05, 0.83, -1.5));
+add(room, box(1.12, 0.09, 0.14, WOOD_D, -1.05, 2.07, -1.5));
+add(room, box(0.08, 1.3, 0.14, WOOD_D, -1.59, 1.45, -1.5));
+add(room, box(0.08, 1.3, 0.14, WOOD_D, -0.51, 1.45, -1.5));
+add(room, box(0.05, 1.22, 0.06, WOOD_D, -1.05, 1.45, -1.52));
+add(room, box(1.0, 0.05, 0.06, WOOD_D, -1.05, 1.45, -1.52));
+add(room, box(1.3, 0.06, 0.28, WOOD, -1.05, 0.8, -1.4)); // sill
+// curtains
+function curtain(x, flip) {
+  const g = new THREE.CylinderGeometry(0.17, 0.24, 1.95, 7, 6, false, 0, Math.PI);
+  const m = new THREE.Mesh(lowpoly(g, 0.035), mat(RED, { roughness: .95 }));
+  m.position.set(x, 1.12, -1.42); m.rotation.y = flip ? Math.PI : 0; m.scale.set(1, 1, 0.5);
+  m.castShadow = m.receiveShadow = true; room.add(m);
+  const tie = new THREE.Mesh(lowpoly(new THREE.TorusGeometry(0.13, 0.025, 5, 9), 0.01), mat('#c9a25e', { roughness: .5 }));
+  tie.position.set(x, 1.05, -1.37); tie.rotation.x = Math.PI / 2; tie.scale.set(1, 0.6, 1); room.add(tie);
+}
+curtain(-1.72, false); curtain(-0.38, true);
+add(room, box(1.9, 0.05, 0.05, WOOD_D, -1.05, 2.18, -1.38));
+
+// outside view
+const out = new THREE.Group(); scene.add(out);
+{
+  const skyGeo = new THREE.PlaneGeometry(14, 8);
+  const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#0f1a33'); gr.addColorStop(0.55, '#2c3f63'); gr.addColorStop(0.8, '#6d7ea3'); gr.addColorStop(1, '#9aa7c4');
+  g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ map: t, fog: false }));
+  sky.position.set(-1.5, 2.6, -9); out.add(sky);
+  const snow = new THREE.MeshStandardMaterial({ color: '#b9c4d8', flatShading: true, roughness: 1, emissive: '#1e2a44', emissiveIntensity: .6 });
+  const rock = new THREE.MeshStandardMaterial({ color: '#3a4560', flatShading: true, roughness: 1, emissive: '#141c30', emissiveIntensity: .8 });
+  const mtn = (x, z, h, r, s) => { const m = new THREE.Mesh(lowpoly(new THREE.ConeGeometry(r, h, 7, 3), r * 0.12), s); m.position.set(x, h / 2 - 0.2, z); out.add(m); };
+  mtn(-1.8, -8, 3.6, 2.2, rock); mtn(-1.8, -7.9, 3.65, 1.0, snow);
+  mtn(-3.4, -7.5, 2.4, 1.8, rock); mtn(0.4, -7.6, 2.6, 1.9, rock);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(14, 10), snow); ground.rotation.x = -Math.PI / 2; ground.position.set(-1.5, 0.15, -6); out.add(ground);
+  const pine = new THREE.MeshStandardMaterial({ color: '#1d2b33', flatShading: true, roughness: 1, emissive: '#0b141b', emissiveIntensity: .6 });
+  for (let i = 0; i < 26; i++) {
+    const x = -4 + hashv(i, 1, 2) * 5.5, z = -3 - hashv(i, 3, 4) * 4.2, s = 0.5 + hashv(i, 5, 6) * 0.9;
+    for (let k = 0; k < 3; k++) { const m = new THREE.Mesh(lowpoly(new THREE.ConeGeometry(0.32 * s * (1 - k * .22), 0.7 * s, 6, 1), 0.03), pine); m.position.set(x, 0.15 + 0.3 * s + k * 0.38 * s, z); out.add(m); }
+  }
+  // fence outside window (like reference)
+  for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(0.09, 0.95, 0.09), .01), mat('#5a4a40')); m.position.set(-2.3 + i * 0.55, 0.62, -2.35); out.add(m); }
+  for (const y of [0.55, 0.92]) { const m = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(3.2, 0.07, 0.06, 6, 1, 1), .02), mat('#5a4a40')); m.position.set(-0.9, y, -2.32); out.add(m); }
+}
+
+// fireplace (right back)
+const FX = 1.62, FZ = -1.27;
+{
+  const fp = new THREE.Group(); fp.position.set(FX, 0, FZ); room.add(fp);
+  // stone blocks around opening (opening x[-0.36,0.36], y[0.08,0.68])
+  const blocks = [];
+  for (let row = 0; row < 7; row++) {
+    const y = 0.09 + row * 0.165; const off = row % 2 ? 0.12 : 0;
+    for (let col = -4; col <= 4; col++) {
+      const x = col * 0.24 + off; if (Math.abs(x) > 0.75) continue;
+      if (Math.abs(x) < 0.42 && y < 0.72) continue;
+      blocks.push([x, y]);
+    }
+  }
+  for (const [x, y] of blocks) {
+    const s = 0.9 + hashv(x * 10, y * 10, 1) * 0.15;
+    const m = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(0.23 * s, 0.16, 0.36, 2, 1, 2), 0.03), mat(hashv(x, y, 3) > .5 ? STONE : STONE_D, { roughness: .95 }));
+    m.position.set(x, y, 0.02); m.castShadow = m.receiveShadow = true; fp.add(m);
+  }
+  // lintel stone + back of firebox
+  fp.add(box(0.95, 0.14, 0.4, STONE_D, 0, 0.74, 0.04, 0.03));
+  fp.add(box(0.8, 0.65, 0.06, '#241a16', 0, 0.38, -0.14, 0.01));
+  fp.add(box(0.06, 0.6, 0.3, '#2c211c', -0.38, 0.36, 0, .01)); fp.add(box(0.06, 0.6, 0.3, '#2c211c', 0.38, 0.36, 0, .01));
+  // hearth
+  fp.add(box(1.7, 0.08, 0.7, STONE_D, 0, 0.04, 0.22, 0.03));
+  // mantel
+  fp.add(box(1.75, 0.09, 0.42, WOOD, 0, 1.25, 0.08, 0.015));
+  // chimney breast up
+  for (let row = 0; row < 9; row++) for (let col = -3; col <= 3; col++) {
+    const x = col * 0.22 + (row % 2 ? 0.11 : 0); if (Math.abs(x) > 0.66) continue;
+    const m = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(0.21, 0.17, 0.3, 2, 1, 2), 0.03), mat(hashv(x, row, 9) > .5 ? STONE : STONE_D, { roughness: .95 }));
+    m.position.set(x, 1.38 + row * 0.175, -0.05); m.castShadow = m.receiveShadow = true; fp.add(m);
+  }
+  // logs + andiron
+  const logM = mat('#3a2416');
+  for (const [x, r] of [[-0.1, 0.25], [0.12, -0.3], [0.0, 1.4]]) {
+    const m = new THREE.Mesh(lowpoly(new THREE.CylinderGeometry(0.05, 0.055, 0.5, 6), 0.012), logM);
+    m.rotation.z = Math.PI / 2; m.rotation.y = r; m.position.set(x, 0.14 + (r > 1 ? 0.08 : 0), 0.0); fp.add(m);
+  }
+  const iron = mat('#1b1716', { roughness: .5, metalness: .6 });
+  for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.26, 5), iron); m.position.set(-0.3 + i * 0.12, 0.2, 0.3); fp.add(m); const k = new THREE.Mesh(new THREE.SphereGeometry(0.018, 5, 4), iron); k.position.set(-0.3 + i * 0.12, 0.34, 0.3); fp.add(k); }
+  { const m = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.015, 0.015), iron); m.position.set(0, 0.24, 0.3); fp.add(m); }
+}
+// flames
+const flames = [];
+{
+  const fireG = new THREE.Group(); fireG.position.set(FX, 0.16, FZ + 0.02); room.add(fireG);
+  const cols = ['#ffcf6b', '#ff9a3c', '#ff6a1f'];
+  for (let i = 0; i < 9; i++) {
+    const h = 0.18 + hashv(i, 2, 3) * 0.24;
+    const m = new THREE.Mesh(lowpoly(new THREE.ConeGeometry(0.045 + hashv(i, 7, 1) * 0.04, h, 5, 2), 0.01),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color(cols[i % 3]).multiplyScalar(i % 3 === 0 ? 7 : 4), transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
+    m.position.set(-0.22 + (i / 8) * 0.44 + (hashv(i, 4, 4) - .5) * 0.06, h / 2, (hashv(i, 8, 8) - .5) * 0.1);
+    m.userData = { h, ph: hashv(i, 9, 9) * 10, sp: 6 + hashv(i, 1, 1) * 5 }; fireG.add(m); flames.push(m);
+  }
+  const coal = new THREE.Mesh(lowpoly(new THREE.CylinderGeometry(0.3, 0.32, 0.04, 8), 0.02), new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff5a1a').multiplyScalar(2.2) }));
+  coal.position.set(0, -0.02, 0); fireG.add(coal);
+}
+// embers
+const EMB = 40; const emberGeo = new THREE.BufferGeometry(); const emberPos = new Float32Array(EMB * 3); const emberSeed = [];
+for (let i = 0; i < EMB; i++) emberSeed.push([Math.random(), Math.random(), Math.random()]);
+emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
+const embers = new THREE.Points(emberGeo, new THREE.PointsMaterial({ color: new THREE.Color('#ffae55').multiplyScalar(4), size: 0.012, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+room.add(embers);
+
+// shelf on back wall between window and fireplace + items
+add(room, box(0.95, 0.05, 0.26, WOOD, 0.08, 1.6, -1.4));
+add(room, box(0.05, 0.16, 0.2, WOOD_D, -0.3, 1.52, -1.42)); add(room, box(0.05, 0.16, 0.2, WOOD_D, 0.46, 1.52, -1.42));
+{ // armillary sphere
+  const g = new THREE.Group(); g.position.set(-0.18, 1.78, -1.38); room.add(g);
+  const brass = mat('#b8893c', { roughness: .35, metalness: .8 });
+  for (let i = 0; i < 3; i++) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.007, 4, 18), brass); t.rotation.set(i * 1.1, i * 0.7, 0); g.add(t); }
+  const st = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.04, 0.12, 6), brass); st.position.y = -0.11; g.add(st);
+}
+{ // little chest
+  add(room, box(0.2, 0.13, 0.13, '#6a4524', 0.08, 1.69, -1.38, 0.006));
+  add(room, box(0.21, 0.03, 0.14, '#4d311a', 0.08, 1.77, -1.38, 0.004));
+}
+// tomato timer easter egg
+{
+  const t = new THREE.Mesh(lowpoly(new THREE.SphereGeometry(0.045, 7, 5), 0.006), mat('#c8382a', { roughness: .5 }));
+  t.scale.set(1, 0.82, 1); t.position.set(0.32, 1.665, -1.36); t.castShadow = true; room.add(t);
+  const l = new THREE.Mesh(lowpoly(new THREE.ConeGeometry(0.03, 0.02, 5), 0.003), mat('#3f7a2a')); l.position.set(0.32, 1.71, -1.36); room.add(l);
+}
+// mantel items: lantern, vase, books
+let lanternLight;
+{
+  const g = new THREE.Group(); g.position.set(FX + 0.55, 1.3, FZ + 0.1); room.add(g);
+  const iron = mat('#2a2220', { roughness: .5, metalness: .5 });
+  { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.03, 6), iron); b.position.y = 0.015; g.add(b); }
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.15, 6, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffc477').multiplyScalar(2.2), transparent: true, opacity: .55, side: THREE.DoubleSide }));
+  glass.position.y = 0.1; g.add(glass);
+  const top = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.07, 6), iron); top.position.y = 0.21; g.add(top);
+  const flame = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 5), new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffd28a').multiplyScalar(8) })); flame.scale.y = 1.8; flame.position.y = 0.1; g.add(flame);
+  lanternLight = new THREE.PointLight('#ffb366', 0.35, 0, 2); lanternLight.position.set(0, 0.1, 0.05); g.add(lanternLight);
+}
+add(room, box(0.06, 0.2, 0.15, '#3d4a63', FX - 0.6, 1.39, FZ + 0.1, 0.004));
+add(room, box(0.05, 0.18, 0.15, '#6a2a24', FX - 0.53, 1.38, FZ + 0.1, 0.004));
+add(room, box(0.05, 0.22, 0.15, '#4c5a35', FX - 0.47, 1.4, FZ + 0.1, 0.004));
+{ const v = new THREE.Mesh(lowpoly(new THREE.CylinderGeometry(0.04, 0.05, 0.16, 6), .004), new THREE.MeshStandardMaterial({ color: '#9fb3a8', transparent: true, opacity: .55, roughness: .1, flatShading: true }));
+  v.position.set(FX - 0.15, 1.38, FZ + 0.1); room.add(v);
+  for (let i = 0; i < 7; i++) { const s = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.25, 3), mat('#6b6040')); s.position.set(FX - 0.15 + (i - 3) * 0.012, 1.55, FZ + 0.1); s.rotation.z = (i - 3) * 0.12; room.add(s);
+    const f = new THREE.Mesh(lowpoly(new THREE.IcosahedronGeometry(0.018, 0), .004), mat('#a9a0c8')); f.position.set(FX - 0.15 + (i - 3) * 0.028, 1.67 + hashv(i, 2, 2) * 0.04, FZ + 0.1); room.add(f); }
+}
+// drying line with socks + spare pointed hat (plan's cute items)
+{
+  const y = 1.95, x0 = FX - 0.62, x1 = FX + 0.62, z = FZ + 0.42;
+  const line = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, x1 - x0, 4), mat('#d8c9a8')); line.rotation.z = Math.PI / 2; line.position.set((x0 + x1) / 2, y, z); room.add(line);
+  const sock = (x, hex) => { const g = new THREE.Group(); g.position.set(x, y, z);
+    const a = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(0.07, 0.2, 0.04), .006), mat(hex)); a.position.y = -0.1; g.add(a);
+    const b = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(0.11, 0.06, 0.04), .006), mat(hex)); b.position.set(0.025, -0.21, 0); g.add(b);
+    const s = new THREE.Mesh(lowpoly(new THREE.BoxGeometry(0.075, 0.035, 0.045), .004), mat('#e9dcc2')); s.position.y = -0.015; g.add(s);
+    g.rotation.z = (hashv(x, 1, 1) - .5) * 0.15; room.add(g); return g; };
+  sock(FX - 0.25, '#7b3a2c'); sock(FX - 0.08, '#4e6075');
+  // pointed hat on wall peg
+  const hat = new THREE.Group(); hat.position.set(-1.98, 1.72, -0.55); room.add(hat);
+  const cone = new THREE.Mesh(lowpoly(new THREE.ConeGeometry(0.13, 0.38, 7, 3), .02), mat('#3b4a5a')); cone.position.y = 0.17; cone.rotation.z = -0.25; hat.add(cone);
+  const brim = new THREE.Mesh(lowpoly(new THREE.CylinderGeometry(0.24, 0.24, 0.02, 9), .015), mat('#33404e')); hat.add(brim);
+  hat.rotation.z = -Math.PI / 2 + 0.25;
+  add(room, box(0.04, 0.04, 0.1, WOOD_D, -2.05, 1.72, -0.55));
+}
+// roof beams (tent-cabin)
+add(room, box(0.16, 2.95, 0.16, WOOD_D, -2.0, 1.47, -1.45));
+add(room, box(0.16, 2.95, 0.16, WOOD_D, 2.25, 1.47, -1.45));
+add(room, box(4.4, 0.18, 0.2, WOOD, 0.12, 2.85, -1.42));
+for (const z of [-1.0, 0.1]) { const b = box(4.4, 0.14, 0.16, WOOD_D, 0.12, 2.75 - (z + 1) * 0.1, z); b.rotation.x = 0.05; room.add(b); }
+add(room, box(0.16, 1.6, 0.16, WOOD_D, -2.0, 0.8, 0.35));
+
+// rug
+{
+  const c = document.createElement('canvas'); c.width = 512; c.height = 320; const g = c.getContext('2d');
+  g.fillStyle = '#7d2a26'; g.fillRect(0, 0, 512, 320);
+  g.fillStyle = '#e4d3b2'; g.fillRect(14, 14, 484, 292); g.fillStyle = '#7d2a26'; g.fillRect(24, 24, 464, 272);
+  const dia = (cx, cy, s, col) => { g.fillStyle = col; g.beginPath(); g.moveTo(cx, cy - s); g.lineTo(cx + s, cy); g.lineTo(cx, cy + s); g.lineTo(cx - s, cy); g.closePath(); g.fill(); };
+  for (let i = 0; i < 7; i++) { dia(70 + i * 62, 160, 46, '#2e3550'); dia(70 + i * 62, 160, 30, '#e4d3b2'); dia(70 + i * 62, 160, 14, '#c25a2a'); }
+  for (let i = 0; i < 16; i++) { dia(40 + i * 29, 50, 9, '#e4d3b2'); dia(40 + i * 29, 270, 9, '#e4d3b2'); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  const rug = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.014, 1.35), new THREE.MeshStandardMaterial({ map: t, roughness: 1 }));
+  rug.position.set(0.25, 0.007, 0.55); rug.rotation.y = -0.12; rug.receiveShadow = true; room.add(rug);
+  window.__rugTex = t;
+}
+
+// armchair (cat sits on seat; seat top at y = 0.47)
+const chair = new THREE.Group(); chair.position.set(-0.22, 0, -0.2); chair.rotation.y = 0.12; room.add(chair);
+const SEAT_Y = 0.47;
+{
+  chair.add(box(1.08, 0.09, 0.72, WOOD, 0, 0.16, 0, 0.012));
+  for (const x of [-0.5, 0.5]) for (const z of [-0.32, 0.32]) chair.add(box(0.09, 0.16, 0.09, WOOD_D, x, 0.06, z, 0.008));
+  chair.add(box(0.98, 0.07, 0.66, WOOD_D, 0, 0.23, 0, 0.01));
+  // seat cushion (puffy)
+  const cg = lowpoly(new THREE.BoxGeometry(0.84, 0.2, 0.64, 6, 2, 5), 0.0);
+  { const p = cg.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const r = Math.max(Math.abs(x) / 0.42, Math.abs(z) / 0.32); p.setY(i, y + (y > 0 ? 0.035 * (1 - r * r) : 0)); p.setX(i, x * (1 - 0.05 * Math.abs(y) / 0.1)); p.setZ(i, z * (1 - 0.05 * Math.abs(y) / 0.1)); } cg.computeVertexNormals(); }
+  const cushion = new THREE.Mesh(lowpoly(cg, 0.018), mat(RED, { roughness: .95 })); cushion.position.set(0, SEAT_Y - 0.1 - 0.035, 0.03); cushion.castShadow = cushion.receiveShadow = true; chair.add(cushion);
+  // back cushion
+  const bg = new THREE.BoxGeometry(0.86, 0.62, 0.2, 6, 5, 2);
+  { const p = bg.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const r = Math.max(Math.abs(x) / 0.43, Math.abs(y) / 0.31); p.setZ(i, z + (z > 0 ? 0.05 * (1 - r * r) : 0)); } }
+  const back = new THREE.Mesh(lowpoly(bg, 0.02), mat(RED_D, { roughness: .95 })); back.position.set(0, 0.74, -0.27); back.rotation.x = -0.12; back.castShadow = back.receiveShadow = true; chair.add(back);
+  chair.add(box(1.06, 0.82, 0.1, WOOD, 0, 0.62, -0.37, 0.012));
+  // arms
+  for (const s of [-1, 1]) {
+    chair.add(box(0.13, 0.36, 0.7, WOOD, s * 0.49, 0.38, 0.0, 0.012));
+    chair.add(box(0.17, 0.08, 0.78, WOOD_L, s * 0.49, 0.6, 0.02, 0.012));
+    chair.add(box(0.19, 0.1, 0.12, WOOD_D, s * 0.49, 0.6, 0.38, 0.01));
+  }
+  // knitted blanket over right side of back
+  const c = document.createElement('canvas'); c.width = 256; c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#8a2b2a'; g.fillRect(0, 0, 256, 256);
+  for (let y = 0; y < 256; y += 32) for (let x = 0; x < 256; x += 32) { g.fillStyle = (x + y) % 64 ? '#d9c39b' : '#3e2420'; g.beginPath(); g.moveTo(x + 16, y + 4); g.lineTo(x + 28, y + 16); g.lineTo(x + 16, y + 28); g.lineTo(x + 4, y + 16); g.fill(); }
+  g.fillStyle = '#d9c39b'; for (let x = 0; x < 256; x += 8) g.fillRect(x, 0, 4, 6);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 2);
+  const bl = new THREE.PlaneGeometry(0.42, 1.05, 4, 10); const p = bl.attributes.position;
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i); const x = p.getX(i); const u = (y + 0.525) / 1.05; // drape over back top
+    const ang = (1 - u) * 2.2 - 0.25; const R = 0.09; let px, py; if (ang > 0 && ang < 2.1) { px = Math.sin(ang) * R; py = Math.cos(ang) * R; } else if (ang >= 2.1) { px = Math.sin(2.1) * R + (ang - 2.1) * 0.0; py = Math.cos(2.1) * R - (ang - 2.1) * 0.24; } else { px = ang * 0.24; py = R; }
+    p.setXYZ(i, x + (hashv(i, 1, 2) - .5) * 0.01, py, -px * 3.0 + (hashv(i, 3, 2) - .5) * 0.01); }
+  bl.computeVertexNormals();
+  const blanket = new THREE.Mesh(bl, new THREE.MeshStandardMaterial({ map: t, side: THREE.DoubleSide, roughness: 1, flatShading: true }));
+  blanket.position.set(0.24, 1.0, -0.32); blanket.rotation.y = 0.0; blanket.castShadow = blanket.receiveShadow = true; chair.add(blanket);
+}
+// side table + mugs + book (left)
+{
+  const st = new THREE.Group(); st.position.set(-0.95, 0, 0.12); room.add(st);
+  st.add(box(0.5, 0.06, 0.5, WOOD, 0, 0.5, 0, 0.012));
+  st.add(box(0.12, 0.47, 0.12, WOOD_D, 0, 0.24, 0, 0.012));
+  st.add(box(0.34, 0.05, 0.34, WOOD_D, 0, 0.025, 0, 0.012));
+  const mug = (x, z, hex) => { const m = new THREE.Mesh(lowpoly(new THREE.CylinderGeometry(0.045, 0.04, 0.1, 7), .006), mat(hex, { roughness: .6 })); m.position.set(x, 0.58, z); m.castShadow = true; st.add(m);
+    const h = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.009, 4, 8, Math.PI), mat(hex, { roughness: .6 })); h.position.set(x + 0.048, 0.58, z); h.rotation.z = -Math.PI / 2; st.add(h); };
+  mug(0.08, 0.06, '#7a5a34'); mug(-0.1, -0.08, '#3f5566');
+  st.add(box(0.28, 0.05, 0.2, '#5e2c2a', -0.02, 0.555, 0.1, 0.004));
+  st.add(box(0.26, 0.04, 0.18, '#2f3c52', 0.0, 0.6, 0.11, 0.004));
+}
+// kettle by hearth
+{
+  const k = new THREE.Group(); k.position.set(FX - 0.68, 0.08, FZ + 0.5); room.add(k);
+  const iron = mat('#2b2523', { roughness: .45, metalness: .5 });
+  const b = new THREE.Mesh(lowpoly(new THREE.SphereGeometry(0.1, 7, 5), .008), iron); b.scale.y = 0.85; b.position.y = 0.09; k.add(b);
+  const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.022, 0.12, 5), iron); sp.position.set(0.1, 0.12, 0); sp.rotation.z = -0.9; k.add(sp);
+  const hd = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.008, 4, 8, Math.PI), iron); hd.position.y = 0.17; k.add(hd);
+}
+
+// ---------------- lights ----------------
+const hemi = new THREE.HemisphereLight('#4a5070', '#5a2c16', 1.1); scene.add(hemi);
+const fireLight = new THREE.PointLight('#ff8b3d', 8, 0, 2);
+fireLight.position.set(FX, 0.42, FZ + 0.35); fireLight.castShadow = true;
+fireLight.shadow.mapSize.set(1024, 1024); fireLight.shadow.bias = -0.002; fireLight.shadow.radius = 4; fireLight.shadow.camera.near = 0.05;
+scene.add(fireLight);
+const moon = new THREE.DirectionalLight('#8fb0ff', 0.55); moon.position.set(-2.2, 3.2, -4.0); moon.target.position.set(0, 0.3, 0);
+moon.castShadow = true; moon.shadow.mapSize.set(1024, 1024); moon.shadow.camera.left = -2; moon.shadow.camera.right = 2; moon.shadow.camera.top = 2; moon.shadow.camera.bottom = -2; moon.shadow.bias = -0.001;
+scene.add(moon, moon.target);
+const fill = new THREE.PointLight('#ffb889', 1.6, 0, 2); fill.position.set(-0.2, 1.7, 1.7); scene.add(fill);
+
+// ---------------- cat ----------------
+const catRoot = new THREE.Group();
+catRoot.position.set(0.0, SEAT_Y + 0.004, 0.06);
+catRoot.rotation.y = -0.38;
+chair.add(catRoot);
+
+const pos = b64(DATA.pos, Float32Array), nrm = b64(DATA.nrm, Float32Array), comb = b64(DATA.comb, Float32Array);
+const attr = b64(DATA.attr, Float32Array), defw = b64(DATA.defw, Float32Array), idx = b64(DATA.idx, Uint32Array);
+const NV = DATA.nv;
+const faceA = b64(DATA.face, Float32Array), tngA = b64(DATA.tng, Float32Array), lipA = b64(DATA.lip, Float32Array);   // v10: jaw weight, lid angle, eye, mouth lining / tongue tip param
+const attrA = new Float32Array(NV * 4), attrB = new Float32Array(NV * 4), stripeA = new Float32Array(NV), defA = new Float32Array(NV * 4), defE = new Float32Array(NV);
+for (let i = 0; i < NV; i++) {
+  for (let k = 0; k < 4; k++) { attrA[i * 4 + k] = attr[i * 9 + k]; attrB[i * 4 + k] = attr[i * 9 + 4 + k]; defA[i * 4 + k] = defw[i * 5 + k]; }
+  stripeA[i] = attr[i * 9 + 8]; defE[i] = defw[i * 5 + 4];
+}
+const baseGeo = new THREE.BufferGeometry();
+baseGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+baseGeo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
+baseGeo.setIndex(new THREE.BufferAttribute(idx, 1));
+baseGeo.computeBoundingSphere();
+
+function makeFurGeo(nShells) {
+  const g = new THREE.InstancedBufferGeometry();
+  g.index = baseGeo.index;
+  g.setAttribute('position', baseGeo.attributes.position);
+  g.setAttribute('normal', baseGeo.attributes.normal);
+  g.setAttribute('comb', new THREE.BufferAttribute(comb, 3));
+  g.setAttribute('attrA', new THREE.BufferAttribute(attrA, 4));
+  g.setAttribute('attrB', new THREE.BufferAttribute(attrB, 4));
+  g.setAttribute('stripe', new THREE.BufferAttribute(stripeA, 1));
+  g.setAttribute('defA', new THREE.BufferAttribute(defA, 4));
+  g.setAttribute('defE', new THREE.BufferAttribute(defE, 1));
+  g.setAttribute('aFace', new THREE.BufferAttribute(faceA, 4));
+  g.setAttribute('aTng', new THREE.BufferAttribute(tngA, 1));
+  g.setAttribute('aLip', new THREE.BufferAttribute(lipA, 1));
+  const sh = new Float32Array(nShells);
+  for (let i = 0; i < nShells; i++) sh[i] = i / (nShells - 1);
+  g.setAttribute('aShell', new THREE.InstancedBufferAttribute(sh, 1));
+  g.instanceCount = nShells;
+  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0.12, 0.03), 0.5);
+  return g;
+}
+
+const U = {
+  uTime: { value: 0 }, uFurScale: { value: 1 }, uFurOn: { value: 1 }, uBreath: { value: 0 },
+  uHeadQ: { value: new THREE.Vector4(0, 0, 0, 1) }, uNeck: { value: new THREE.Vector3().fromArray(M.neck) },
+  uEarQL: { value: new THREE.Vector4(0, 0, 0, 1) }, uEarPL: { value: new THREE.Vector3().fromArray(M.earBase[0]) },
+  uEarQR: { value: new THREE.Vector4(0, 0, 0, 1) }, uEarPR: { value: new THREE.Vector3().fromArray(M.earBase[1]) },
+  uTailQ: { value: new THREE.Vector4(0, 0, 0, 1) }, uTailP: { value: new THREE.Vector3().fromArray(M.tailPivot) },
+  uFirePos: { value: new THREE.Vector3() }, uFireCol: { value: new THREE.Color() },
+  uLampPos: { value: new THREE.Vector3() }, uLampCol: { value: new THREE.Color() },
+  uFillPos: { value: new THREE.Vector3() }, uFillCol: { value: new THREE.Color() },
+  uMoonDir: { value: new THREE.Vector3() }, uMoonCol: { value: new THREE.Color() },
+  uSky: { value: new THREE.Color() }, uGround: { value: new THREE.Color() },
+  uJaw: { value: 0 }, uHinge: { value: new THREE.Vector3().fromArray(M.hinge) }, uTongue: { value: 0 }, uTongueP: { value: new THREE.Vector3().fromArray(M.tongueAx[0]) },
+  uBlink: { value: new THREE.Vector2(0, 0) }, uEyeC0: { value: new THREE.Vector3().fromArray(M.eyes[0]) }, uEyeC1: { value: new THREE.Vector3().fromArray(M.eyes[1]) },
+  uEyeA0: { value: new THREE.Vector3().fromArray(M.eyeAx[0]) }, uEyeA1: { value: new THREE.Vector3().fromArray(M.eyeAx[1]) },
+  uDensity: { value: 150.0 }, uObjRot: { value: new THREE.Matrix3() }, uH: { value: new THREE.Vector3().fromArray(M.H) }, uHS: { value: M.HS },
+};
+
+const furVS = /* glsl */`
+precision highp float;
+attribute vec3 comb; attribute vec4 attrA; attribute vec4 attrB; attribute float stripe;
+attribute vec4 defA; attribute float defE; attribute float aShell; attribute vec4 aFace; attribute float aTng; attribute float aLip;
+uniform float uFurScale, uBreath, uFurOn;
+uniform vec4 uHeadQ, uEarQL, uEarQR, uTailQ;
+uniform vec3 uNeck, uEarPL, uEarPR, uTailP;
+uniform float uJaw, uTongue; uniform vec3 uHinge, uTongueP; uniform vec2 uBlink; uniform vec3 uEyeC0, uEyeC1, uEyeA0, uEyeA1;
+varying vec3 vWorld, vN, vT, vRest, vRN, vRC;
+varying float vH, vLen, vStripe;
+varying vec4 vA, vB, vF;
+varying float vTg;
+vec3 qrot(vec4 q, vec3 v){ return v + 2.0*cross(q.xyz, cross(q.xyz, v) + q.w*v); }
+vec4 qpart(vec4 q, float w){ return normalize(mix(vec4(0.,0.,0.,1.), q, w)); }
+void xf(vec4 q, vec3 piv, float w, inout vec3 p, inout vec3 n, inout vec3 t){
+  if (w < 0.001) return; vec4 r = qpart(q, w); p = piv + qrot(r, p - piv); n = qrot(r, n); t = qrot(r, t);
+}
+void axrot(vec3 ax, float a, vec3 piv, inout vec3 p, inout vec3 n, inout vec3 t){
+  vec4 r = vec4(ax * sin(0.5 * a), cos(0.5 * a)); p = piv + qrot(r, p - piv); n = qrot(r, n); t = qrot(r, t);
+}
+void main(){
+  float h = aShell * uFurOn;
+  float L = attrA.x * uFurScale * (1.0 - aLip * smoothstep(0.04, 0.35, uJaw));   // lip fur parts only while the mouth opens
+  vec3 n = normal; vec3 c = comb; vec3 g = vec3(0.,-1.,0.);
+  vec3 p = position + n * (uBreath * defA.y * 0.0026);
+  p += n * L * h * 0.8 + c * L * (0.35 * h + 0.6 * h * h) + g * L * 0.14 * h * h;
+  vec3 t = normalize(n * 0.8 + c * (0.35 + 1.2 * h) + g * 0.28 * h);
+  // v10 face rig (rest pose): tongue curl, jaw, eyelids — all before the head turns
+  if (aTng > 0.0) { axrot(vec3(0., 0., 1.), uTongue * aTng * aTng * 1.1, uTongueP, p, n, t); p.x += uTongue * aTng * 0.0045; }
+  if (aFace.x > 0.001) axrot(vec3(0., 0., 1.), -uJaw * aFace.x, uHinge, p, n, t);
+  if (abs(aFace.y) > 0.0001) {
+    bool e1 = aFace.z > 0.5; vec3 C = e1 ? uEyeC1 : uEyeC0; vec3 A = e1 ? uEyeA1 : uEyeA0; float b = e1 ? uBlink.y : uBlink.x;
+    axrot(A, aFace.y * b, C, p, n, t);
+    if (aFace.y < 0.0) p += normalize(p - C) * 0.00035 * b;   // upper lid rides over the lower one
+  }
+  xf(uEarQL, uEarPL, defA.w, p, n, t);
+  xf(uEarQR, uEarPR, defE, p, n, t);
+  xf(uHeadQ, uNeck, defA.x, p, n, t);
+  xf(uTailQ, uTailP, defA.z, p, n, t);
+  vec4 wp = modelMatrix * vec4(p, 1.0);
+  vWorld = wp.xyz; vN = normalize(mat3(modelMatrix) * n); vT = normalize(mat3(modelMatrix) * t);
+  vRest = position; vRN = normal; vRC = comb; vH = h; vLen = L; vA = attrA; vB = attrB; vStripe = stripe; vF = aFace; vTg = aTng;
+  gl_Position = projectionMatrix * viewMatrix * wp;
+}`;
+
+const furFS = /* glsl */`
+precision highp float;
+uniform float uTime, uDensity, uHS;
+uniform vec3 uH;
+uniform mat3 uObjRot;
+uniform vec3 uFirePos, uLampPos, uFillPos, uMoonDir;
+uniform vec3 uFireCol, uLampCol, uFillCol, uMoonCol, uSky, uGround;
+varying vec3 vWorld, vN, vT, vRest, vRN, vRC;
+varying float vH, vLen, vStripe;
+varying vec4 vA, vB, vF;
+varying float vTg;
+float h13(vec3 p){ p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
+vec3 h33(vec3 p){ p = fract(p * vec3(.1031, .1030, .0973)); p += dot(p, p.yxz + 33.33); return fract((p.xxy + p.yxx) * p.zyx); }
+float vn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+  return mix(mix(mix(h13(i),h13(i+vec3(1,0,0)),f.x),mix(h13(i+vec3(0,1,0)),h13(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(h13(i+vec3(0,0,1)),h13(i+vec3(1,0,1)),f.x),mix(h13(i+vec3(0,1,1)),h13(i+vec3(1,1,1)),f.x),f.y),f.z); }
+// coverage for one layer of fur clumps (locks): each lock is an ellipse stretched along the combing
+// direction whose cross-section slides down-comb and narrows with height, so it reads as a lying tuft
+float tufts(vec3 rest, vec3 rn, vec3 rc, float dens, float h, float radius, out float sh, out vec3 tv){
+  vec3 q = rest * dens;
+  float px = length(fwidth(q));
+  q += (vec3(vn(rest*45.0), vn(rest*45.0+7.3), vn(rest*45.0+13.1)) - 0.5) * 0.6;      // break the grid
+  vec3 ci = floor(q); vec3 f = fract(q);
+  vec3 rp = h33(ci) * 0.5 + 0.25;
+  sh = h13(ci + 17.0);
+  float slen = 0.7 + 0.3 * h13(ci + 3.7);
+  vec3 dv = f - rp; dv -= rn * dot(dv, rn);
+  dv -= rc * (h * 0.32);                                    // lock leans down-comb as it rises
+  float al = dot(dv, rc); vec3 ac = dv - rc * al;
+  float d = length(ac + rc * al * 0.6);                    // elongated along the comb
+  float taper = pow(max(0.0, 1.0 - h / slen), 0.55);
+  float rag = vn(rest * dens * 6.0 + rc * h * 3.0) * 0.7 + 0.62;
+  float r = radius * taper * mix(1.0, rag, smoothstep(0.35, 0.9, h));
+  float fw = fwidth(d) * 1.2 + 0.07;
+  float a = smoothstep(r + fw, r - fw, d);
+  tv = dv / max(radius, 1e-3);
+  float avg = clamp(2.2 * r * r, 0.0, 1.0) * step(h, slen);
+  return mix(a, avg, smoothstep(0.5, 1.2, px));
+}
+float gShort = 0.0;
+vec3 shadeLight(vec3 L, vec3 rad, vec3 N, vec3 T, vec3 V, vec3 alb, float h, float isSkin){
+  float ndl = dot(N, L);
+  float wr = mix(0.42, 0.18, gShort);
+  float wrap = clamp((ndl + wr) / (1.0 + wr), 0., 1.);
+  float tl = dot(T, L); float kk = sqrt(max(0., 1. - tl * tl));
+  float diff = mix(max(ndl,0.), mix(wrap, wrap * (0.55 + 0.45*kk), h), 1.0 - isSkin);
+  vec3 H = normalize(L + V);
+  vec3 T1 = normalize(T + N * 0.08), T2 = normalize(T - N * 0.12);
+  float th1 = dot(T1, H), th2 = dot(T2, H);
+  float s1 = pow(sqrt(max(0., 1. - th1 * th1)), 90.0) * 0.22;
+  float s2 = pow(sqrt(max(0., 1. - th2 * th2)), 22.0) * 0.12;
+  float spec = (s1 + s2 * 1.0) * smoothstep(-0.1, 0.3, ndl) * (1.0 - isSkin) * (0.25 + 0.75 * h);
+  float sk = isSkin * pow(max(dot(N, H), 0.), 40.0) * 0.12;
+  // back-scatter through fur tips at the silhouette (warm rim from the fire)
+  float rim = pow(1. - abs(dot(N, V)), 3.0) * pow(clamp(dot(-V, L) * 0.5 + 0.5, 0., 1.), 2.0) * h * 1.6 * (1.0-isSkin);
+  return rad * (alb * (diff + rim) * 0.3183 + vec3(spec) * mix(vec3(1.), alb * 2.0, 0.4) + sk);
+}
+void main(){
+  float h = vH;
+  float white = vA.y, orange = vA.z, skin = vA.w, sparse = vB.x, rimDark = vB.y, mouth = vB.z, ao = vB.w;
+  // mouth (nose line + the two curves under the whisker pads) and nostrils, drawn per pixel so they stay crisp
+  vec3 mz = (vRest - uH) / uHS; float az = abs(mz.z);
+  float front = step(0.040, mz.x) * step(0.1, vRN.x);
+  // cat mouth like the reference: nose line, then an ω under the whisker pads, and a small lower lip under the split
+  float phil = (1.0 - smoothstep(0.00035, 0.0009, az)) * smoothstep(-0.0131, -0.0141, mz.y) * smoothstep(-0.0284, -0.0274, mz.y);
+  float yl = -0.0276 - 0.0030 * sin(3.14159 * min(az, 0.0110) / 0.0110);
+  float arc = (1.0 - smoothstep(0.00045, 0.0011, abs(mz.y - yl))) * (1.0 - smoothstep(0.0085, 0.0105, az));
+  float lip = (1.0 - smoothstep(0.0018, 0.0028, az)) * smoothstep(-0.0282, -0.0290, mz.y) * smoothstep(-0.0318, -0.0308, mz.y);
+  float mouthM = phil * front;   // v10: the ω mouth and lower lip are real geometry now (lip line from vB.z)
+  // nose leather: rounded inverted triangle, pink and bare (drawn per pixel so it stays crisp)
+  float nv = clamp((mz.y + 0.0135) / 0.0080, 0.0, 1.0);
+  float nhw = 0.0064 * (0.20 + 0.80 * pow(nv, 0.70)) * (1.0 - 0.25 * pow(nv, 6.0));
+  float noseM = (1.0 - smoothstep(nhw - 0.0005, nhw + 0.0003, az)) * smoothstep(-0.0138, -0.0132, mz.y) * (1.0 - smoothstep(-0.0060, -0.0052, mz.y)) * step(0.0646, mz.x) * step(0.2, vRN.x);
+  if (h > 0.0 && noseM > 0.5) discard;
+  float nostr = (1.0 - smoothstep(0.7, 1.0, length(vec2((mz.y + 0.0122) / 0.0008, (az - 0.0025) / 0.0012)))) * step(0.0666, mz.x);
+  if (h > 0.0 && vLen < 0.0006) discard;   // bare skin (nose): only the base layer draws
+  float sh = 0.5, sh2 = 0.5, sh3 = 0.5;
+  float cov = 1.0;
+  vec3 tv = vec3(0.0), tv2, tv3;
+  float streak = 1.0;
+  if (h > 0.0) {
+    vec3 rn = normalize(vRN);
+    vec3 rc = normalize(vRC);
+    // coat type follows coat length: face / muzzle / paws = short dense coat that hugs the skin,
+    // body = small locks, long coat (back, ruff, jowls, tail) = big lying locks
+    float shortc = 1.0 - smoothstep(0.0072, 0.0115, vLen);
+    float big = smoothstep(0.012, 0.018, vLen);
+    float a1 = tufts(vRest, rn, rc, uDensity, h, 0.62, sh, tv);
+    float a2 = tufts(vRest + 0.41, rn, rc, uDensity, h * 1.06, 0.58, sh2, tv2);
+    float a3 = tufts(vRest + 0.23, rn, rc, uDensity * 2.4, h, 0.78, sh3, tv3);
+    float A = max(a1, a2);
+    if (a2 > a1) { sh = sh2; tv = tv2; }
+    float lockCov = mix(a3, A, big);
+    if (big < 0.5) { sh = sh3; tv = tv3; }
+    // short coat: solid for most of its (tiny) height, only the very top breaks into fine hairs -> soft edge
+    float shf; vec3 tvf;
+    float fine = tufts(vRest + 0.11, rn, rc, uDensity * 8.0, h, 0.55, shf, tvf);
+    float shortCov = h < 0.5 ? 1.0 : fine;
+    cov = mix(lockCov, shortCov, shortc);
+    sh = mix(sh, shf, shortc);
+    tv *= 1.0 - shortc;
+    if (sparse > 0.5) { cov = tufts(vRest + 0.7, rn, rc, uDensity * 5.0, h, 0.4, shf, tvf) * step(0.45, shf); sh = shf; tv = vec3(0.0); }
+    if (cov < 0.02) discard;
+  }
+  {
+    // brush strokes along the combing direction (fine hair texture, painted rather than modelled)
+    vec3 rn = normalize(vRN), rc = normalize(vRC);
+    vec3 bt = normalize(cross(rn, rc) + 1e-5);
+    float u = dot(vRest, rc), v = dot(vRest, bt);
+    float strokes = vn(vec3(u * uDensity * 2.2, v * uDensity * 24.0, 3.1)) * 0.65 + vn(vec3(u * uDensity * 4.0, v * uDensity * 50.0, 8.7)) * 0.35;
+    float shortc0 = 1.0 - smoothstep(0.0072, 0.0115, vLen);
+    streak = mix(0.88 + 0.22 * strokes, 0.74 + 0.42 * strokes, shortc0);
+    gShort = shortc0;
+  }
+  // ---- colour ----
+  float hn = vn(vRest * 160.0) - 0.5;
+  float wm = smoothstep(0.42, 0.58, white + (sh - 0.5) * 0.22 + hn * 0.18);
+  float om = smoothstep(0.44, 0.56, orange + (sh - 0.5) * 0.18 + hn * 0.12);
+  float st = smoothstep(0.25, 0.85, sin(vStripe * 6.2832 + hn * 2.0) * 0.5 + 0.5);
+  vec3 cWhite = vec3(0.80, 0.765, 0.70);
+  vec3 cOrange = mix(vec3(0.60, 0.25, 0.055), vec3(0.40, 0.145, 0.035), st * 0.45 * smoothstep(0.35, 0.65, vn(vRest * 9.0)));
+  cOrange = mix(cOrange, vec3(0.78, 0.47, 0.18), smoothstep(0.6, 1.0, h) * 0.35);
+  vec3 cBlack = mix(vec3(0.016, 0.013, 0.011), vec3(0.06, 0.038, 0.026), smoothstep(0.55, 1.0, h) * 0.8 + st * 0.15);
+  vec3 alb = mix(cBlack, cOrange, om);
+  alb = mix(alb, cWhite, wm);
+  alb *= (0.84 + 0.32 * sh) * streak;
+  // mouth is only a soft tint in the short white coat (no groove), plus a small pink lower lip
+  alb = mix(alb, vec3(0.16, 0.10, 0.10), mouthM * 0.55 * (1.0 - h * 0.5));
+  // v10: dark lip line (closed it is the cat's mouth line), pink lining and tongue inside
+  alb = mix(alb, vec3(0.055, 0.035, 0.035), mouth * (1.0 - h * 0.6));
+  float lining = vF.w;
+  if (lining > 0.5) {
+    float pap = vn(vRest * 2600.0);
+    vec3 cl = mix(vec3(0.30, 0.07, 0.09), vec3(0.62, 0.24, 0.27), ao);
+    if (vTg > 0.0) cl = mix(vec3(0.62, 0.25, 0.28), vec3(0.86, 0.42, 0.45), smoothstep(0.0, 0.5, vTg)) * (0.9 + 0.2 * pap) * (1.0 - 0.25 * (1.0 - smoothstep(0.0, 0.0012, abs(vRest.z - uH.z))));
+    alb = cl;
+  }
+  // skin bits
+  float isSkin = 0.0;
+  vec3 skinCol = vec3(0.58, 0.3, 0.3);
+  if (h == 0.0) {
+    if (skin > 0.5) { alb = mix(alb, skinCol, smoothstep(0.5, 0.9, skin)); isSkin = smoothstep(0.5, 0.9, skin); }
+    alb = mix(alb, vec3(0.02, 0.015, 0.014), rimDark);
+    alb = mix(alb, vec3(0.86, 0.44, 0.47), noseM);
+    alb = mix(alb, vec3(0.40, 0.16, 0.18), noseM * (1.0 - smoothstep(0.0, 0.0012, nhw - az)) * 0.7);
+    isSkin = max(isSkin, noseM);
+    alb = mix(alb, vec3(0.08, 0.03, 0.03), nostr * max(skin, noseM));
+    isSkin = max(isSkin, rimDark);
+    if (vF.w > 0.5) isSkin = 1.0;
+    isSkin = max(isSkin, mouth * 0.8);
+  } else if (sparse > 0.5) { alb = vec3(0.75, 0.70, 0.64); }
+  // self-occlusion inside the coat
+  float deep = smoothstep(0.004, 0.02, vLen);
+  float occ = mix(1.0 - 0.5 * deep, 1.0, pow(h, 0.6));
+  occ = mix(occ, 0.9 + 0.1 * h, gShort);
+  occ *= mix(ao, 1.0, h * 0.5);
+  vec3 N = normalize(vN); vec3 T = normalize(vT);
+  if (h > 0.0) { vec3 tw = uObjRot * tv; tw -= N * dot(tw, N); N = normalize(N + tw * 0.85 * (1.0 - h * 0.5)); }
+  vec3 V = normalize(cameraPosition - vWorld);
+  if (!gl_FrontFacing) N = -N;
+  vec3 col = vec3(0.);
+  vec3 dF = uFirePos - vWorld; float dF2 = dot(dF, dF);
+  col += shadeLight(normalize(dF), uFireCol / max(dF2, 0.01), N, T, V, alb, h, isSkin);
+  vec3 dL = uLampPos - vWorld; float dL2 = dot(dL, dL);
+  col += shadeLight(normalize(dL), uLampCol / max(dL2, 0.01), N, T, V, alb, h, isSkin);
+  vec3 dI = uFillPos - vWorld; float dI2 = dot(dI, dI);
+  col += shadeLight(normalize(dI), uFillCol / max(dI2, 0.01), N, T, V, alb, h, isSkin);
+  col += shadeLight(normalize(uMoonDir), uMoonCol, N, T, V, alb, h, isSkin);
+  vec3 amb = mix(uGround, uSky, N.y * 0.5 + 0.5);
+  col += alb * amb;
+  col *= occ;
+  gl_FragColor = vec4(col, cov);
+}`;
+
+const furMat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: furVS, fragmentShader: furFS, alphaToCoverage: true, side: THREE.DoubleSide });
+let nShells = parseInt(params.get('q') || '32');
+const fur = new THREE.Mesh(makeFurGeo(nShells), furMat);
+fur.frustumCulled = false;
+catRoot.add(fur);
+// shadow proxy (static) + click target
+const proxy = new THREE.Mesh(baseGeo, new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
+proxy.castShadow = true; catRoot.add(proxy);
+
+// head group: everything that rides with the head (eyes, lids, whiskers)
+const headPivot = new THREE.Group(); headPivot.position.fromArray(M.neck); catRoot.add(headPivot);
+const headInner = new THREE.Group(); headInner.position.fromArray(M.neck).multiplyScalar(-1); headPivot.add(headInner);
+
+// ---- eyes ----
+const eyeVS = /* glsl */`
+varying vec3 vLocal, vWorld, vWN, vVl;
+void main(){ vLocal = position; vec4 wp = modelMatrix * vec4(position,1.); vWorld = wp.xyz; vWN = normalize(mat3(modelMatrix)*normal);
+  vVl = normalize((inverse(modelMatrix) * vec4(cameraPosition,1.)).xyz - position);
+  gl_Position = projectionMatrix * viewMatrix * wp; }`;
+const eyeFS = /* glsl */`
+uniform float uPupil, uTime;
+uniform vec3 uFirePos, uFireCol, uFillPos, uFillCol, uLampPos, uLampCol, uMoonDir, uMoonCol, uSky, uGround;
+uniform vec3 uInner, uOuter;
+varying vec3 vLocal, vWorld, vWN, vVl;
+float h11(float x){ return fract(sin(x*127.1)*43758.5453); }
+float n1(float x){ float i=floor(x), f=fract(x); f=f*f*(3.-2.*f); return mix(h11(i),h11(i+1.),f); }
+void main(){
+  vec3 p = normalize(vLocal);
+  vec3 Vl = normalize(vVl);
+  vec2 uv = p.xy - Vl.xy * 0.16 * max(p.z, 0.0);           // iris sits behind the cornea
+  float r = length(uv) / 0.9;
+  float ang = atan(uv.y, uv.x);
+  float fib = n1(ang * 38.0) * 0.6 + n1(ang * 91.0 + 3.0) * 0.4;
+  vec3 iris = mix(uInner, uOuter, smoothstep(0.18, 0.85, r + (fib - 0.5) * 0.18)) * 1.35;
+  iris *= 0.85 + 0.45 * fib;
+  iris *= 1.0 + 0.6 * smoothstep(0.85, 0.3, r);   // light glows through the lower iris
+  iris = mix(iris, iris * 0.25, smoothstep(0.82, 1.0, r));          // limbal ring
+  float pupil = length(vec2(uv.x / uPupil, uv.y / 0.86));
+  vec3 base = mix(iris, vec3(0.004), smoothstep(1.0, 0.92, pupil));
+  base = mix(base, vec3(0.05, 0.035, 0.03), smoothstep(0.98, 1.05, r)); // dark outside iris
+  if (p.z < 0.0) base = vec3(0.02);
+  vec3 N = normalize(vWN); vec3 V = normalize(cameraPosition - vWorld);
+  vec3 dF = uFirePos - vWorld; vec3 Lf = normalize(dF);
+  vec3 dL = uLampPos - vWorld; vec3 Ll = normalize(dL);
+  vec3 col = base * (uFireCol / dot(dF,dF) * (max(dot(N,Lf),0.)*0.6+0.4) + uLampCol/dot(dL,dL)*0.5 + uMoonCol * 0.25 + mix(uGround,uSky,0.5)*1.4) * 0.3183;
+  // glow of the iris (light scattering in the stroma)
+  col += base * uFireCol / dot(dF,dF) * 0.05 * (1.0 - smoothstep(0.92, 1.0, pupil));
+  vec3 R = reflect(-V, N);
+  float fres = 0.04 + 0.96 * pow(1. - max(dot(N, V), 0.), 5.);
+  fres *= smoothstep(0.45, 0.75, p.z);   // v9: no glassy ring where the globe meets the lid
+  vec3 spec = uFireCol / dot(dF,dF) * pow(max(dot(R, Lf), 0.), 900.) * 6.0
+            + uLampCol / dot(dL,dL) * pow(max(dot(R, Ll), 0.), 1400.) * 6.0
+            + uMoonCol * pow(max(dot(R, normalize(uMoonDir)), 0.), 300.) * 3.0
+            + uFillCol / dot(uFillPos - vWorld, uFillPos - vWorld) * pow(max(dot(R, normalize(uFillPos - vWorld)), 0.), 500.) * 5.0;
+  vec3 env = mix(vec3(0.02,0.015,0.012), vec3(0.18,0.11,0.06), smoothstep(-0.2, 0.6, R.y)) + vec3(0.25,0.3,0.45)*smoothstep(0.75,0.95,dot(R, normalize(uMoonDir)));
+  // catch-lights: one big soft window and one small sharp dot, placed up-left of the viewer so the eye always looks wet
+  vec3 up = vec3(0.0, 1.0, 0.0); vec3 side = normalize(cross(V, up));
+  vec3 k1 = normalize(V + up * 0.42 - side * 0.3);
+  vec3 k2 = normalize(V - up * 0.26 + side * 0.24);
+  float c1 = smoothstep(0.988, 0.994, dot(R, k1));
+  float c2 = smoothstep(0.9965, 0.9982, dot(R, k2));
+  col += spec + env * fres * 1.1 + vec3(1.0, 0.97, 0.92) * (c1 * 1.4 + c2 * 1.1);
+  // wet sheen across the cornea
+  col += vec3(0.5, 0.4, 0.3) * pow(max(dot(R, k1), 0.0), 60.0) * 0.12;
+  gl_FragColor = vec4(col, 1.);
+}`;
+const eyeU = {
+  uPupil: { value: 0.3 }, uTime: U.uTime,
+  uInner: { value: new THREE.Color(0.95, 0.62, 0.1) }, uOuter: { value: new THREE.Color(0.6, 0.45, 0.06) },
+  uFirePos: U.uFirePos, uFireCol: U.uFireCol, uFillPos: U.uFillPos, uFillCol: U.uFillCol, uLampPos: U.uLampPos, uLampCol: U.uLampCol, uMoonDir: U.uMoonDir, uMoonCol: U.uMoonCol, uSky: U.uSky, uGround: U.uGround,
+};
+const eyeMat = new THREE.ShaderMaterial({ uniforms: eyeU, vertexShader: eyeVS, fragmentShader: eyeFS });
+// v9: the cornea bulges in front of the globe (seen clearly from the side, like a real cat's eye)
+function corneaGeo(r, bulge) {
+  const g = new THREE.SphereGeometry(r, 48, 32); const P = g.attributes.position; const v = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const c = v.z / r; const k = THREE.MathUtils.smoothstep(c, 0.62, 1.0);
+    v.multiplyScalar(1 + bulge * k * k * (3 - 2 * k)); P.setXYZ(i, v.x, v.y, v.z); }
+  g.computeVertexNormals(); return g;
+}
+const eyes = [];
+for (let i = 0; i < 2; i++) {
+  const s = i === 0 ? 1 : -1;
+  const gaze = new THREE.Vector3().fromArray(M.eyeGaze[i]).normalize();
+  const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), gaze);
+  const eg = new THREE.Group(); eg.position.fromArray(M.eyes[i]); eg.quaternion.copy(baseQ);
+  headInner.add(eg);
+  const ball = new THREE.Mesh(corneaGeo(M.eyeR, 0.10), eyeMat); eg.add(ball);
+  // v10: no separate lid shells; the skin round the eye rolls over the eyeball when the cat blinks (fur shader)
+  eyes.push({ g: eg, ball, base: baseQ.clone(), s });
+}
+// ---- v10: teeth (upper ones ride the head, lower ones the jaw) ----
+const toothMat = new THREE.MeshStandardMaterial({ color: '#efe6d6', roughness: 0.35 });
+const jawG = new THREE.Group(); jawG.position.fromArray(M.hinge); headInner.add(jawG);
+for (const tt of M.teeth) {
+  const b = new THREE.Vector3().fromArray(tt.b), tp = new THREE.Vector3().fromArray(tt.t);
+  const len = b.distanceTo(tp);
+  const g = new THREE.ConeGeometry(tt.r, len, 8, 1); g.translate(0, len / 2, 0);
+  const m = new THREE.Mesh(g, toothMat);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tp.clone().sub(b).normalize());
+  if (tt.jaw === 1) { m.position.copy(b).sub(jawG.position); jawG.add(m); } else { m.position.copy(b); headInner.add(m); }
+}
+// ---- whiskers ----
+function whisker(root, dir, len, droop, r0) {
+  const pts = []; const N = 14; const d = dir.clone().normalize();
+  for (let i = 0; i <= N; i++) { const t = i / N; pts.push(root.clone().addScaledVector(d, len * t).add(new THREE.Vector3(0, -droop * t * t, 0))); }
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const seg = 24, rad = 5; const P = [], I = [];
+  const fr = curve.computeFrenetFrames(seg, false);
+  for (let i = 0; i <= seg; i++) { const t = i / seg; const c = curve.getPointAt(t); const r = r0 * (1 - 0.88 * t);
+    for (let k = 0; k < rad; k++) { const a = k / rad * Math.PI * 2; const nn = fr.normals[i].clone().multiplyScalar(Math.cos(a)).add(fr.binormals[i].clone().multiplyScalar(Math.sin(a))); P.push(c.x + nn.x * r, c.y + nn.y * r, c.z + nn.z * r); } }
+  for (let i = 0; i < seg; i++) for (let k = 0; k < rad; k++) { const a = i * rad + k, b = i * rad + (k + 1) % rad, c2 = a + rad, d2 = b + rad; I.push(a, c2, b, b, c2, d2); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setIndex(I); g.computeVertexNormals(); return g;
+}
+const whiskerMat = new THREE.MeshStandardMaterial({ color: '#f2ece2', roughness: 0.35, emissive: '#2a2016' });
+const whiskers = new THREE.Group(); headInner.add(whiskers);
+for (let i = 0; i < 2; i++) {
+  const s = i === 0 ? 1 : -1; const pad = new THREE.Vector3().fromArray(M.pads[i]);
+  for (let row = 0; row < 3; row++) for (let k = 0; k < 2; k++) {
+    const root = pad.clone().add(new THREE.Vector3(0.004 - k * 0.006, 0.004 - row * 0.0035, s * 0.0105));
+    const dir = new THREE.Vector3(0.9 - k * 0.5 - row * 0.15, 0.32 - row * 0.32 - k * 0.1, s * (0.55 + row * 0.15 + k * 0.2));
+    whiskers.add(new THREE.Mesh(whisker(root, dir, 0.066 + (1 - row) * 0.008 + k * 0.006, 0.008 + row * 0.005, 0.0003), whiskerMat));
+  }
+  const e = new THREE.Vector3().fromArray(M.eyes[i]);
+  for (let k = 0; k < 2; k++) { const root = e.clone().add(new THREE.Vector3(-0.002 - k * 0.004, 0.0125, s * (0.004 + k * 0.003)));
+    whiskers.add(new THREE.Mesh(whisker(root, new THREE.Vector3(0.25, 1.0, s * 0.55), 0.035, 0.004, 0.00028), whiskerMat)); }
+  const ch = new THREE.Vector3().fromArray(M.H).add(new THREE.Vector3(0.012, -0.012, s * 0.05));
+  whiskers.add(new THREE.Mesh(whisker(ch, new THREE.Vector3(-0.2, 0.2, s), 0.03, 0.004, 0.00028), whiskerMat));
+}
+catRoot.updateMatrixWorld(true);
+
+// ---------------- post ----------------
+const rt = new THREE.WebGLRenderTarget(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio(), { samples: 4, type: THREE.HalfFloatType });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.65, 0.92);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------------- camera presets ----------------
+const tmp = new THREE.Vector3();
+function catWorld(v) { return catRoot.localToWorld(new THREE.Vector3().fromArray(v)); }
+const presets = {
+  wide: () => ({ p: new THREE.Vector3(-0.05, 1.12, 2.05), t: new THREE.Vector3(0.15, 0.72, -0.6) }),
+  mid: () => { const c = catWorld([0.0, 0.1, 0.05]); return { p: c.clone().add(new THREE.Vector3(-0.3, 0.3, 0.8)), t: c.clone() }; },
+  side: () => { const h = catWorld(M.H); const p = catWorld([M.H[0] + 0.03, M.H[1] + 0.02, M.H[2] + 0.34]); return { p, t: catWorld([M.H[0] + 0.03, M.H[1] - 0.005, M.H[2]]) }; },
+  face: () => { const h = catWorld(M.H); const p = catWorld([M.H[0] + 0.25, M.H[1] + 0.03, M.H[2] + 0.2]); return { p, t: h.clone().add(new THREE.Vector3(0, -0.01, 0)) }; },
+};
+let camAnim = null;
+function goCam(name, instant) {
+  const pr = presets[name]();
+  if (instant) { camera.position.copy(pr.p); controls.target.copy(pr.t); controls.update(); return; }
+  camAnim = { t0: performance.now(), p0: camera.position.clone(), t0v: controls.target.clone(), p1: pr.p, t1: pr.t, dur: 1600 };
+  document.querySelectorAll('[data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === name));
+  catMind.lookCam = name !== 'wide' ? 0.6 : 0.25;
+  if (name === 'face') catMind.forceCam = 5;
+}
+document.querySelectorAll('[data-cam]').forEach(b => b.onclick = () => { goCam(b.dataset.cam);
+  if (b.dataset.cam === 'side') { catMind.ty = 0; catMind.tp = -0.02; catMind.tr = 0; catMind.forceCam = 0; catMind.nextLook = clock.elapsedTime + 14; } });
+document.getElementById('yawnBtn').onclick = () => { if (catMind.yawn < 0) { catMind.yawn = 0; } };
+document.getElementById('blinkBtn').onclick = () => { catMind.blink = 0.001; };
+document.getElementById('furBtn').onclick = (e) => { U.uFurOn.value = U.uFurOn.value ? 0 : 1; fur.geometry.instanceCount = U.uFurOn.value ? nShells : 1; e.target.classList.toggle('on', !!U.uFurOn.value); e.target.textContent = U.uFurOn.value ? '開' : '關'; };
+document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { nShells = +b.dataset.q; fur.geometry.dispose(); fur.geometry = makeFurGeo(nShells); document.querySelectorAll('[data-q]').forEach(x => x.classList.toggle('on', x === b)); });
+
+// ---------------- cat brain ----------------
+const catMind = { yawn: -1, nextYawn: 25 + Math.random() * 30, lookCam: 0.25, yaw: 0, pitch: 0, roll: 0, ty: 0.25, tp: -0.05, tr: 0, nextLook: 0, blinkT: 2, blink: 0, slow: -1,
+  earT: [3, 5], ear: [0, 0], tailT: 2, tail: 0, tailPhase: 0 };
+const fireDirLocal = () => catRoot.worldToLocal(new THREE.Vector3(FX, 0.5, FZ)).sub(new THREE.Vector3().fromArray(M.H)).normalize();
+function dirToYawPitch(d) { return { y: Math.atan2(d.z, d.x), p: Math.asin(THREE.MathUtils.clamp(d.y, -1, 1)) }; }
+const ray = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown', (e) => { mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(mouse, camera);
+  if (ray.intersectObject(proxy, false).length) { catMind.slow = 0; catMind.forceCam = 4.5; catMind.tr = 0.22; } });
+
+const qy = new THREE.Quaternion(), qp = new THREE.Quaternion(), qr = new THREE.Quaternion(), qh = new THREE.Quaternion();
+const AX = new THREE.Vector3(1, 0, 0), AY = new THREE.Vector3(0, 1, 0), AZ = new THREE.Vector3(0, 0, 1);
+// v10 yawn (about 4 s): head lifts, eyes squeeze shut, jaw drops to ~42°, tongue curls up at the tip, then it all settles
+const YAWN_LEN = 4.2;
+function yawnPose(m, t, dt) {
+  if (m.yawn < 0 && t > m.nextYawn && m.slow < 0) { m.yawn = 0; }
+  if (m.yawn < 0) return { jaw: 0, tongue: 0, squint: 0, lift: 0 };
+  m.yawn += dt; const s = m.yawn; const S = THREE.MathUtils.smoothstep;
+  if (s > YAWN_LEN) { m.yawn = -1; m.nextYawn = t + 40 + Math.random() * 50; m.slow = 0.75; return { jaw: 0, tongue: 0, squint: 0, lift: 0 }; }
+  const open = S(s, 0.35, 1.45) - S(s, 2.75, 3.6);
+  const shiver = s > 1.4 && s < 2.8 ? Math.sin(s * 23.0) * 0.012 * Math.sin(Math.PI * (s - 1.4) / 1.4) : 0;
+  return {
+    jaw: 0.86 * open + 0.05 * S(s, 0.0, 0.4) * (1 - S(s, 3.3, 3.8)) + shiver,
+    tongue: S(s, 1.0, 1.8) - S(s, 2.6, 3.3),
+    squint: 0.78 * (S(s, 0.2, 1.1) - S(s, 3.0, 3.9)),
+    lift: 0.20 * (S(s, 0.0, 1.2) - S(s, 2.9, 4.0)),
+  };
+}
+function updateCat(t, dt) {
+  const m = catMind;
+  // breathing
+  U.uBreath.value = Math.sin(t * Math.PI * 2 / 2.9) * 0.5 + 0.5;
+  // gaze targets
+  if (m.forceCam > 0) m.forceCam -= dt;
+  if (t > m.nextLook || m.forceCam > 0) {
+    const r = Math.random();
+    let d;
+    if (m.forceCam > 0 || r < m.lookCam) { d = catRoot.worldToLocal(camera.position.clone()).sub(new THREE.Vector3().fromArray(M.H)).normalize(); }
+    else if (r < m.lookCam + 0.35) d = fireDirLocal();
+    else d = new THREE.Vector3(1, -0.1 + Math.random() * 0.25, (Math.random() - 0.5) * 1.4).normalize();
+    const yp = dirToYawPitch(d);
+    m.ty = THREE.MathUtils.clamp(yp.y, -0.75, 1.05); m.tp = THREE.MathUtils.clamp(yp.p, -0.35, 0.3);
+    if (m.forceCam <= 0) { m.tr = Math.random() < 0.2 ? (Math.random() - 0.5) * 0.35 : 0; m.nextLook = t + 3.5 + Math.random() * 5; }
+  }
+  const k = 1 - Math.exp(-dt * 2.2);
+  m.yaw += (m.ty - m.yaw) * k; m.pitch += (m.tp - m.pitch) * k; m.roll += (m.tr - m.roll) * (1 - Math.exp(-dt * 1.5));
+  if (m.forceCam <= 0 && m.slow < 0) m.tr *= 0.995;
+  // head rotation (yaw about local Y, pitch about local Z because the face points +X, roll about X)
+  qy.setFromAxisAngle(AY, -m.yaw * 0.85); const Y = yawnPose(m, t, dt);
+  qp.setFromAxisAngle(AZ, m.pitch * 0.85 + Math.sin(t * 0.7) * 0.015 + Y.lift); qr.setFromAxisAngle(AX, m.roll);
+  qh.copy(qy).multiply(qp).multiply(qr);
+  U.uHeadQ.value.set(qh.x, qh.y, qh.z, qh.w);
+  headPivot.quaternion.copy(qh);
+  // eyes look at camera (clamped)
+  for (const e of eyes) {
+    e.g.updateWorldMatrix(true, false);
+    const target = camera.position.clone(); const parentInv = e.g.parent.matrixWorld.clone().invert();
+    const loc = target.applyMatrix4(parentInv).sub(e.g.position).normalize();
+    const base = new THREE.Vector3(0, 0, 1).applyQuaternion(e.base);
+    const ang = base.angleTo(loc); const lim = 0.38;
+    const want = ang > lim ? base.clone().lerp(loc, lim / ang).normalize() : loc;
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), want);
+    e.g.quaternion.slerp(q, 1 - Math.exp(-dt * 8));
+  }
+  // blinking
+  let close = 0;
+  if (m.slow >= 0) { m.slow += dt; const s = m.slow; close = s < 0.7 ? THREE.MathUtils.smoothstep(s, 0, 0.7) : s < 1.5 ? 1 : s < 2.4 ? (1 - THREE.MathUtils.smoothstep(s, 1.5, 2.4)) : 0; if (s > 2.6) { m.slow = -1; m.tr = 0; } }
+  else { m.blinkT -= dt; if (m.blinkT < 0) { m.blink = 0.001; m.blinkT = 2.5 + Math.random() * 5; } if (m.blink > 0) { m.blink += dt; const b = m.blink; close = b < 0.08 ? b / 0.08 : b < 0.13 ? 1 : b < 0.28 ? 1 - (b - 0.13) / 0.15 : 0; if (b > 0.28) m.blink = 0; } }
+  close = Math.max(close, Y.squint);
+  { const c = THREE.MathUtils.smoothstep(close, 0, 1); U.uBlink.value.set(c, c); }
+  U.uJaw.value = Y.jaw; U.uTongue.value = Y.tongue; jawG.rotation.z = -Y.jaw;
+  eyeU.uPupil.value = 0.30 + 0.03 * Math.sin(t * 0.4);
+  // ears
+  for (let i = 0; i < 2; i++) {
+    m.earT[i] -= dt;
+    if (m.earT[i] < 0) { m.ear[i] = 0.001; m.earT[i] = 2.5 + Math.random() * 7; }
+    let a = 0; if (m.ear[i] > 0) { m.ear[i] += dt; const e = m.ear[i]; a = e < 0.08 ? e / 0.08 : e < 0.25 ? 1 : e < 0.7 ? 1 - (e - 0.25) / 0.45 : 0; if (e > 0.7) m.ear[i] = 0; }
+    const R = M.earAxes[i]; const up = new THREE.Vector3().fromArray(R[1]); const side = new THREE.Vector3().fromArray(R[0]);
+    const s = i === 0 ? 1 : -1;
+    const q = new THREE.Quaternion().setFromAxisAngle(up, -s * a * 0.55).multiply(new THREE.Quaternion().setFromAxisAngle(side, s * a * 0.15 + Math.sin(t * 0.9 + i) * 0.02));
+    (i === 0 ? U.uEarQL : U.uEarQR).value.set(q.x, q.y, q.z, q.w);
+  }
+  // tail tip: slow lazy flicks
+  m.tailT -= dt; if (m.tailT < 0) { m.tail = 0.001; m.tailT = 3 + Math.random() * 5; }
+  let ta = 0; if (m.tail > 0) { m.tail += dt; const e = m.tail; ta = Math.sin(Math.min(e / 1.6, 1) * Math.PI); if (e > 1.6) m.tail = 0; }
+  const tan = new THREE.Vector3().fromArray(M.tailTan).normalize();
+  const lift = new THREE.Vector3().crossVectors(AY, tan).normalize();
+  const qt = new THREE.Quaternion().setFromAxisAngle(lift, -ta * 0.28).multiply(new THREE.Quaternion().setFromAxisAngle(AY, Math.sin(t * 0.5) * 0.05 + ta * 0.12));
+  U.uTailQ.value.set(qt.x, qt.y, qt.z, qt.w);
+}
+
+// ---------------- loop ----------------
+const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0;
+const fpsEl = document.getElementById('fps');
+const fixedT = params.get('t') ? parseFloat(params.get('t')) : null;
+function syncLights(t) {
+  const fl = 1 + Math.sin(t * 7.3) * 0.06 + Math.sin(t * 13.1 + 1) * 0.04 + Math.sin(t * 3.1) * 0.05;
+  fireLight.intensity = 8 * fl;
+  fireLight.getWorldPosition(U.uFirePos.value); U.uFireCol.value.copy(fireLight.color).multiplyScalar(fireLight.intensity);
+  lanternLight.getWorldPosition(U.uLampPos.value); U.uLampCol.value.copy(lanternLight.color).multiplyScalar(lanternLight.intensity);
+  fill.getWorldPosition(U.uFillPos.value); U.uFillCol.value.copy(fill.color).multiplyScalar(fill.intensity);
+  U.uMoonDir.value.copy(moon.position).sub(moon.target.position).normalize(); U.uMoonCol.value.copy(moon.color).multiplyScalar(moon.intensity);
+  U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity); U.uGround.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
+  for (const f of flames) { const u = f.userData; const s = 0.75 + 0.35 * (Math.sin(t * u.sp + u.ph) * 0.5 + 0.5); f.scale.set(1 - (s - 1) * 0.4, s, 1 - (s - 1) * 0.4); f.position.y = u.h * s / 2; f.rotation.y = t * 0.3 + u.ph; }
+  for (let i = 0; i < EMB; i++) { const s = emberSeed[i]; const life = (t * (0.25 + s[0] * 0.3) + s[1]) % 1; emberPos[i * 3] = FX + (s[2] - .5) * 0.5 + Math.sin(t * 2 + i) * 0.03 * life; emberPos[i * 3 + 1] = 0.25 + life * 0.9; emberPos[i * 3 + 2] = FZ + 0.05 + Math.cos(t + i) * 0.03; }
+  emberGeo.attributes.position.needsUpdate = true;
+}
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = fixedT ?? clock.elapsedTime;
+  if (camAnim) { const k = Math.min((performance.now() - camAnim.t0) / camAnim.dur, 1); const e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    camera.position.lerpVectors(camAnim.p0, camAnim.p1, e); controls.target.lerpVectors(camAnim.t0v, camAnim.t1, e); if (k >= 1) camAnim = null; }
+  controls.update();
+  U.uTime.value = t;
+  U.uObjRot.value.setFromMatrix4(fur.matrixWorld);
+  syncLights(t);
+  updateCat(t, fixedT !== null ? 0.016 : dt);
+  composer.render();
+  fpsAcc += dt; fpsN++; if (fpsAcc > 0.5) { fpsEl.textContent = `${Math.round(fpsN / fpsAcc)} fps · ${nShells} 層毛 · ${(DATA.nf * nShells / 1e6).toFixed(1)}M 三角形`; fpsAcc = 0; fpsN = 0; }
+  if (!window.__stop) requestAnimationFrame(frame);
+}
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
+goCam(params.get('cam') || 'wide', true);
+if (params.get('cam') === 'face') { catMind.forceCam = 5; catMind.lookCam = 0.6; }
+if (params.get('snap')) { const d = catRoot.worldToLocal(camera.position.clone()).sub(new THREE.Vector3().fromArray(M.H)).normalize(); const yp = dirToYawPitch(d); catMind.yaw = catMind.ty = THREE.MathUtils.clamp(yp.y, -0.75, 1.05); catMind.pitch = catMind.tp = THREE.MathUtils.clamp(yp.p, -0.35, 0.3); catMind.forceCam = 99; }
+if (params.get('lid')) catMind.slow = 1.0 + parseFloat(params.get('lid')) * 0;
+if (params.get('cam')) document.querySelectorAll('[data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === params.get('cam')));
+frame();
+document.getElementById('load').style.opacity = 0; setTimeout(() => document.getElementById('load').remove(), 700);
+window.__ready = true;
+window.__api = { pose: (jaw, tongue, blink) => { U.uJaw.value = jaw; U.uTongue.value = tongue; U.uBlink.value.set(blink, blink); jawG.rotation.z = -jaw; }, goCam, U, catMind, camera, controls, catWorld, M, whiskers, headInner, fur, renderOnce: () => composer.render(), eyeX: () => eyes.map(e => { const v = e.g.getWorldPosition(new THREE.Vector3()).project(camera); return [e.s, v.x.toFixed(3)]; }) };
+</script>
+</body>
+</html>
