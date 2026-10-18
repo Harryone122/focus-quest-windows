@@ -20,7 +20,7 @@ Claude 的設計範圍包含前端外觀、動效和網頁原型；正式 App �
 
 | 工作 | 文件記載狀態 | 下一個負責人／動作 | 來源 |
 | --- | --- | --- | --- |
-| 帳篷貓咪 v10 頭型／嘴巴／哈欠／眨眼 | 2026-10-17 Claude 完成網頁原型：口鼻更凸、閉嘴側臉圓弧、可張開的下顎與口腔、打哈欠動作、眼周皮毛一起閉的眨眼、杏仁形細瞳；未移植正式 App | **使用者試看驗收**（`cat-tent-v10.html`，面板「打哈欠／眨眼／側臉」）；滿意後 Claude 做綁骨架 GLB | `handoff/collection-tent-cats/README.md` |
+| 帳篷貓咪 v11 口鼻／嘴巴（參考寫實模型） | 2026-10-19 Claude 完成網頁原型：照使用者提供的寫實貓模型量比例，拉長口鼻、上唇蓋下唇的凹摺嘴型、只在鬍鬚墊之間張開的哈欠口腔；眼耳毛花色沿用；未移植正式 App | **使用者試看驗收**（`cat-tent-v11.html`，面板「打哈欠／眨眼／側臉」）；滿意後 Claude 做綁骨架 GLB | `handoff/collection-tent-cats/README.md` |
 | 湖畔水面 v2／帳篷貓咪 v8 網頁試玩 | 2026-10-17 已合併遠端原型、發布私人試玩頁；兩頁 Electron 渲染無錯誤，貓咪來源 MD5 一致，全部進度已保存 | 使用者：開啟 https://focus-quest-trial-oct17.racingeagle16.chatgpt.site 試看驗收；未移植正式 App | `area03/WATER_V2.md`、`handoff/collection-tent-cats/README.md` |
 | 模型品質與使用者成長提案 | 2026-10-15 後續已授權工程修錯：五圖握杖／帽沿接觸及苗圃燈架修正，工具恢復；250 測試、建置、四圖低幀率與秋谷 QA 通過，未重發安裝包 | 使用者驗收；Claude 依 §56.8 做局部美術提案，Codex 後續接整合；推廣尚未啟動 | 核心企畫書 §56.8、`CORE_PLAN_AGENT_BRIEF.md` |
 | 美術補強第一輪（§56.8 第 1 項：苔痕人物辨識度、苗圃光影密度） | 2026-10-15 Claude 設計完成，使用者看對照圖後確認方向（苗圃 0.14 鐵框架影子保留）；附可直接套用的 patch，正式檔未改 | Codex：套用 patch、跑既有 QA 後交使用者在遊戲中驗收 | `docs/handoff/art-pass-2026-10-15/README.md` |
