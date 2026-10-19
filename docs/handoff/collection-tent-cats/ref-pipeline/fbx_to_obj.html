@@ -1,0 +1,18 @@
+<!doctype html><html><body><script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+new FBXLoader().load('ref/frip_F_export.fbx', (obj) => {
+  const info = [];
+  obj.updateMatrixWorld(true);
+  obj.traverse(o => { info.push({ name: o.name, type: o.type, verts: o.geometry ? o.geometry.attributes.position.count : 0,
+    morph: o.geometry && o.geometry.morphAttributes.position ? o.geometry.morphAttributes.position.length : 0,
+    morphNames: o.morphTargetDictionary ? Object.keys(o.morphTargetDictionary) : [], bones: o.skeleton ? o.skeleton.bones.length : 0,
+    mat: o.material ? (Array.isArray(o.material) ? o.material.map(m => m.name) : o.material.name) : null }); });
+  const box = new THREE.Box3().setFromObject(obj);
+  window.__info = { info, box: [box.min.toArray(), box.max.toArray()], anims: (obj.animations || []).map(a => a.name) };
+  window.__obj = new OBJExporter().parse(obj);
+  window.__done = true;
+}, undefined, (e) => { window.__err = String(e); window.__done = true; });
+</script></body></html>
