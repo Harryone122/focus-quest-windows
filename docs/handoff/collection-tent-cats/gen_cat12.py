@@ -355,6 +355,15 @@ mouth = (1 - sstep(0.0, 0.0022, np.abs(mz[:, 1] + 0.0345 - 0.004 * np.abs(mz[:, 
 phil = (1 - sstep(0.0, 0.0012, np.abs(mz[:, 2]))) * sstep(-0.0175, -0.016, -mz[:, 1]) * (1 - sstep(-0.031, -0.029, -mz[:, 1])) * sstep(0.045, 0.05, mz[:, 0])
 mouth = np.maximum(mouth, phil)
 
+# v13: the long cheek / jowl / throat fur no longer swallows the muzzle and chin in profile
+mn_ = cat_to_mine(VN)
+front_ = sstep(-0.020, -0.004, mn_[:, 0]) * sstep(-0.014, -0.022, mn_[:, 2]) * (1 - sstep(-0.064, -0.075, mn_[:, 2]))
+cap_ = 0.0060 + 0.030 * (1 - front_)
+flen = np.minimum(flen, cap_)
+# v13: a real cat's chin is short, close fur; it only grows longer toward the throat
+chin_r = sstep(-0.032, -0.040, mn_[:, 2]) * (1 - sstep(-0.078, -0.090, mn_[:, 2])) * sstep(-0.045, -0.025, mn_[:, 0]) * (1 - sstep(0.020, 0.032, np.abs(mn_[:, 1])))
+cap2 = 0.0040 + 0.0080 * sstep(-0.004, -0.030, mn_[:, 0])
+flen = flen * (1 - chin_r) + np.minimum(flen, cap2) * chin_r
 # comb direction
 x, y, z = verts[:, 0], verts[:, 1], verts[:, 2]
 comb = np.zeros_like(verts)
@@ -417,11 +426,13 @@ white = np.maximum(white, blob(H + np.array((0.012, -0.066, 0.0), f32), (0.055, 
 white = white * (1 - (w['earL'] + w['earR']))
 # --- v8: the white muzzle / chin / blaze are puffy: longer fur there, radiating from the nose
 fw_ = np.clip(white * headw0 * (1 - nosem), 0, 1)
-puff = w['muzzle'] * 0.0078 + w['chin'] * 0.0092 + w['cran'] * 0.0058 + w['cheeks'] * 0.0
+puff = w['muzzle'] * 0.0078 + w['chin'] * 0.0030 + w['cran'] * 0.0058 + w['cheeks'] * 0.0   # v13: no long puff on the chin
 flen = np.maximum(flen, fw_ * puff * (1 - rim * 0.95))
 # v9: fur right round the nose is very short, so the nose tip stays the front-most point instead of sinking into the muzzle puff
 nshort = 0.22 + 0.78 * sstep(0.0012, 0.0085, D['nose'] / HS)
 flen = flen * (1 - headw0 * (1 - nshort))
+flen = np.minimum(flen, cap_)                                   # v13: muzzle sides / chin stay short after the puff
+flen = flen * (1 - chin_r) + np.minimum(flen, cap2) * chin_r
 nose_pt = H + OH.to_their(OH.NOSE_MINE) * HS
 rad_ = verts - nose_pt
 rad_ -= N * (rad_ * N).sum(1, keepdims=True)
@@ -511,8 +522,17 @@ attrs = np.stack([flen, white, orange, skin, sparse, rim, mouth, ao, stripe], 1)
 defw = np.stack([headdef, bodydef, tailw, earLw, earRw], 1)
 pivot_i = int(round(0.45 * (TN - 1)))
 REST = VO
-verts = VN
-def wpt(v): return np.asarray(v, float).tolist()
+def warp_cat(P):
+    return mine_to_cat(NH.warp(cat_to_mine(P))).astype(f32)
+J = np.zeros((len(VN), 3, 3), f32)
+for i in range(3):
+    dv = np.zeros(3, f32); dv[i] = 0.0005
+    J[:, :, i] = (warp_cat(VN + dv) - warp_cat(VN - dv)) / 0.001
+Jinv_T = np.transpose(np.linalg.inv(J), (0, 2, 1))
+N = np.einsum('nij,nj->ni', Jinv_T, N); N /= np.linalg.norm(N, axis=1, keepdims=True)
+comb = np.einsum('nij,nj->ni', J, comb); comb -= N * (comb * N).sum(1, keepdims=True); comb /= np.maximum(np.linalg.norm(comb, axis=1, keepdims=True), 1e-6)
+verts = warp_cat(VN)
+def wpt(v): return warp_cat(np.asarray(v, f32)[None])[0].tolist()
 out = dict(rest=b64(REST, '<f4'),
     pos=b64(verts, '<f4'), nrm=b64(N, '<f4'), comb=b64(comb, '<f4'),
     attr=b64(attrs, '<f4'), defw=b64(defw, '<f4'), idx=b64(faces, '<u4'),
@@ -529,8 +549,8 @@ out = dict(rest=b64(REST, '<f4'),
               eyeAx=[EYE_AX[i].tolist() for i in range(2)], hinge=HINGE_CAT.tolist(),
               teeth=[dict(b=wpt(mine_to_cat(np.array(t[0]))), t=wpt(mine_to_cat(np.array(t[1]))), r=t[2] * KS, jaw=t[3]) for t in NH.TEETH],
               # mouth cavity (an ellipsoid split at the cut: dome = upper jaw, bowl = lower jaw) and tongue, cat frame
-              mouthC=wpt(mine_to_cat(NH.MOUTH_C)), mouthR=[0.0115 * KS, 0.0045 * KS, 0.0120 * KS, 0.0040 * KS],
-              tongueC=wpt(mine_to_cat(NH.MOUTH_C + np.array([0.0010, 0.0, -0.0016]))), tongueR=[0.0095 * KS, 0.0020 * KS, 0.0062 * KS]))
+              mouthC=wpt(mine_to_cat(NH.MOUTH_C + np.array([0.0010, 0.0, 0.0]))), mouthR=[0.0110 * KS, 0.0045 * KS, 0.0115 * KS, 0.0036 * KS],
+              tongueC=wpt(mine_to_cat(NH.MOUTH_C + np.array([0.0020, 0.0, -0.0024]))), tongueR=[0.0098 * KS, 0.0018 * KS, 0.0062 * KS]))
 json.dump(out, open('cat_data.json', 'w'))
 print('stats len', flen.min(), flen.max(), 'ao', ao.min(), ao.mean(), 'white', white.mean())
 trimesh.Trimesh(verts, faces, process=False).export('cat_base.obj')

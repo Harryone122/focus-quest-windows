@@ -187,3 +187,23 @@ def old_coords(m):
     flat = m.reshape(-1, 3)
     w = 1.0 - _ss(0.075, 0.11, np.linalg.norm(flat - np.array([-0.01, 0, -0.01]), axis=1))
     return (flat + _TPS(flat) * w[:, None]).reshape(sh)
+
+
+# ---------------- v13: muzzle and chin further forward (user's profile sketch) ----------------
+# Applied to the finished mesh like the v11 warp: everything (cut, coat, lids) is built on the unmoved head first.
+def _snout_w(m):
+    x, y, z = m[..., 0], m[..., 1], m[..., 2]
+    wz = _ss(-0.018, -0.030, z) * (1.0 - _ss(-0.060, -0.072, z))    # from below the nose down to the chin, not the throat
+    wx = _ss(-0.006, 0.010, x)
+    wy = 1.0 - _ss(0.016, 0.030, np.abs(y))
+    chin = _ss(-0.036, -0.046, z) * (1.0 - _ss(-0.058, -0.068, z))   # the chin comes out a little more than the lips
+    return wz * wx * wy, chin * wx * wy
+
+
+def snout_disp(m):
+    w, c = _snout_w(m)
+    return w[..., None] * np.array([0.0070, 0.0, -0.0012]) + c[..., None] * np.array([0.0030, 0.0, -0.0010])
+
+
+def warp(m):
+    return m + snout_disp(m)
