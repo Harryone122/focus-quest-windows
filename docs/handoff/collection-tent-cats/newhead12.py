@@ -109,6 +109,8 @@ def parts(p):
     # keep the head and let the old neck carry on below / behind it
     reg = ell(q, (-0.010, 0.0, -0.010), (0.062, 0.070, 0.058))
     h = smax(h, reg, 0.006) * S
+    for s in (1, -1):                                                 # v14: cheek flesh beside the whisker pads
+        h = smin(h, ell(p, (0.008, s * 0.019, -0.031), (0.011, 0.009, 0.010)), 0.006)
     h = smax(h, mouth_crease(p), 0.0008)
     for s in (1, -1):
         c, f, o, u = eye_axes(s)
@@ -195,9 +197,10 @@ def _snout_w(m):
     x, y, z = m[..., 0], m[..., 1], m[..., 2]
     wz = _ss(-0.018, -0.030, z) * (1.0 - _ss(-0.060, -0.072, z))    # from below the nose down to the chin, not the throat
     wx = _ss(-0.006, 0.010, x)
-    wy = 1.0 - _ss(0.016, 0.030, np.abs(y))
+    wy = np.exp(-(y / 0.014) ** 2)                                   # v14: bell-shaped across the face -> a round muzzle, not a box
+    wyc = np.exp(-(y / 0.010) ** 2)
     chin = _ss(-0.036, -0.046, z) * (1.0 - _ss(-0.058, -0.068, z))   # the chin comes out a little more than the lips
-    return wz * wx * wy, chin * wx * wy
+    return wz * wx * wy, chin * wx * wyc
 
 
 def snout_disp(m):

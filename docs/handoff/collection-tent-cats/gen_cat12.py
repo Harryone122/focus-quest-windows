@@ -293,6 +293,93 @@ JW = (region * (g_ * sharp + (1 - g_) * smooth)).astype(f32)
 kd = cKDTree(verts[bverts])
 dlip, _ = kd.query(verts, k=1)
 mzone = ((np.linalg.norm(mo - NH.MOUTH_C, axis=1) < 0.026)).astype(f32)   # inner faces seen through the mouth = lining
+# ---------------- v14: mouth pocket welded to the lip seam ----------------
+# Upper sheet (palate) starts on the upper-lip seam copies, lower sheet (tongue bed) on the lower copies; both run back
+# toward the throat; side and back strips join them. At rest the two sheets meet at the lips and lie inside the head.
+up_c = mine_to_cat(np.array([0, 0, 1.0])) - mine_to_cat(np.array([0, 0, 0.0])); up_c /= np.linalg.norm(up_c)
+bk_c = mine_to_cat(np.array([-1.0, 0, 0])) - mine_to_cat(np.array([0, 0, 0.0])); bk_c /= np.linalg.norm(bk_c)
+ms = cat_to_mine(verts[seam])
+order = np.argsort(ms[:, 1])
+sU = seam[order]; sL = np.array([dupmap[int(v)] for v in sU])
+ys_seam = ms[order][:, 1]
+ymax = np.abs(ms[:, 1]).max()
+JP, NB = 9, 24                                                   # rows into the mouth, evenly spaced columns (no slivers)
+tB = np.linspace(-1, 1, NB)
+seamP = verts[sU]
+def seam_at(t):                                                  # point on the lip seam at lateral fraction t
+    y = t * ymax
+    return np.array([np.interp(y, ys_seam, seamP[:, k]) for k in range(3)])
+base = len(verts)
+PV, PJ, PL = [], [], []
+def pocket_pt(t, j, sheet):
+    p0 = seam_at(t)
+    m0 = cat_to_mine(p0[None])[0]
+    fj = j / JP
+    depth = 0.024 * (1 - 0.35 * t * t) * fj
+    m1 = np.array([m0[0] - depth, m0[1] * (1.0 + 0.22 * fj), m0[2]])
+    c = np.sqrt(max(1 - t * t, 0)) * 0.85 + 0.15
+    rise = np.sin(0.5 * np.pi * min(fj * 1.4, 1.0)) ** 0.8
+    hgt = (0.0060 if sheet == 'U' else -0.0030) * rise * c
+    return mine_to_cat(m1 + np.array([0, 0, hgt]))
+idx = {}
+for sheet in ('U', 'L'):
+    for k in range(NB):
+        for j in range(1, JP + 1):
+            idx[(sheet, k, j)] = base + len(PV)
+            PV.append(pocket_pt(tB[k], j, sheet)); PJ.append(0.0 if sheet == 'U' else 1.0); PL.append(j / JP)
+PF = []
+for sheet in ('U', 'L'):
+    up_sheet = sheet == 'U'
+    # lips (dense seam) -> first pocket row (24 columns): zipper triangulation by lateral position
+    A = list(sU) if up_sheet else list(sL)
+    tA = ys_seam / ymax
+    B = [idx[(sheet, k, 1)] for k in range(NB)]
+    i, k = 0, 0
+    while i < len(A) - 1 or k < NB - 1:
+        adv_a = k >= NB - 1 or (i < len(A) - 1 and tA[i + 1] <= tB[k + 1])
+        if adv_a:
+            tri = (A[i], B[k], A[i + 1]) if up_sheet else (A[i], A[i + 1], B[k]); i += 1
+        else:
+            tri = (A[i], B[k], B[k + 1]) if up_sheet else (A[i], B[k + 1], B[k]); k += 1
+        PF.append(tri)
+    for k in range(NB - 1):
+        for j in range(1, JP):
+            a, b, c, d = idx[(sheet, k, j)], idx[(sheet, k + 1, j)], idx[(sheet, k + 1, j + 1)], idx[(sheet, k, j + 1)]
+            PF += [(a, c, b), (a, d, c)] if up_sheet else [(a, b, c), (a, c, d)]
+for k in range(NB - 1):                                          # back of the mouth (throat), facing forward
+    a, b, c, d = idx[('U', k, JP)], idx[('U', k + 1, JP)], idx[('L', k + 1, JP)], idx[('L', k, JP)]
+    PF += [(a, c, b), (a, d, c)]
+for k_end, flip in ((0, False), (NB - 1, True)):                 # the two sides, facing inward
+    for j in range(1, JP):
+        a, b, c, d = idx[('U', k_end, j)], idx[('U', k_end, j + 1)], idx[('L', k_end, j + 1)], idx[('L', k_end, j)]
+        PF += [(a, c, b), (a, d, c)] if not flip else [(a, b, c), (a, c, d)]
+    a, b, c = (sU[0], idx[('U', k_end, 1)], idx[('L', k_end, 1)]) if k_end == 0 else (sU[-1], idx[('L', k_end, 1)], idx[('U', k_end, 1)])
+    PF.append((a, b, c))
+PV = np.array(PV, f32); PF = np.array(PF, faces.dtype)
+allv = np.concatenate([verts, PV])
+nP = len(PV)
+verts = allv; faces = np.concatenate([faces, PF])
+tmp = trimesh.Trimesh(verts, faces, process=False)
+vn_all = tmp.vertex_normals.astype(f32)
+N = np.concatenate([N, vn_all[base:]]); Nm = np.concatenate([Nm, vn_all[base:]])
+JW = np.concatenate([JW, np.array(PJ, f32)])
+dlip = np.concatenate([dlip, np.full(nP, 1.0)])
+mzone = np.concatenate([mzone, np.full(nP, 2.0, f32)])            # 2 = mouth lining (front faces)
+pocket_depth = np.concatenate([np.zeros(base, f32), np.array(PL, f32)])
+mo = cat_to_mine(verts)
+print('mouth pocket', nP, 'verts', len(PF), 'faces')
+# tongue lies on the floor of the pocket; canines sit just inside the lips (cat frame, before the final warp)
+Lrows = np.array([pocket_pt(t, j, 'L') for t in np.linspace(-0.6, 0.6, 7) for j in range(2, 7)])
+TONGUE_C = Lrows.mean(0) + up_c * 0.0014 * KS
+TONGUE_R = [0.0105 * KS, 0.0018 * KS, 0.55 * ymax * KS]
+TEETH12 = []
+for frac, jaw in ((0.62, 0), (0.50, 1)):
+    for sgn in (1, -1):
+        p = seam_at(sgn * frac)
+        if jaw == 0:
+            TEETH12.append(dict(b=(p + up_c * 0.0012 * KS + bk_c * 0.0014 * KS), t=(p - up_c * 0.0030 * KS + bk_c * 0.0010 * KS), r=0.0012 * KS, jaw=0))
+        else:
+            TEETH12.append(dict(b=(p - up_c * 0.0016 * KS + bk_c * 0.0020 * KS), t=(p + up_c * 0.0020 * KS + bk_c * 0.0016 * KS), r=0.0010 * KS, jaw=1))
 # ---------------- v12: coat, fur and painted details follow the old head ----------------
 VN = verts                                            # new geometry (output positions, eyes, ears, lids, AO)
 D = parts(VN)                                         # ears / body on the new geometry (after the cut added seam points)
@@ -357,11 +444,11 @@ mouth = np.maximum(mouth, phil)
 
 # v13: the long cheek / jowl / throat fur no longer swallows the muzzle and chin in profile
 mn_ = cat_to_mine(VN)
-front_ = sstep(-0.020, -0.004, mn_[:, 0]) * sstep(-0.014, -0.022, mn_[:, 2]) * (1 - sstep(-0.064, -0.075, mn_[:, 2]))
+front_ = sstep(-0.020, -0.004, mn_[:, 0]) * sstep(-0.014, -0.022, mn_[:, 2]) * (1 - sstep(-0.064, -0.075, mn_[:, 2])) * (1 - sstep(0.009, 0.015, np.abs(mn_[:, 1])))
 cap_ = 0.0060 + 0.030 * (1 - front_)
 flen = np.minimum(flen, cap_)
 # v13: a real cat's chin is short, close fur; it only grows longer toward the throat
-chin_r = sstep(-0.032, -0.040, mn_[:, 2]) * (1 - sstep(-0.078, -0.090, mn_[:, 2])) * sstep(-0.045, -0.025, mn_[:, 0]) * (1 - sstep(0.020, 0.032, np.abs(mn_[:, 1])))
+chin_r = sstep(-0.032, -0.040, mn_[:, 2]) * (1 - sstep(-0.078, -0.090, mn_[:, 2])) * sstep(-0.045, -0.025, mn_[:, 0]) * (1 - sstep(0.011, 0.019, np.abs(mn_[:, 1])))
 cap2 = 0.0040 + 0.0080 * sstep(-0.004, -0.030, mn_[:, 0])
 flen = flen * (1 - chin_r) + np.minimum(flen, cap2) * chin_r
 # comb direction
@@ -432,6 +519,7 @@ flen = np.maximum(flen, fw_ * puff * (1 - rim * 0.95))
 nshort = 0.22 + 0.78 * sstep(0.0012, 0.0085, D['nose'] / HS)
 flen = flen * (1 - headw0 * (1 - nshort))
 flen = np.minimum(flen, cap_)                                   # v13: muzzle sides / chin stay short after the puff
+flen = np.where(mzone > 1.5, 0.0, flen)                         # v14: mouth pocket is bare lining
 flen = flen * (1 - chin_r) + np.minimum(flen, cap2) * chin_r
 nose_pt = H + OH.to_their(OH.NOSE_MINE) * HS
 rad_ = verts - nose_pt
@@ -505,6 +593,7 @@ for k, hh in enumerate([0.004, 0.009, 0.016, 0.026, 0.04]):
     ao += (hh - dd) * sc
     sc *= 0.7
 ao = np.clip(1 - ao * 9.0, 0.15, 1.0)
+ao = np.where(mzone > 1.5, 0.95 - 0.70 * pocket_depth, ao).astype(f32)   # v14: lining darkens toward the throat
 
 
 # deformation weights
@@ -547,10 +636,9 @@ out = dict(rest=b64(REST, '<f4'),
               nose=wpt(H + NH.to_their(NH.NOSE_MINE) * HS), HS=HS,
               eyeGaze=[EYE_FR[i][0].tolist() for i in range(2)], eyeUp=[EYE_FR[i][1].tolist() for i in range(2)],
               eyeAx=[EYE_AX[i].tolist() for i in range(2)], hinge=HINGE_CAT.tolist(),
-              teeth=[dict(b=wpt(mine_to_cat(np.array(t[0]))), t=wpt(mine_to_cat(np.array(t[1]))), r=t[2] * KS, jaw=t[3]) for t in NH.TEETH],
+              teeth=[dict(b=wpt(t['b']), t=wpt(t['t']), r=t['r'], jaw=t['jaw']) for t in TEETH12],
               # mouth cavity (an ellipsoid split at the cut: dome = upper jaw, bowl = lower jaw) and tongue, cat frame
-              mouthC=wpt(mine_to_cat(NH.MOUTH_C + np.array([0.0010, 0.0, 0.0]))), mouthR=[0.0110 * KS, 0.0045 * KS, 0.0115 * KS, 0.0036 * KS],
-              tongueC=wpt(mine_to_cat(NH.MOUTH_C + np.array([0.0020, 0.0, -0.0024]))), tongueR=[0.0098 * KS, 0.0018 * KS, 0.0062 * KS]))
+              tongueC=wpt(TONGUE_C), tongueR=TONGUE_R))
 json.dump(out, open('cat_data.json', 'w'))
 print('stats len', flen.min(), flen.max(), 'ao', ao.min(), ao.mean(), 'white', white.mean())
 trimesh.Trimesh(verts, faces, process=False).export('cat_base.obj')
